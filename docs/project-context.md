@@ -15,6 +15,12 @@ consequential curriculum decisions.
 - Work deliberately and collaboratively. Explain reasoning and tradeoffs;
   distinguish observed facts from inferences and proposals.
 - Start in a VS Code Dev Container; anticipate hosted container development.
+- Docker Compose also supports development and Codex outside VS Code using the
+  same Dockerfile. It shares Codex state but uses a separate Python environment.
+- Use `chineselearning` for the application distribution and Python package,
+  and `chineselearning-init` for database initialization. The host checkout,
+  container workspace paths, Docker resource names, and Codex state volume
+  intentionally retain their existing names; see `.devcontainer/README.md`.
 - Trial stack: Python 3.13, FastAPI, SQLAlchemy, Jinja2, and htmx. SQLite is the
   initial application database, separate from the historical source. Keep
   learning operations independent of presentation for future richer frontends.

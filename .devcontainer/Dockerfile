@@ -18,5 +18,10 @@ RUN apt-get update \
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
+COPY --chmod=0755 compose-entrypoint.sh /usr/local/bin/chinese_learning-entrypoint
+# Seed ownership for Compose's separate Python environment volume.
+RUN mkdir -p /workspaces/chinese_learning/.venv \
+    && chown -R node:node /workspaces/chinese_learning
+
 USER node
 RUN uv python install 3.13

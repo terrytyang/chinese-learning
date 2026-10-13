@@ -8,7 +8,7 @@ There is no web server or migration system in this milestone.
 
 ```sh
 uv sync --locked
-uv run chineselearn-init --output build/trial.sqlite --sql-output build/trial.sql
+uv run chineselearning-init --output build/trial.sqlite --sql-output build/trial.sql
 uv run pytest
 ```
 
@@ -32,7 +32,7 @@ also enable it. The supplied SQLAlchemy engine factory does so automatically.
 
 ## Files and authority
 
-- `src/chineselearn/schema.py`: preliminary SQLAlchemy Core metadata; the logical
+- `src/chineselearning/schema.py`: preliminary SQLAlchemy Core metadata; the logical
   schema definition. This uses existing schema machinery rather than a custom
   meta-schema language or an ORM object model.
 - `data/bootstrap.json`: explicit ordered character selection and optional
@@ -101,8 +101,8 @@ Unicode/apostrophe/newline preservation, and snapshot freshness.
 Generate schema SQL without creating files:
 
 ```sh
-uv run chineselearn-init --print-schema sqlite
-uv run chineselearn-init --print-schema postgresql
+uv run chineselearning-init --print-schema sqlite
+uv run chineselearning-init --print-schema postgresql
 ```
 
 PostgreSQL DDL compilation is tested. PostgreSQL execution, full seed exports,

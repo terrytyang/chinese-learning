@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, event, insert
 from sqlalchemy.dialects import postgresql, sqlite
 from sqlalchemy.schema import CreateTable
 
-from chineselearn.schema import metadata
+from chineselearning.schema import metadata
 
 
 def read_selection(path):
@@ -161,7 +161,7 @@ def build_database(source_path, selection_path, output_path, sql_path=None):
     try:
         for path in outputs:
             path.parent.mkdir(parents=True, exist_ok=True)
-            handle, name = tempfile.mkstemp(prefix=".chineselearn-", dir=path.parent)
+            handle, name = tempfile.mkstemp(prefix=".chineselearning-", dir=path.parent)
             os.close(handle)
             temporary.append(Path(name))
         engine = sqlite_engine(temporary[0])

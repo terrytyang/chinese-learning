@@ -1,0 +1,38 @@
+name: chinese_learning
+
+services:
+  dev:
+    image: chinese_learning_dev:local
+    build:
+      context: .devcontainer
+      dockerfile: Dockerfile
+    user: node
+    working_dir: /workspaces/chinese_learning
+    init: true
+    stdin_open: true
+    tty: true
+    security_opt:
+      - seccomp=unconfined
+    environment:
+      UV_LINK_MODE: copy
+    entrypoint: ["/usr/local/bin/chinese_learning-entrypoint"]
+    command: ["bash"]
+    volumes:
+      - type: bind
+        source: .
+        target: /workspaces/chinese_learning
+      - type: bind
+        source: ./hsk-original
+        target: /workspaces/chinese_learning/hsk-original
+        read_only: true
+      - python_env:/workspaces/chinese_learning/.venv
+      - uv_cache:/home/node/.cache/uv
+      - codex_state:/home/node/.codex
+
+volumes:
+  python_env:
+  uv_cache:
+  codex_state:
+    # Reuse the existing VS Code login/history without copying credentials.
+    external: true
+    name: ${CODEX_STATE_VOLUME:-chineselearn-codex-state}

@@ -14,19 +14,26 @@ This project is an early-stage Chinese learning and teaching system. Read `docs/
 - `hsk-original/README.md`: original dataset documentation, rebuild instructions, and example queries; relative commands run from that directory.
 - `README.md`: application overview and development commands.
 - `.devcontainer/`: VS Code container configuration and setup documentation.
+- `compose.yaml`: standalone development runtime using the same Dockerfile.
 
-The trial stack is Python 3.13, FastAPI, SQLAlchemy, Jinja2, and htmx, with SQLite initially. The first milestone uses only SQLAlchemy and pytest; web dependencies and frontend assets are deferred. `src/chineselearn/` contains the preliminary schema and builder, `data/` contains seed inputs and a generated SQL snapshot, and `tests/` verifies initialization. See `docs/database-bootstrap.md` for scope and limitations.
+The trial stack is Python 3.13, FastAPI, SQLAlchemy, Jinja2, and htmx, with SQLite initially. The first milestone uses only SQLAlchemy and pytest; web dependencies and frontend assets are deferred. `src/chineselearning/` contains the preliminary schema and builder, `data/` contains seed inputs and a generated SQL snapshot, and `tests/` verifies initialization. See `docs/database-bootstrap.md` for scope and limitations.
 
 ## Build, Test, and Development Commands
 
 Open the workspace in the VS Code Dev Container for the configured development environment. There is no web server command yet.
 
+Alternatively, run `docker compose build dev` and `docker compose run --rm dev`
+from the Docker host. Compose synchronizes locked dependencies at startup,
+keeps its Python environment separate from VS Code's, and mounts the historical
+directory read-only. `docker compose run --rm -T dev uv run --locked pytest -q`
+runs tests directly. See `.devcontainer/README.md` for state-volume setup.
+
 For the application data milestone, run from the repository root:
 
 - `uv sync --locked`: install locked application and test dependencies.
-- `uv run chineselearn-init --output build/trial.sqlite --sql-output build/trial.sql`: build fresh outputs; existing files are refused.
+- `uv run chineselearning-init --output build/trial.sqlite --sql-output build/trial.sql`: build fresh outputs; existing files are refused.
 - `uv run pytest`: test initialization, SQL restoration, constraints, and safety boundaries.
-- `uv run chineselearn-init --print-schema postgresql`: compile DDL only, not a tested PostgreSQL build.
+- `uv run chineselearning-init --print-schema postgresql`: compile DDL only, not a tested PostgreSQL build.
 
 These commands apply only to the historical dataset:
 

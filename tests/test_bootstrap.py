@@ -7,8 +7,8 @@ import pytest
 from sqlalchemy import insert, update
 from sqlalchemy.exc import IntegrityError
 
-from chineselearn.bootstrap import build_database, schema_sql, sqlite_engine
-from chineselearn.schema import character_learning, hanzi_character, metadata
+from chineselearning.bootstrap import build_database, schema_sql, sqlite_engine
+from chineselearning.schema import character_learning, hanzi_character, metadata
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "hsk-original" / "hsk_vocab.sqlite"

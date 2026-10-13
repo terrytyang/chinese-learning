@@ -1,5 +1,75 @@
 # Development environment
 
+## Start without VS Code
+
+The root `compose.yaml` uses this same Dockerfile for an independent terminal
+environment. From the project root on the Docker host:
+
+```sh
+docker compose build dev
+docker compose run --rm dev
+```
+
+This opens a shell after synchronizing locked Python dependencies. Inside it,
+run `codex`, `uv run --locked pytest -q`, or the database initialization commands.
+Exiting removes the one-off container; repository edits and named volumes persist.
+
+Run a command directly, without opening a shell:
+
+```sh
+docker compose run --rm dev codex
+docker compose run --rm -T dev uv run --locked pytest -q
+```
+
+For a persistent development container:
+
+```sh
+docker compose up -d dev
+docker compose exec dev bash
+docker compose down
+```
+
+The application distribution and Python package are `chineselearning`, and its
+initialization command is `chineselearning-init`. This setup is for development
+tools; there is no web server or published port yet.
+
+The application rename intentionally leaves these environment names unchanged:
+
+- The existing host checkout directory keeps its name, such as `chineselearn`.
+- VS Code retains its current workspace path (`/workspaces/chineselearn` in the
+  existing container); Compose retains `/workspaces/chinese_learning`.
+- The Compose project remains `chinese_learning`, the image remains
+  `chinese_learning_dev:local`, and the `python_env` and `uv_cache` volume keys
+  retain their project-prefixed Docker names. Service and container names also
+  remain unchanged, as does `/usr/local/bin/chinese_learning-entrypoint`.
+- The shared Codex state volume remains `chineselearn-codex-state`.
+
+These exceptions preserve existing containers, storage, login, and history.
+They are environment identifiers, not alternative application/package names.
+
+Compose binds the repository and mounts `hsk-original/` read-only. A separate
+Python environment volume covers `.venv`, so it cannot overwrite VS Code's
+environment. Its uv cache is also persistent. Run `uv` through the container,
+not against the Compose environment from the host.
+
+Compose shares your existing `chineselearn-codex-state` volume with VS Code.
+This deliberately retains its old name to preserve login and history. The
+volume is external to Compose, so `docker compose down -v` does not delete it;
+that command does delete Compose's Python environment and uv cache. Run separate
+Codex sessions rather than resuming the same session concurrently in both
+environments, and avoid simultaneous edits to the same source files.
+
+On a new Docker host, create the Codex state volume before starting Compose:
+
+```sh
+docker volume create chineselearn-codex-state
+docker compose run --rm dev codex login --device-auth
+```
+
+To use a different state volume name, create it first and set
+`CODEX_STATE_VOLUME` when invoking Compose. That changes the selected storage;
+it does not transfer existing login or history.
+
 ## Start locally
 
 1. Start Docker Desktop.
@@ -34,6 +104,13 @@ Container creation runs `uv sync --locked` to install the project's locked
 dependencies in `.venv`. After pulling dependency changes, run that command
 again. Use `uv run` for application commands and tests. See
 [database initialization](../docs/database-bootstrap.md) for the first milestone.
+
+After the application rename, run `uv sync --locked` in each active environment
+to install `chineselearning` and refresh the `chineselearning-init` command.
+For an existing persistent Compose container, run
+`docker compose exec dev uv sync --locked` from the Docker host; one-off Compose
+containers synchronize on startup. Restart long-lived Python processes to
+reload imports. This naming change does not require recreating containers.
 
 If you already have the original container running, use **Dev Containers:
 Rebuild Container** to obtain uv and Python 3.13. Your Codex state volume survives.
