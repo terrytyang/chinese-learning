@@ -1,0 +1,18 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+.env
+.env.*
+!.env.example
+node_modules/
+.pytest_cache/
+build/
+
+# Local agent state and credentials, if created inside the workspace.
+.codex/
+
+# hsk-original/hsk_vocab.sqlite is intentionally tracked.
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal

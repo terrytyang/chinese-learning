@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "chineselearn"
+version = "0.1.0"
+description = "Rebuildable Chinese learning data bootstrap"
+requires-python = ">=3.13,<3.14"
+dependencies = ["sqlalchemy>=2.0,<2.1"]
+
+[project.scripts]
+chineselearn-init = "chineselearn.bootstrap:main"
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

@@ -1,0 +1,22 @@
+{
+  "name": "Chinese Learning — Codex",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "remoteUser": "node",
+  "runArgs": [
+    "--security-opt", "seccomp=unconfined"
+  ],
+  "mounts": [
+    "source=chineselearn-codex-state,target=/home/node/.codex,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+  "postCreateCommand": "uv sync --locked && codex --version && uv run python --version && sqlite3 --version && git --version && rg --version"
+}

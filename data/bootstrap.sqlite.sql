@@ -1,0 +1,151 @@
+-- Generated from the preliminary SQLAlchemy schema and selected seed data.
+
+-- SQLite snapshot. Import into a fresh database; no source database is needed.
+
+PRAGMA foreign_keys = ON;
+
+BEGIN;
+
+CREATE TABLE hanzi_character (
+	id INTEGER NOT NULL, 
+	simplified VARCHAR NOT NULL, 
+	traditional VARCHAR, 
+	english_gloss TEXT, 
+	usage_note TEXT, 
+	CONSTRAINT pk_hanzi_character PRIMARY KEY (id), 
+	CONSTRAINT ck_hanzi_character_single_simplified CHECK (length(simplified) = 1), 
+	CONSTRAINT ck_hanzi_character_single_traditional CHECK (traditional IS NULL OR length(traditional) = 1), 
+	CONSTRAINT uq_hanzi_character_simplified UNIQUE (simplified)
+);
+
+CREATE TABLE hsk_scheme (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	label TEXT NOT NULL, 
+	max_level INTEGER NOT NULL, 
+	CONSTRAINT pk_hsk_scheme PRIMARY KEY (id), 
+	CONSTRAINT ck_hsk_scheme_positive_max_level CHECK (max_level > 0), 
+	CONSTRAINT uq_hsk_scheme_code UNIQUE (code)
+);
+
+CREATE TABLE learning_status (
+	id INTEGER NOT NULL, 
+	code VARCHAR NOT NULL, 
+	label TEXT NOT NULL, 
+	CONSTRAINT pk_learning_status PRIMARY KEY (id), 
+	CONSTRAINT uq_learning_status_code UNIQUE (code)
+);
+
+CREATE TABLE character_hsk_level (
+	character_id INTEGER NOT NULL, 
+	hsk_scheme_id INTEGER NOT NULL, 
+	level INTEGER NOT NULL, 
+	CONSTRAINT pk_character_hsk_level PRIMARY KEY (character_id, hsk_scheme_id), 
+	CONSTRAINT ck_character_hsk_level_positive_level CHECK (level > 0), 
+	CONSTRAINT fk_character_hsk_level_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id), 
+	CONSTRAINT fk_character_hsk_level_hsk_scheme_id_hsk_scheme FOREIGN KEY(hsk_scheme_id) REFERENCES hsk_scheme (id)
+);
+
+CREATE TABLE character_learning (
+	character_id INTEGER NOT NULL, 
+	recognition_status_id INTEGER NOT NULL, 
+	production_status_id INTEGER NOT NULL, 
+	CONSTRAINT pk_character_learning PRIMARY KEY (character_id), 
+	CONSTRAINT fk_character_learning_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id), 
+	CONSTRAINT fk_character_learning_recognition_status_id_learning_status FOREIGN KEY(recognition_status_id) REFERENCES learning_status (id), 
+	CONSTRAINT fk_character_learning_production_status_id_learning_status FOREIGN KEY(production_status_id) REFERENCES learning_status (id)
+);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (1, '学', '學', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (2, '银', '銀', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (3, '行', '行', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (4, '客', '客', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (5, '发', '發', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (6, '后', '后', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (7, '么', '麼', NULL, NULL);
+
+INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (8, '服', '服', NULL, NULL);
+
+INSERT INTO hsk_scheme (id, code, label, max_level) VALUES (1, 'new', 'HSK 3.0 (2021 standard)', 7);
+
+INSERT INTO hsk_scheme (id, code, label, max_level) VALUES (2, 'newest', 'HSK 3.0 (2026 syllabus)', 7);
+
+INSERT INTO hsk_scheme (id, code, label, max_level) VALUES (3, 'old', 'HSK 2.0', 6);
+
+INSERT INTO learning_status (id, code, label) VALUES (1, 'not_encountered', 'Not yet encountered');
+
+INSERT INTO learning_status (id, code, label) VALUES (2, 'learning', 'Learning');
+
+INSERT INTO learning_status (id, code, label) VALUES (3, 'known', 'Known');
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (1, 1, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (1, 2, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (1, 3, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (2, 1, 2);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (2, 2, 3);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (2, 3, 3);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (3, 1, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (3, 2, 3);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (3, 3, 2);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (4, 1, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (4, 2, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (4, 3, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (5, 1, 2);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (5, 2, 3);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (5, 3, 3);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (6, 1, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (6, 2, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (6, 3, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (7, 1, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (7, 2, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (7, 3, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (8, 1, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (8, 2, 1);
+
+INSERT INTO character_hsk_level (character_id, hsk_scheme_id, level) VALUES (8, 3, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (1, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (2, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (3, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (4, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (5, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (6, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (7, 1, 1);
+
+INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (8, 1, 1);
+
+COMMIT;
