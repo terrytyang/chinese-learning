@@ -12,13 +12,21 @@ from sqlalchemy.dialects import postgresql, sqlite
 from sqlalchemy.schema import CreateTable
 
 from chineselearning.schema import metadata
+from chineselearning.inventory_selection import validate_manifest, verify_source_bands
 
 
 def read_selection(path):
     spec = json.loads(Path(path).read_text(encoding="utf-8"))
-    if not isinstance(spec, dict) or set(spec) != {"characters"}:
-        raise ValueError("Seed must contain only a 'characters' array")
-    records = spec["characters"]
+    if not isinstance(spec, dict) or set(spec) not in (
+        {"characters"}, {"inventory", "characters"}
+    ):
+        raise ValueError("Seed must contain characters and optional inventory metadata")
+    if "inventory" in spec:
+        validate_manifest(spec)
+        records = [{k: v for k, v in record.items() if k != "hsk_level"}
+                   for record in spec["characters"]]
+    else:
+        records = spec["characters"]
     if not isinstance(records, list) or not records:
         raise ValueError("Select at least one character")
     seen = set()
@@ -65,6 +73,9 @@ def prepare_rows(source_path, selection_path):
     source = sqlite3.connect(uri, uri=True)
     try:
         source.execute("PRAGMA query_only = ON")
+        spec = json.loads(Path(selection_path).read_text(encoding="utf-8"))
+        if "inventory" in spec:
+            verify_source_bands(source, spec["characters"])
         scheme_ids = {}
         for scheme_id, (code, label, max_level) in enumerate(
             source.execute(

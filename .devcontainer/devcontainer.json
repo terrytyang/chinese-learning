@@ -5,6 +5,13 @@
     "context": "."
   },
   "remoteUser": "node",
+  "forwardPorts": [8000],
+  "portsAttributes": {
+    "8000": {
+      "label": "Character inventory",
+      "onAutoForward": "notify"
+    }
+  },
   "runArgs": [
     "--security-opt", "seccomp=unconfined"
   ],
@@ -14,7 +21,8 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash"
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "remote.localPortHost": "localhost"
       }
     }
   },

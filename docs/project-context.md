@@ -75,7 +75,7 @@ remain to be designed.
 
 ## Current next step
 
-The first implementation milestone is a small rebuildable character database.
+The first data milestone is a small rebuildable character database.
 See `docs/database-bootstrap.md` for its commands, scope, and limitations.
 English glosses start null and will be enriched separately after the schema
 settles. Traditional forms are optional, retaining only one best-effort match.
@@ -83,6 +83,10 @@ Recognition and production have separate status references for a single trial
 learner. HSK schemes and character levels live in related tables.
 
 The eight-character seed and generated SQL snapshot are intended for source
-control; application database files are disposable build outputs. FastAPI and
-presentation dependencies are deferred until web implementation. The project
-uses local Git on `main`; remote hosting remains undecided.
+control; application database files are disposable build outputs. The first
+inventory page now adds FastAPI, Jinja2, plain CSS, and a fetch-based JavaScript
+module. See `docs/character-inventory.md` for the saved 140-character selection,
+read-only API, local server commands, and verification limitations. It retains
+the normalized schema and the original eight-character fixture. Status editing,
+pronunciation, content enrichment, learner accounts, and htmx remain deferred.
+The project uses local Git on `main`; remote hosting remains undecided.

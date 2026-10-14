@@ -31,7 +31,8 @@ docker compose down
 
 The application distribution and Python package are `chineselearning`, and its
 initialization command is `chineselearning-init`. This setup is for development
-tools; there is no web server or published port yet.
+tools. The inventory trial serves its page and API on port 8000; Compose publishes
+that port only on host `127.0.0.1`.
 
 The application rename intentionally leaves these environment names unchanged:
 
@@ -111,6 +112,22 @@ For an existing persistent Compose container, run
 `docker compose exec dev uv sync --locked` from the Docker host; one-off Compose
 containers synchronize on startup. Restart long-lived Python processes to
 reload imports. This naming change does not require recreating containers.
+
+## Run the inventory trial
+
+See [character inventory](../docs/character-inventory.md) for fresh database
+builds and the server command. VS Code forwards port 8000 to localhost; in an
+already-running Dev Container, use the Ports panel to forward it manually if
+needed. Compose publishes `127.0.0.1:8000:8000`; run one-off servers with
+`docker compose run --rm --service-ports dev ...` to enable that mapping.
+
+After this dependency update, run `uv sync --locked` in the Dev Container and
+`docker compose exec dev uv sync --locked` for an active Compose environment.
+Restart any Python server after syncing. Existing Compose containers do not
+acquire new published ports automatically. To try the page without recreating
+them, start a separate one-off server with `--service-ports` as documented.
+Avoid simultaneous dependency synchronization in containers sharing `.venv`.
+Workspace paths, Docker resource names, and Codex state storage are unchanged.
 
 If you already have the original container running, use **Dev Containers:
 Rebuild Container** to obtain uv and Python 3.13. Your Codex state volume survives.

@@ -15,6 +15,8 @@ services:
       - seccomp=unconfined
     environment:
       UV_LINK_MODE: copy
+    ports:
+      - "127.0.0.1:8000:8000"
     entrypoint: ["/usr/local/bin/chinese_learning-entrypoint"]
     command: ["bash"]
     volumes:

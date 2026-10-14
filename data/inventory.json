@@ -1,0 +1,851 @@
+{
+  "inventory": {
+    "scheme": "newest",
+    "label": "HSK 3.0 (2026 syllabus)",
+    "random_seed": 20261014,
+    "per_band": 20,
+    "sampling": "Python random.Random.sample over Unicode-sorted candidates, bands 1–7"
+  },
+  "characters": [
+    {
+      "simplified": "百",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "日",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "兴",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "爱",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "系",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "元",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "西",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "弟",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "期",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "您",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "四",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "欢",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "外",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "喂",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "手",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "士",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "菜",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "零",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "对",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "要",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 1
+    },
+    {
+      "simplified": "快",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "错",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "每",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "步",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "已",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "室",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "但",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "药",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "运",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "比",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "虽",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "思",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "自",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "画",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "跟",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "绿",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "等",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "最",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "跑",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "己",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 2
+    },
+    {
+      "simplified": "聪",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "总",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "北",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "牙",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "扫",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "员",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "空",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "受",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "乎",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "凉",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "矿",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "查",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "算",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "嘴",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "腿",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "又",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "声",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "姨",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "板",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "直",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 3
+    },
+    {
+      "simplified": "伤",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "招",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "骄",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "装",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "勇",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "围",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "丽",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "庭",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "烟",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "破",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "严",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "与",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "频",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "巴",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "傅",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "拉",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "疑",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "误",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "递",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "赚",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 4
+    },
+    {
+      "simplified": "烈",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "软",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "占",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "阻",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "敬",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "乏",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "慎",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "丑",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "叉",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "逐",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "穷",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "漏",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "补",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "代",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "巨",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "亏",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "魅",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "辞",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "墙",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "碌",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 5
+    },
+    {
+      "simplified": "撑",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "跃",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "循",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "棋",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "拔",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "丧",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "庞",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "嫁",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "坛",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "酱",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "罐",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "耗",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "恶",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "圈",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "迫",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "庄",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "核",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "祖",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "扎",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "睁",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 6
+    },
+    {
+      "simplified": "愚",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "梢",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "恒",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "倦",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "倘",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "酌",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "陡",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "阐",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "钩",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "亭",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "陈",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "钙",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "盏",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "炖",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "楷",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "畔",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "嘈",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "蘸",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "驭",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    },
+    {
+      "simplified": "芬",
+      "english_gloss": null,
+      "usage_note": null,
+      "hsk_level": 7
+    }
+  ]
+}

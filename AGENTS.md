@@ -16,11 +16,11 @@ This project is an early-stage Chinese learning and teaching system. Read `docs/
 - `.devcontainer/`: VS Code container configuration and setup documentation.
 - `compose.yaml`: standalone development runtime using the same Dockerfile.
 
-The trial stack is Python 3.13, FastAPI, SQLAlchemy, Jinja2, and htmx, with SQLite initially. The first milestone uses only SQLAlchemy and pytest; web dependencies and frontend assets are deferred. `src/chineselearning/` contains the preliminary schema and builder, `data/` contains seed inputs and a generated SQL snapshot, and `tests/` verifies initialization. See `docs/database-bootstrap.md` for scope and limitations.
+The trial stack is Python 3.13, FastAPI, SQLAlchemy, Jinja2, and htmx, with SQLite initially. The inventory uses FastAPI, Jinja2, plain CSS, and a small fetch-based JavaScript module; htmx is deferred. `src/chineselearning/` contains the schema, builder, query module, and web application; `data/` contains seed inputs and generated SQL snapshots. See `docs/database-bootstrap.md` and `docs/character-inventory.md` for scope and limitations.
 
 ## Build, Test, and Development Commands
 
-Open the workspace in the VS Code Dev Container for the configured development environment. There is no web server command yet.
+Open the workspace in the VS Code Dev Container for the configured development environment. Build a fresh inventory database before starting the web server; see `docs/character-inventory.md` for commands.
 
 Alternatively, run `docker compose build dev` and `docker compose run --rm dev`
 from the Docker host. Compose synchronizes locked dependencies at startup,
@@ -33,6 +33,7 @@ For the application data milestone, run from the repository root:
 - `uv sync --locked`: install locked application and test dependencies.
 - `uv run chineselearning-init --output build/trial.sqlite --sql-output build/trial.sql`: build fresh outputs; existing files are refused.
 - `uv run pytest`: test initialization, SQL restoration, constraints, and safety boundaries.
+- `node tests/inventory_controller.test.mjs`: verify inventory controls and request races without a browser.
 - `uv run chineselearning-init --print-schema postgresql`: compile DDL only, not a tested PostgreSQL build.
 
 These commands apply only to the historical dataset:

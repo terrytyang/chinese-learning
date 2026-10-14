@@ -2,7 +2,8 @@
 
 This milestone builds a disposable application database containing eight
 characters. The historical HSK database and its original files are unchanged.
-There is no web server or migration system in this milestone.
+This eight-character fixture remains independent of the later
+[character inventory page](character-inventory.md). There is no migration system.
 
 ## Run in the development container
 
@@ -37,6 +38,9 @@ also enable it. The supplied SQLAlchemy engine factory does so automatically.
   meta-schema language or an ORM object model.
 - `data/bootstrap.json`: explicit ordered character selection and optional
   curated glosses/usage notes. These are currently all null.
+- `data/inventory.json`: separate fixed 140-character inventory manifest with
+  sampling metadata and exact first-appearance bands. Pass it with `--seed`;
+  ordinary builds reuse it without sampling. It has its own SQL snapshot.
 - `hsk-original/hsk_vocab.sqlite`: read-only source of best-effort traditional forms and
   derived character classifications.
 - `data/bootstrap.sqlite.sql`: generated, reviewable schema and seed snapshot.

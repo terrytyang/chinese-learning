@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Character inventory · Chineselearning</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='inventory.css') }}">
+  <script type="module" src="{{ url_for('static', path='inventory.js') }}"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Chineselearning · Trial collection</p>
+      <h1>Character inventory</h1>
+      <p class="intro">HSK 3.0 (2026 syllabus) <span class="separator">/</span> 20 characters from each first-appearance band</p>
+      <p class="note">Bands come from a character’s first appearance in the historical vocabulary dataset,
+        rather than an independent character syllabus. Band 7–9 is one combined band.</p>
+    </header>
+
+    <section aria-label="Inventory controls" class="controls">
+      <div>
+        <label for="band">First-appearance band</label>
+        <select id="band">
+          <option value="">All bands</option>
+          {% for level in range(1, 8) %}
+          <option value="{{ level }}">{{ '7–9' if level == 7 else level }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="page-size">Characters per page</label>
+        <select id="page-size">
+          <option value="10">10</option>
+          <option value="20" selected>20</option>
+          <option value="50">50</option>
+          <option value="100">100</option>
+        </select>
+      </div>
+      <p class="note">Choose an exact band. Lower bands are not included.</p>
+    </section>
+
+    <p id="message" role="status" aria-live="polite">Loading characters…</p>
+    <button id="retry" type="button" hidden>Retry loading</button>
+    <noscript><p>Enable JavaScript to load the inventory and use its controls.</p></noscript>
+
+    <section id="inventory" aria-label="Character inventory" aria-busy="true">
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Scrollable inventory table">
+        <table>
+          <caption>Selected characters and trial learning state</caption>
+          <thead>
+            <tr>
+              <th scope="col" id="simplified-heading" aria-sort="ascending">
+                <button type="button" data-sort="simplified">Simplified character <span data-direction aria-hidden="true">↑</span></button>
+              </th>
+              <th scope="col">Traditional form</th>
+              <th scope="col">English gloss</th>
+              <th scope="col" id="level-heading" aria-sort="none">
+                <button type="button" data-sort="hsk_level">HSK band <span data-direction aria-hidden="true">↕</span></button>
+              </th>
+              <th scope="col">Recognition status</th>
+              <th scope="col">Production status</th>
+              <th scope="col">Usage note</th>
+            </tr>
+          </thead>
+          <tbody id="characters"></tbody>
+        </table>
+      </div>
+      <nav aria-label="Inventory pages" class="pagination">
+        <p id="counts" aria-live="polite">Waiting for results</p>
+        <div>
+          <button id="previous" type="button" disabled>Previous</button>
+          <button id="next" type="button" disabled>Next</button>
+        </div>
+      </nav>
+    </section>
+
+    <footer>
+      <p>“Not yet encountered” is placeholder trial state, not a student assessment.
+        Recognition and production are tracked separately.</p>
+      <p><span class="missing">Not provided</span> marks missing information.
+        Traditional forms are optional, best-effort candidates. Pronunciation is not shown.</p>
+    </footer>
+  </main>
+</body>
+</html>
