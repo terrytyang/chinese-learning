@@ -9,6 +9,7 @@ from sqlalchemy import (
     String,
     Table,
     Text,
+    UniqueConstraint,
 )
 
 metadata = MetaData(
@@ -69,4 +70,57 @@ character_learning = Table(
         "recognition_status_id", ForeignKey("learning_status.id"), nullable=False
     ),
     Column("production_status_id", ForeignKey("learning_status.id"), nullable=False),
+)
+
+vocabulary_entry = Table(
+    "vocabulary_entry",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=False),
+    Column("simplified", Text, nullable=False),
+    CheckConstraint("length(simplified) > 0", name="nonempty_simplified"),
+)
+
+vocabulary_reading = Table(
+    "vocabulary_reading",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=False),
+    Column("vocabulary_id", ForeignKey("vocabulary_entry.id"), nullable=False),
+    Column("position", Integer, nullable=False),
+    Column("traditional", Text, nullable=False),
+    Column("pinyin", Text, nullable=False),
+    Column("numeric", Text, nullable=False),
+    Column("wadegiles", Text, nullable=False),
+    Column("bopomofo", Text, nullable=False),
+    Column("romatzyh", Text, nullable=False),
+    UniqueConstraint("vocabulary_id", "position"),
+    CheckConstraint("position > 0", name="positive_position"),
+)
+
+vocabulary_meaning = Table(
+    "vocabulary_meaning",
+    metadata,
+    Column("reading_id", ForeignKey("vocabulary_reading.id"), primary_key=True),
+    Column("position", Integer, primary_key=True),
+    Column("meaning", Text, nullable=False),
+    CheckConstraint("position > 0", name="positive_position"),
+)
+
+vocabulary_hsk_level = Table(
+    "vocabulary_hsk_level",
+    metadata,
+    Column("vocabulary_id", ForeignKey("vocabulary_entry.id"), primary_key=True),
+    Column("position", Integer, primary_key=True),
+    Column("hsk_scheme_id", ForeignKey("hsk_scheme.id"), nullable=False),
+    Column("level", Integer, nullable=False),
+    CheckConstraint("position > 0", name="positive_position"),
+    CheckConstraint("level > 0", name="positive_level"),
+)
+
+vocabulary_character = Table(
+    "vocabulary_character",
+    metadata,
+    Column("vocabulary_id", ForeignKey("vocabulary_entry.id"), primary_key=True),
+    Column("position", Integer, primary_key=True),
+    Column("character_id", ForeignKey("hanzi_character.id"), nullable=False),
+    CheckConstraint("position > 0", name="positive_position"),
 )

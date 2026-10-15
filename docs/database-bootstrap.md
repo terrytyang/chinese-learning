@@ -58,9 +58,10 @@ then regenerate the SQL. Construction performs no AI calls.
 
 The sample is 学, 银, 行, 客, 发, 后, 么, 服. It exercises shared characters,
 polyphonic source entries, bound characters without standalone source entries,
-and ambiguous traditional forms. Readings are not imported in this milestone.
+and ambiguous traditional forms. Character readings are not imported. Vocabulary readings are retained only in
+the separate HSK extraction build described below.
 
-The five tables are:
+The five character tables are:
 
 | Table | Purpose |
 | --- | --- |
@@ -92,7 +93,11 @@ Glosses and usage notes are nullable and left blank until curated. Learning
 statuses initially say not_encountered for both dimensions as placeholder trial
 state, not an assertion about the student's actual knowledge. There are no
 learner accounts, practice events, compound definitions, pronunciation tables,
-or full character-variant relationships yet.
+or full character-variant relationships in this character fixture.
+The later [HSK extraction increment](hsk-extraction.md) adds five vocabulary
+tables and JSON-only loading through `chineselearning-init --extracted FILE`.
+Both original fixture snapshots include those tables empty. Default builds
+continue to use the eight-character seed and historical read-only source.
 
 ## Tests and portability
 

@@ -16,6 +16,7 @@ dependencies = [
 
 [project.scripts]
 chineselearning-init = "chineselearning.bootstrap:main"
+chineselearning-extract = "chineselearning.extraction:main"
 
 [dependency-groups]
 dev = [

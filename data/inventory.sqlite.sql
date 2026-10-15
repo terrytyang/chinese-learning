@@ -36,6 +36,13 @@ CREATE TABLE learning_status (
 	CONSTRAINT uq_learning_status_code UNIQUE (code)
 );
 
+CREATE TABLE vocabulary_entry (
+	id INTEGER NOT NULL, 
+	simplified TEXT NOT NULL, 
+	CONSTRAINT pk_vocabulary_entry PRIMARY KEY (id), 
+	CONSTRAINT ck_vocabulary_entry_nonempty_simplified CHECK (length(simplified) > 0)
+);
+
 CREATE TABLE character_hsk_level (
 	character_id INTEGER NOT NULL, 
 	hsk_scheme_id INTEGER NOT NULL, 
@@ -54,6 +61,53 @@ CREATE TABLE character_learning (
 	CONSTRAINT fk_character_learning_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id), 
 	CONSTRAINT fk_character_learning_recognition_status_id_learning_status FOREIGN KEY(recognition_status_id) REFERENCES learning_status (id), 
 	CONSTRAINT fk_character_learning_production_status_id_learning_status FOREIGN KEY(production_status_id) REFERENCES learning_status (id)
+);
+
+CREATE TABLE vocabulary_character (
+	vocabulary_id INTEGER NOT NULL, 
+	position INTEGER NOT NULL, 
+	character_id INTEGER NOT NULL, 
+	CONSTRAINT pk_vocabulary_character PRIMARY KEY (vocabulary_id, position), 
+	CONSTRAINT ck_vocabulary_character_positive_position CHECK (position > 0), 
+	CONSTRAINT fk_vocabulary_character_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id), 
+	CONSTRAINT fk_vocabulary_character_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id)
+);
+
+CREATE TABLE vocabulary_hsk_level (
+	vocabulary_id INTEGER NOT NULL, 
+	position INTEGER NOT NULL, 
+	hsk_scheme_id INTEGER NOT NULL, 
+	level INTEGER NOT NULL, 
+	CONSTRAINT pk_vocabulary_hsk_level PRIMARY KEY (vocabulary_id, position), 
+	CONSTRAINT ck_vocabulary_hsk_level_positive_position CHECK (position > 0), 
+	CONSTRAINT ck_vocabulary_hsk_level_positive_level CHECK (level > 0), 
+	CONSTRAINT fk_vocabulary_hsk_level_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id), 
+	CONSTRAINT fk_vocabulary_hsk_level_hsk_scheme_id_hsk_scheme FOREIGN KEY(hsk_scheme_id) REFERENCES hsk_scheme (id)
+);
+
+CREATE TABLE vocabulary_reading (
+	id INTEGER NOT NULL, 
+	vocabulary_id INTEGER NOT NULL, 
+	position INTEGER NOT NULL, 
+	traditional TEXT NOT NULL, 
+	pinyin TEXT NOT NULL, 
+	numeric TEXT NOT NULL, 
+	wadegiles TEXT NOT NULL, 
+	bopomofo TEXT NOT NULL, 
+	romatzyh TEXT NOT NULL, 
+	CONSTRAINT pk_vocabulary_reading PRIMARY KEY (id), 
+	CONSTRAINT uq_vocabulary_reading_vocabulary_id UNIQUE (vocabulary_id, position), 
+	CONSTRAINT ck_vocabulary_reading_positive_position CHECK (position > 0), 
+	CONSTRAINT fk_vocabulary_reading_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id)
+);
+
+CREATE TABLE vocabulary_meaning (
+	reading_id INTEGER NOT NULL, 
+	position INTEGER NOT NULL, 
+	meaning TEXT NOT NULL, 
+	CONSTRAINT pk_vocabulary_meaning PRIMARY KEY (reading_id, position), 
+	CONSTRAINT ck_vocabulary_meaning_positive_position CHECK (position > 0), 
+	CONSTRAINT fk_vocabulary_meaning_reading_id_vocabulary_reading FOREIGN KEY(reading_id) REFERENCES vocabulary_reading (id)
 );
 
 INSERT INTO hanzi_character (id, simplified, traditional, english_gloss, usage_note) VALUES (1, '百', '百', NULL, NULL);

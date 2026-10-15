@@ -202,3 +202,29 @@ def test_inventory_snapshot_serves_all_140_characters_without_historical_source(
                        for item in data["items"])
             seen.update(item["simplified"] for item in data["items"])
         assert len(seen) == 140
+
+
+def test_hsk_extraction_database_serves_character_api_without_source(tmp_path):
+    from chineselearning.bootstrap import build_extracted_database
+    root = Path(__file__).resolve().parents[1]
+    database = tmp_path / "hsk.sqlite"
+    build_extracted_database(root / "data/hsk-newest-level1.json", database)
+    with TestClient(create_app(database)) as client:
+        data = client.get("/api/characters?hsk_level=1&page_size=100").json()
+        assert data["total"] == 248 and data["total_pages"] == 3
+        seen = set()
+        for page in range(1, 4):
+            data = client.get(f"/api/characters?hsk_level=1&page_size=100&page={page}").json()
+            assert all(item["english_gloss"] is None for item in data["items"])
+            seen.update(item["simplified"] for item in data["items"])
+        assert len(seen) == 248
+
+
+def test_character_only_database_remains_compatible(application_db):
+    path, _ = application_db
+    with sqlite3.connect(path) as connection:
+        for name in ("vocabulary_meaning", "vocabulary_reading", "vocabulary_character",
+                     "vocabulary_hsk_level", "vocabulary_entry"):
+            connection.execute(f"DROP TABLE {name}")
+    with TestClient(create_app(path)) as client:
+        assert client.get("/api/characters").json()["total"] == 25

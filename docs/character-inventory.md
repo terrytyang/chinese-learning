@@ -20,12 +20,15 @@ builder validates the manifest's band assignments against the historical
 source during preparation. Ordinary rebuilds reuse the selected characters;
 they do not invoke sampling. IDs follow saved manifest order.
 
-The existing normalized five-table schema is unchanged. The builder retains
+The existing five character tables are unchanged. Fresh builds also include
+five empty vocabulary tables from the [HSK extraction increment](hsk-extraction.md). The builder retains
 all available scheme memberships, optional single best-effort traditional
 forms, NULL English glosses and usage notes, and separate recognition and
 production statuses. Initial `not_encountered` codes are placeholder trial
 state, not actual student assessments. Status editing, accounts, enrichment,
-pronunciation, vocabulary tables, and character-type classification are absent.
+character pronunciation and character-type classification remain absent. The
+separate HSK-1 extraction has 294 vocabulary entries and 248 characters; it does
+not replace this sample or change its page labels.
 
 Run from the repository root in the development container:
 

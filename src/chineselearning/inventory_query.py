@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, func, inspect, select
 
 from chineselearning.schema import (
     character_hsk_level, character_learning, hanzi_character, hsk_scheme,
-    learning_status, metadata,
+    learning_status,
 )
 
 SCHEMES = ("old", "new", "newest")
@@ -41,7 +41,8 @@ def open_inventory_database(path):
     engine = create_engine("sqlite+pysqlite://", creator=connect)
     try:
         inspector = inspect(engine)
-        for table in metadata.sorted_tables:
+        for table in (hanzi_character, hsk_scheme, character_hsk_level,
+                      learning_status, character_learning):
             if not inspector.has_table(table.name):
                 raise ValueError("Database is not an initialized application inventory")
             columns = {column["name"] for column in inspector.get_columns(table.name)}

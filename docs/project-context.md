@@ -89,4 +89,15 @@ module. See `docs/character-inventory.md` for the saved 140-character selection,
 read-only API, local server commands, and verification limitations. It retains
 the normalized schema and the original eight-character fixture. Status editing,
 pronunciation, content enrichment, learner accounts, and htmx remain deferred.
+A separate [HSK extraction process](hsk-extraction.md) now saves versioned,
+self-contained vocabulary/character JSON. Its first trial is `newest`, exact
+level 1: 294 vocabulary entries, 248 characters, 396 reading/form records, and
+1,115 meanings. Five vocabulary tables preserve independent application IDs,
+optional ordered HSK memberships, source traditional forms/readings and ordered
+meanings, and ordered character constituents. The initializer can build from
+this JSON without the historical database. The eight- and 140-character seeds
+remain separate fixtures; the inventory page still describes the latter.
+Character pronunciation, vocabulary learner state, text storage/matching, and
+automatic enrichment remain deferred.
+
 The project uses local Git on `main`; remote hosting remains undecided.

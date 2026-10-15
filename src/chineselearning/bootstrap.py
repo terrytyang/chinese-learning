@@ -10,8 +10,10 @@ import tempfile
 from sqlalchemy import create_engine, event, insert
 from sqlalchemy.dialects import postgresql, sqlite
 from sqlalchemy.schema import CreateTable
+from sqlalchemy.exc import SQLAlchemyError
 
 from chineselearning.schema import metadata
+from chineselearning.hsk_source import open_source, traditional_candidate
 from chineselearning.inventory_selection import validate_manifest, verify_source_bands
 
 
@@ -47,32 +49,10 @@ def read_selection(path):
     return records
 
 
-def traditional_candidate(source, char):
-    """Prefer standalone entries, then shorter words; retain the first form only.
-
-    Compounds supply a positional candidate only when both forms have equal
-    code-point lengths. This is a best-effort reference, not a conversion engine.
-    """
-    rows = source.execute(
-        """SELECT e.simplified, c.position, f.traditional
-           FROM hsk_entry_char c
-           JOIN hsk_entry e USING (entry_id)
-           JOIN hsk_form f USING (entry_id)
-           WHERE c.char = ? AND length(e.simplified) = length(f.traditional)
-           ORDER BY length(e.simplified), e.entry_id, f.form_seq, c.position""",
-        (char,),
-    )
-    row = rows.fetchone()
-    return row[2][row[1] - 1] if row else None
-
-
 def prepare_rows(source_path, selection_path):
     records = read_selection(selection_path)
-    uri = Path(source_path).resolve().as_uri() + "?mode=ro"
     rows = {table.name: [] for table in metadata.sorted_tables}
-    source = sqlite3.connect(uri, uri=True)
-    try:
-        source.execute("PRAGMA query_only = ON")
+    with open_source(source_path) as source:
         spec = json.loads(Path(selection_path).read_text(encoding="utf-8"))
         if "inventory" in spec:
             verify_source_bands(source, spec["characters"])
@@ -109,14 +89,66 @@ def prepare_rows(source_path, selection_path):
             rows["character_learning"].append(
                 dict(character_id=character_id, recognition_status_id=1, production_status_id=1)
             )
-    finally:
-        source.close()
-    rows["learning_status"] = [
+    rows["learning_status"] = learning_status_rows()
+    return rows
+
+
+def prepare_extracted_rows(extraction_path):
+    """Prepare application rows using only a validated, self-contained JSON file."""
+    from chineselearning.extraction import READING_FIELDS, validate_document
+
+    spec = validate_document(json.loads(Path(extraction_path).read_text(encoding="utf-8")))
+    rows = {table.name: [] for table in metadata.sorted_tables}
+    rows["learning_status"] = learning_status_rows()
+    scheme_ids = {}
+    for scheme_id, scheme in enumerate(spec["schemes"], 1):
+        scheme_ids[scheme["code"]] = scheme_id
+        rows["hsk_scheme"].append(dict(id=scheme_id, **scheme))
+    character_ids = {}
+    for character_id, record in enumerate(spec["characters"], 1):
+        character_ids[record["simplified"]] = character_id
+        rows["hanzi_character"].append(dict(
+            id=character_id, **{key: value for key, value in record.items() if key != "hsk_levels"}
+        ))
+        for membership in record["hsk_levels"]:
+            rows["character_hsk_level"].append(dict(
+                character_id=character_id, hsk_scheme_id=scheme_ids[membership["scheme"]],
+                level=membership["level"],
+            ))
+        rows["character_learning"].append(dict(
+            character_id=character_id, recognition_status_id=1, production_status_id=1,
+        ))
+    reading_id = 0
+    for vocabulary_id, word in enumerate(spec["vocabulary"], 1):
+        rows["vocabulary_entry"].append(dict(id=vocabulary_id, simplified=word["simplified"]))
+        for position, membership in enumerate(word["hsk_levels"], 1):
+            rows["vocabulary_hsk_level"].append(dict(
+                vocabulary_id=vocabulary_id, position=position,
+                hsk_scheme_id=scheme_ids[membership["scheme"]], level=membership["level"],
+            ))
+        for position, char in enumerate(word["constituents"], 1):
+            rows["vocabulary_character"].append(dict(
+                vocabulary_id=vocabulary_id, position=position, character_id=character_ids[char],
+            ))
+        for position, reading in enumerate(word["readings"], 1):
+            reading_id += 1
+            rows["vocabulary_reading"].append(dict(
+                id=reading_id, vocabulary_id=vocabulary_id, position=position,
+                **{key: reading[key] for key in READING_FIELDS},
+            ))
+            for meaning_position, meaning in enumerate(reading["meanings"], 1):
+                rows["vocabulary_meaning"].append(dict(
+                    reading_id=reading_id, position=meaning_position, meaning=meaning,
+                ))
+    return rows
+
+
+def learning_status_rows():
+    return [
         dict(id=1, code="not_encountered", label="Not yet encountered"),
         dict(id=2, code="learning", label="Learning"),
         dict(id=3, code="known", label="Known"),
     ]
-    return rows
 
 
 def schema_sql(dialect_name="sqlite"):
@@ -156,16 +188,31 @@ def sqlite_engine(path):
 
 
 def build_database(source_path, selection_path, output_path, sql_path=None):
-    output = Path(output_path).resolve()
-    sql_output = Path(sql_path).resolve() if sql_path is not None else None
-    protected = {Path(source_path).resolve(), Path(selection_path).resolve()}
+    return _build_database(
+        lambda: prepare_rows(source_path, selection_path),
+        [source_path, selection_path], output_path, sql_path,
+    )
+
+
+def build_extracted_database(extraction_path, output_path, sql_path=None):
+    return _build_database(
+        lambda: prepare_extracted_rows(extraction_path),
+        [extraction_path], output_path, sql_path,
+    )
+
+
+def _build_database(prepare, input_paths, output_path, sql_path):
+    output = Path(output_path).absolute()
+    sql_output = Path(sql_path).absolute() if sql_path is not None else None
+    protected = {Path(path).resolve() for path in input_paths}
     outputs = [output] + ([sql_output] if sql_output else [])
-    if len(set(outputs)) != len(outputs) or any(path in protected for path in outputs):
+    resolved = [path.resolve() for path in outputs]
+    if len(set(resolved)) != len(outputs) or any(path in protected for path in resolved):
         raise ValueError("Outputs must be distinct from each other and the inputs")
     for path in outputs:
         if path.exists() or path.is_symlink():
             raise FileExistsError(f"Refusing to overwrite: {path}")
-    rows = prepare_rows(source_path, selection_path)
+    rows = prepare()
     sql_text = snapshot_sql(rows) if sql_output else None
     temporary = []
     published = []
@@ -206,8 +253,10 @@ def build_database(source_path, selection_path, output_path, sql_path=None):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", type=Path, default=Path("hsk-original/hsk_vocab.sqlite"))
-    parser.add_argument("--seed", type=Path, default=Path("data/bootstrap.json"))
+    parser.add_argument("--source", type=Path)
+    inputs = parser.add_mutually_exclusive_group()
+    inputs.add_argument("--seed", type=Path)
+    inputs.add_argument("--extracted", type=Path, help="Self-contained extracted JSON; no historical source access")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--sql-output", type=Path)
     parser.add_argument("--print-schema", choices=("sqlite", "postgresql"))
@@ -219,9 +268,17 @@ def main():
         return
     if args.output is None:
         parser.error("--output is required for a build")
+    if args.extracted and args.source:
+        parser.error("--extracted cannot be combined with --source")
     try:
-        counts = build_database(args.source, args.seed, args.output, args.sql_output)
-    except (OSError, ValueError, sqlite3.Error) as error:
+        if args.extracted:
+            counts = build_extracted_database(args.extracted, args.output, args.sql_output)
+        else:
+            counts = build_database(
+                args.source or Path("hsk-original/hsk_vocab.sqlite"),
+                args.seed or Path("data/bootstrap.json"), args.output, args.sql_output,
+            )
+    except (OSError, ValueError, sqlite3.Error, SQLAlchemyError) as error:
         parser.exit(1, f"Initialization failed: {error}\n")
     print(json.dumps(counts, ensure_ascii=False, indent=2))
 
