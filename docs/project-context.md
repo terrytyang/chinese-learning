@@ -97,18 +97,27 @@ optional ordered HSK memberships, source traditional forms/readings and ordered
 meanings, and ordered character constituents. The initializer can build from
 this JSON without the historical database. The eight- and 140-character seeds
 remain separate fixtures; the inventory page still describes the latter.
-The next small increment adds a [text library and plain reader](text-library.md)
-with 《枫桥夜泊》 as the first curated input. `text_category` and `library_text`
-use English identifiers; Chinese labels and content are values. Separate,
-versioned `data/text-library.json` supplies explicit category/text IDs and their
-references. `--texts` adds these records to fresh builds without renumbering.
-`data/hsk-text-library.sqlite.sql` restores the combined trial independently.
-The `/texts` library and `/texts/{id}` reader use Chinese display labels,
-escape imported content, preserve body whitespace, and keep editorial notes
-stored but hidden. The `/` page remains the 140-character sample and should be
-served with its inventory database. The character API also works against the
-combined database. DDL generation now removes trailing whitespace, and all SQL
-snapshots are regenerated.
+The [text library and reader](text-library.md) now include 《枫桥夜泊》, 《春晓》,
+《赠汪伦》, 《绝句（迟日江山丽）》, and 《桃花源记》. The first work retains its
+original ID/body; the added works were checked against linked references, with
+material textual choices documented. Curated format version 2 uses explicit
+IDs and nonempty `category_ids` lists. `text_category_assignment` replaces the
+former category column; category IDs 1–5 remain 诗词、文言、散文、节选、讲解.
+No general thematic tagging framework is introduced. `--texts` imports these
+records during fresh builds, and `data/hsk-text-library.sqlite.sql` restores
+the combined HSK/text trial independently of the JSON files.
+
+`/texts` supports exact category/author/period GET filters combined with AND,
+with full-library dropdown choices and deterministic text/category ordering.
+The reader preserves whitespace and escaping, omits missing metadata, and
+keeps notes hidden. `/health` is constant application liveness without per-request
+database work; it does not establish ongoing database readiness. Existing
+startup validation is retained and requires the current assignment schema when
+text tables are present. Rebuild older text databases and restart the server;
+there is no old-format adapter or migration. The `/` page remains the
+140-character sample and should use its inventory database; the character API
+also works against the combined database. All four SQL snapshots were
+regenerated through the shared builder, preserving clean DDL whitespace.
 
 Character pronunciation, vocabulary learner state, text matching, annotations,
 exercises, and automatic enrichment remain deferred. No migrations or stable-ID

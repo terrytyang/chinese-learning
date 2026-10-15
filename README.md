@@ -85,17 +85,23 @@ existing inventory page continues to describe its 140-character fixture.
 
 ## Text library and reader
 
-The first curated text is 《枫桥夜泊》. Build its library alongside the existing
+The library contains 《枫桥夜泊》、《春晓》、《赠汪伦》、
+《绝句（迟日江山丽）》 and 《桃花源记》. It supports multiple literary categories
+and exact category/author/period filtering. Build it alongside the existing
 HSK-1 data using only the saved JSON inputs:
 
 ```sh
-uv run --locked chineselearning-init --extracted data/hsk-newest-level1.json --texts data/text-library.json --output build/hsk-text-library-rebuilt.sqlite --sql-output build/hsk-text-library-rebuilt.sql
-CHINESELEARNING_DATABASE=build/hsk-text-library-rebuilt.sqlite uv run --locked uvicorn chineselearning.web:create_app --factory --host 0.0.0.0 --port 8000
+uv run --locked chineselearning-init --extracted data/hsk-newest-level1.json --texts data/text-library.json --output build/library-filters-rebuilt.sqlite --sql-output build/library-filters-rebuilt.sql
+CHINESELEARNING_DATABASE=build/library-filters-rebuilt.sqlite uv run --locked uvicorn chineselearning.web:create_app --factory --host 0.0.0.0 --port 8000
 ```
 
-Use fresh output paths. Open `http://localhost:8000/texts` or `/texts/1` through
-VS Code port forwarding. The existing `/` inventory page still describes the
-140-character fixture; use its database for that page. The character API works
+Use fresh output paths. Rebuild older text databases and restart the server;
+curated format version 2 replaces `category_id` with `category_ids`. Open
+`http://localhost:8000/texts` or `/texts/1` through VS Code port forwarding.
+Readers `/texts/1` through `/texts/5` follow the works listed above. `/health`
+returns `{"status":"ok"}` for application liveness without querying the database;
+it does not establish ongoing database readiness. The existing `/` inventory page
+still describes the 140-character fixture; use its database for that page. The character API works
 against both datasets. See [text library documentation](docs/text-library.md)
 for explicit IDs, import validation, SQL restoration, and verification limits.
 

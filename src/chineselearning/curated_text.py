@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 FORMAT = "chineselearning-curated-texts"
-VERSION = 1
+VERSION = 2
 OPTIONAL_FIELDS = ("author", "period", "notes")
 
 
@@ -41,14 +41,22 @@ def validate_document(spec):
         validate_required_text(category["label"], "Category label")
     text_ids = set()
     for text in spec["texts"]:
-        validate_fields(text, ("id", "category_id", "title", "body"), OPTIONAL_FIELDS, "text")
+        validate_fields(text, ("id", "category_ids", "title", "body"), OPTIONAL_FIELDS, "text")
         validate_id(text["id"], "Text ID")
         if text["id"] in text_ids:
             raise ValueError(f"Duplicate text ID: {text['id']}")
         text_ids.add(text["id"])
-        validate_id(text["category_id"], "Category reference")
-        if text["category_id"] not in category_ids:
-            raise ValueError(f"Missing category reference: {text['category_id']}")
+        assignments = text["category_ids"]
+        if not isinstance(assignments, list) or not assignments:
+            raise ValueError("category_ids must be a nonempty list")
+        assigned_ids = set()
+        for category_id in assignments:
+            validate_id(category_id, "Category reference")
+            if category_id in assigned_ids:
+                raise ValueError(f"Duplicate category assignment: {category_id}")
+            if category_id not in category_ids:
+                raise ValueError(f"Missing category reference: {category_id}")
+            assigned_ids.add(category_id)
         for field in ("title", "body"):
             validate_required_text(text[field], field)
         for field in OPTIONAL_FIELDS:
@@ -63,8 +71,14 @@ def read_rows(path):
     return {
         "text_category": sorted(spec["categories"], key=lambda record: record["id"]),
         "library_text": sorted(
-            [dict(text, **{field: text.get(field) for field in OPTIONAL_FIELDS})
+            [dict({key: value for key, value in text.items() if key != "category_ids"},
+                  **{field: text.get(field) for field in OPTIONAL_FIELDS})
              for text in spec["texts"]],
             key=lambda record: record["id"],
         ),
+        "text_category_assignment": [
+            dict(text_id=text["id"], category_id=category_id)
+            for text in sorted(spec["texts"], key=lambda record: record["id"])
+            for category_id in sorted(text["category_ids"])
+        ],
     }

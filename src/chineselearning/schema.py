@@ -137,7 +137,6 @@ library_text = Table(
     "library_text",
     metadata,
     Column("id", Integer, primary_key=True, autoincrement=False),
-    Column("category_id", ForeignKey("text_category.id"), nullable=False),
     Column("author", Text),
     Column("period", Text),
     Column("title", Text, nullable=False),
@@ -145,4 +144,11 @@ library_text = Table(
     Column("notes", Text),
     CheckConstraint("length(trim(title)) > 0", name="nonblank_title"),
     CheckConstraint("length(trim(body)) > 0", name="nonblank_body"),
+)
+
+text_category_assignment = Table(
+    "text_category_assignment",
+    metadata,
+    Column("text_id", ForeignKey("library_text.id"), primary_key=True),
+    Column("category_id", ForeignKey("text_category.id"), primary_key=True),
 )

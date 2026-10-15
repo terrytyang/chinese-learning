@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from chineselearning.inventory_query import (
     InvalidInventoryQuery, list_characters, open_inventory_database,
 )
-from chineselearning.text_query import get_text, list_texts
+from chineselearning.text_query import get_text, library_choices, list_texts, parse_category_filter
 
 
 class CharacterItem(BaseModel):
@@ -61,14 +61,27 @@ def create_app(database_path=None):
     templates = Jinja2Templates(directory=package / "templates")
     app.mount("/static", StaticFiles(directory=package / "static"), name="static")
 
+    @app.get("/health")
+    def health():
+        return {"status": "ok"}
+
     @app.get("/", response_class=HTMLResponse)
     def inventory_page(request: Request):
         return templates.TemplateResponse(request=request, name="inventory.html")
 
     @app.get("/texts", response_class=HTMLResponse)
-    def text_library(request: Request):
+    def text_library(request: Request, category_id: str | None = None,
+                     author: str | None = None, period: str | None = None):
+        try:
+            selected_category = parse_category_filter(category_id)
+        except ValueError as error:
+            raise HTTPException(status_code=422, detail=str(error)) from error
+        filters = dict(category_id=selected_category, author=author or None, period=period or None)
         return templates.TemplateResponse(
-            request=request, name="text_library.html", context={"texts": list_texts(engine)},
+            request=request, name="text_library.html", context={
+                "texts": list_texts(engine, **filters), "filters": filters,
+                "choices": library_choices(engine),
+            },
         )
 
     @app.get("/texts/{text_id}", response_class=HTMLResponse)

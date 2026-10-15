@@ -165,10 +165,11 @@ page that presents or labels the HSK collection.
 ## Combined text-library build
 
 Add `--texts data/text-library.json` to the initializer to include the five
-curated categories and 《枫桥夜泊》 with explicit IDs. See
+curated categories and five classical works with explicit IDs. See
 [text library commands](text-library.md) for the combined build and reader.
 The HSK extraction JSON and all HSK records remain unchanged. Fresh HSK-only
-builds now have empty `text_category` and `library_text` tables; the regenerated
+builds now have empty `text_category`, `library_text`, and
+`text_category_assignment` tables; the regenerated
 HSK SQL snapshot includes them and removes trailing DDL whitespace.
 
 ## Validation

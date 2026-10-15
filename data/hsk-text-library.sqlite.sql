@@ -36,6 +36,18 @@ CREATE TABLE learning_status (
 	CONSTRAINT uq_learning_status_code UNIQUE (code)
 );
 
+CREATE TABLE library_text (
+	id INTEGER NOT NULL,
+	author TEXT,
+	period TEXT,
+	title TEXT NOT NULL,
+	body TEXT NOT NULL,
+	notes TEXT,
+	CONSTRAINT pk_library_text PRIMARY KEY (id),
+	CONSTRAINT ck_library_text_nonblank_title CHECK (length(trim(title)) > 0),
+	CONSTRAINT ck_library_text_nonblank_body CHECK (length(trim(body)) > 0)
+);
+
 CREATE TABLE text_category (
 	id INTEGER NOT NULL,
 	label TEXT NOT NULL,
@@ -70,18 +82,12 @@ CREATE TABLE character_learning (
 	CONSTRAINT fk_character_learning_production_status_id_learning_status FOREIGN KEY(production_status_id) REFERENCES learning_status (id)
 );
 
-CREATE TABLE library_text (
-	id INTEGER NOT NULL,
+CREATE TABLE text_category_assignment (
+	text_id INTEGER NOT NULL,
 	category_id INTEGER NOT NULL,
-	author TEXT,
-	period TEXT,
-	title TEXT NOT NULL,
-	body TEXT NOT NULL,
-	notes TEXT,
-	CONSTRAINT pk_library_text PRIMARY KEY (id),
-	CONSTRAINT ck_library_text_nonblank_title CHECK (length(trim(title)) > 0),
-	CONSTRAINT ck_library_text_nonblank_body CHECK (length(trim(body)) > 0),
-	CONSTRAINT fk_library_text_category_id_text_category FOREIGN KEY(category_id) REFERENCES text_category (id)
+	CONSTRAINT pk_text_category_assignment PRIMARY KEY (text_id, category_id),
+	CONSTRAINT fk_text_category_assignment_text_id_library_text FOREIGN KEY(text_id) REFERENCES library_text (id),
+	CONSTRAINT fk_text_category_assignment_category_id_text_category FOREIGN KEY(category_id) REFERENCES text_category (id)
 );
 
 CREATE TABLE vocabulary_character (
@@ -638,6 +644,28 @@ INSERT INTO learning_status (id, code, label) VALUES (1, 'not_encountered', 'Not
 INSERT INTO learning_status (id, code, label) VALUES (2, 'learning', 'Learning');
 
 INSERT INTO learning_status (id, code, label) VALUES (3, 'known', 'Known');
+
+INSERT INTO library_text (id, author, period, title, body, notes) VALUES (1, '张继', '唐朝', '枫桥夜泊', '月落乌啼霜满天，江枫渔火对愁眠。
+姑苏城外寒山寺，夜半钟声到客船。', NULL);
+
+INSERT INTO library_text (id, author, period, title, body, notes) VALUES (2, '孟浩然', '唐朝', '春晓', '春眠不觉晓，处处闻啼鸟。
+夜来风雨声，花落知多少。', NULL);
+
+INSERT INTO library_text (id, author, period, title, body, notes) VALUES (3, '李白', '唐朝', '赠汪伦', '李白乘舟将欲行，忽闻岸上踏歌声。
+桃花潭水深千尺，不及汪伦送我情。', NULL);
+
+INSERT INTO library_text (id, author, period, title, body, notes) VALUES (4, '杜甫', '唐朝', '绝句（迟日江山丽）', '迟日江山丽，春风花草香。
+泥融飞燕子，沙暖睡鸳鸯。', NULL);
+
+INSERT INTO library_text (id, author, period, title, body, notes) VALUES (5, '陶渊明', '东晋', '桃花源记', '晋太元中，武陵人捕鱼为业。缘溪行，忘路之远近。忽逢桃花林，夹岸数百步，中无杂树，芳草鲜美，落英缤纷。渔人甚异之。复前行，欲穷其林。
+
+林尽水源，便得一山，山有小口，仿佛若有光。便舍船，从口入。初极狭，才通人。复行数十步，豁然开朗。土地平旷，屋舍俨然，有良田美池桑竹之属。阡陌交通，鸡犬相闻。其中往来种作，男女衣着，悉如外人。黄发垂髫，并怡然自乐。
+
+见渔人，乃大惊，问所从来。具答之。便要还家，设酒杀鸡作食。村中闻有此人，咸来问讯。自云先世避秦时乱，率妻子邑人来此绝境，不复出焉，遂与外人间隔。问今是何世，乃不知有汉，无论魏晋。此人一一为具言所闻，皆叹惋。余人各复延至其家，皆出酒食。停数日，辞去。此中人语云：“不足为外人道也。”
+
+既出，得其船，便扶向路，处处志之。及郡下，诣太守，说如此。太守即遣人随其往，寻向所志，遂迷，不复得路。
+
+南阳刘子骥，高尚士也，闻之，欣然规往。未果，寻病终。后遂无问津者。', NULL);
 
 INSERT INTO text_category (id, label) VALUES (1, '诗词');
 
@@ -3221,8 +3249,15 @@ INSERT INTO character_learning (character_id, recognition_status_id, production_
 
 INSERT INTO character_learning (character_id, recognition_status_id, production_status_id) VALUES (248, 1, 1);
 
-INSERT INTO library_text (id, category_id, author, period, title, body, notes) VALUES (1, 1, '张继', '唐朝', '枫桥夜泊', '月落乌啼霜满天，江枫渔火对愁眠。
-姑苏城外寒山寺，夜半钟声到客船。', NULL);
+INSERT INTO text_category_assignment (text_id, category_id) VALUES (1, 1);
+
+INSERT INTO text_category_assignment (text_id, category_id) VALUES (2, 1);
+
+INSERT INTO text_category_assignment (text_id, category_id) VALUES (3, 1);
+
+INSERT INTO text_category_assignment (text_id, category_id) VALUES (4, 1);
+
+INSERT INTO text_category_assignment (text_id, category_id) VALUES (5, 2);
 
 INSERT INTO vocabulary_character (vocabulary_id, position, character_id) VALUES (1, 1, 174);
 

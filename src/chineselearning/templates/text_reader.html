@@ -5,7 +5,7 @@
     <article>
       <header>
         <h1>标题：{{ text.title }}</h1>
-        <p>类别：{{ text.category_label }}</p>
+        <p>类别：{% for category in text.categories %}{{ category.label }}{% if not loop.last %}、{% endif %}{% endfor %}</p>
         {% if text.author %}<p>作者：{{ text.author }}</p>{% endif %}
         {% if text.period %}<p>年代：{{ text.period }}</p>{% endif %}
       </header>

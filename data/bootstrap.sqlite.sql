@@ -36,6 +36,18 @@ CREATE TABLE learning_status (
 	CONSTRAINT uq_learning_status_code UNIQUE (code)
 );
 
+CREATE TABLE library_text (
+	id INTEGER NOT NULL,
+	author TEXT,
+	period TEXT,
+	title TEXT NOT NULL,
+	body TEXT NOT NULL,
+	notes TEXT,
+	CONSTRAINT pk_library_text PRIMARY KEY (id),
+	CONSTRAINT ck_library_text_nonblank_title CHECK (length(trim(title)) > 0),
+	CONSTRAINT ck_library_text_nonblank_body CHECK (length(trim(body)) > 0)
+);
+
 CREATE TABLE text_category (
 	id INTEGER NOT NULL,
 	label TEXT NOT NULL,
@@ -70,18 +82,12 @@ CREATE TABLE character_learning (
 	CONSTRAINT fk_character_learning_production_status_id_learning_status FOREIGN KEY(production_status_id) REFERENCES learning_status (id)
 );
 
-CREATE TABLE library_text (
-	id INTEGER NOT NULL,
+CREATE TABLE text_category_assignment (
+	text_id INTEGER NOT NULL,
 	category_id INTEGER NOT NULL,
-	author TEXT,
-	period TEXT,
-	title TEXT NOT NULL,
-	body TEXT NOT NULL,
-	notes TEXT,
-	CONSTRAINT pk_library_text PRIMARY KEY (id),
-	CONSTRAINT ck_library_text_nonblank_title CHECK (length(trim(title)) > 0),
-	CONSTRAINT ck_library_text_nonblank_body CHECK (length(trim(body)) > 0),
-	CONSTRAINT fk_library_text_category_id_text_category FOREIGN KEY(category_id) REFERENCES text_category (id)
+	CONSTRAINT pk_text_category_assignment PRIMARY KEY (text_id, category_id),
+	CONSTRAINT fk_text_category_assignment_text_id_library_text FOREIGN KEY(text_id) REFERENCES library_text (id),
+	CONSTRAINT fk_text_category_assignment_category_id_text_category FOREIGN KEY(category_id) REFERENCES text_category (id)
 );
 
 CREATE TABLE vocabulary_character (

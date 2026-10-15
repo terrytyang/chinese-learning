@@ -61,6 +61,7 @@ def test_empty_library_in_fresh_and_pre_library_databases(tmp_path, legacy):
     build_extracted_database(EXTRACTED, database)
     if legacy:
         with sqlite3.connect(database) as connection:
+            connection.execute("DROP TABLE text_category_assignment")
             connection.execute("DROP TABLE library_text")
             connection.execute("DROP TABLE text_category")
     with TestClient(create_app(database)) as client:
@@ -74,10 +75,10 @@ def test_order_escaping_optional_metadata_and_hidden_notes(tmp_path):
     spec = json.loads((ROOT / "data/text-library.json").read_text())
     spec["categories"][0]["label"] = '<em>诗词</em>'
     spec["texts"] = [
-        dict(id=20, category_id=1, title='<img src=x onerror="alert(1)">',
+        dict(id=20, category_ids=[1], title='<img src=x onerror="alert(1)">',
              author='<script>author</script>', period='<b>period</b>',
              body='<script>alert("x")</script>\n保留标点，换行。', notes="SECRET_EDITORIAL_NOTE"),
-        dict(id=2, category_id=1, title="先列出", body="  正文\n\n第二行　", author=None, period=""),
+        dict(id=2, category_ids=[1], title="先列出", body="  正文\n\n第二行　", author=None, period=""),
     ]
     selection = tmp_path / "texts.json"
     selection.write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")

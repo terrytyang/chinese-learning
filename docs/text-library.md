@@ -1,57 +1,53 @@
-# Text library and plain reader
+# Text library, filters, and plain reader
 
-The text library is a small, read-only addition to the existing FastAPI/Jinja2
-application. The first imported work is 《枫桥夜泊》, with the author, period, and
-body supplied by the owner. No commentary or missing metadata is invented.
+The read-only FastAPI/Jinja2 library contains five classical works alongside the
+existing HSK-1 data. Curated inputs and SQL exports preserve explicit IDs;
+databases are disposable build outputs.
 
-## Build and open the reader
+## Rebuild and restart
 
-Run from the repository root in the development container, using fresh outputs:
-
-```sh
-uv run --locked chineselearning-init --extracted data/hsk-newest-level1.json --texts data/text-library.json --output build/hsk-text-library-rebuilt.sqlite --sql-output build/hsk-text-library-rebuilt.sql
-cmp build/hsk-text-library-rebuilt.sql data/hsk-text-library.sqlite.sql
-CHINESELEARNING_DATABASE=build/hsk-text-library-rebuilt.sqlite uv run --locked uvicorn chineselearning.web:create_app --factory --host 0.0.0.0 --port 8000
-```
-
-Open `http://localhost:8000/texts` through VS Code port forwarding. The sample
-reader is `http://localhost:8000/texts/1`. Use `--host 127.0.0.1` when running
-directly on a host instead of inside the container.
-
-`build/hsk-text-library.sqlite` and `build/hsk-text-library.sql` are the original
-disposable trial outputs. The command above uses different names so those files
-remain intact. Choose new names again for subsequent builds. Do not change a
-runtime database in place; build another file and restart the server against it.
-
-Only the two JSON files are needed for the combined build; the historical HSK
-database is not opened. Startup and HTTP requests only read the existing
-application database. No extraction, import, or schema creation runs in the web
-application.
-
-The generated `data/hsk-text-library.sqlite.sql` restores the entire combined
-database without either JSON input or the historical dataset:
+**Rebuild older text databases and restart the server.** The former
+`library_text.category_id` schema and curated format version 1 are unsupported.
+There is no migration or compatibility adapter. Choose fresh output paths:
 
 ```sh
-sqlite3 build/hsk-text-library-restored.sqlite < data/hsk-text-library.sqlite.sql
-sqlite3 build/hsk-text-library-restored.sqlite 'PRAGMA integrity_check; PRAGMA foreign_key_check;'
+uv run --locked chineselearning-init --extracted data/hsk-newest-level1.json --texts data/text-library.json --output build/library-filters-rebuilt.sqlite --sql-output build/library-filters-rebuilt.sql
+cmp build/library-filters-rebuilt.sql data/hsk-text-library.sqlite.sql
+CHINESELEARNING_DATABASE=build/library-filters-rebuilt.sqlite uv run --locked uvicorn chineselearning.web:create_app --factory --host 0.0.0.0 --port 8000
 ```
 
-Use a fresh restore destination. Python callers restoring SQL should read its
-bytes and decode UTF-8, or open with `newline=""`, to avoid text-mode newline
-translation inside SQL string literals.
+These commands run from the repository root in the development container. Use
+`--host 127.0.0.1` on a host. Open port 8000 through VS Code port forwarding.
+For subsequent builds, choose different output names. Existing runtime databases
+are never modified in place. `build/library-filters-trial.sqlite` and
+`build/library-filters-trial.sql` are the disposable outputs generated for this
+increment; earlier trial databases are retained separately.
 
-## Saved inputs and schema
+Only the two JSON inputs are needed for a combined build. The SQL snapshot can
+restore the entire database without those files or the historical HSK source:
 
-`data/text-library.json` uses a separate format from HSK extraction:
+```sh
+sqlite3 build/library-filters-restored.sqlite < data/hsk-text-library.sqlite.sql
+sqlite3 build/library-filters-restored.sqlite 'PRAGMA integrity_check; PRAGMA foreign_key_check;'
+```
+
+Use a fresh destination. Python callers should decode the SQL file's UTF-8 bytes,
+or open with `newline=""`, to preserve line endings inside SQL string literals.
+
+## Version 2 input and schema
+
+`data/text-library.json` has format `chineselearning-curated-texts`, version **2**.
+The HSK extraction format is unchanged. A text record now contains category IDs
+as a nonempty list:
 
 ```json
 {
   "format": "chineselearning-curated-texts",
-  "version": 1,
+  "version": 2,
   "categories": [{"id": 1, "label": "诗词"}],
   "texts": [{
     "id": 1,
-    "category_id": 1,
+    "category_ids": [1],
     "author": "张继",
     "period": "唐朝",
     "title": "枫桥夜泊",
@@ -61,76 +57,110 @@ translation inside SQL string literals.
 }
 ```
 
-The saved input defines all five initial categories: ID 1 诗词, 2 文言, 3 散文,
-4 节选, and 5 讲解. Category and text IDs are supplied explicitly as positive
-64-bit integers. They are copied unchanged into the application and SQL export;
-array order does not assign identities. Records are inserted/exported in ID
-order. Keep IDs and their references consistent when editing curated inputs.
-There is no ID registry, automatic identity allocation, or migration machinery.
+The five category definitions retain their IDs: 1 诗词, 2 文言, 3 散文, 4 节选,
+and 5 讲解. These are literary categories; no unrestricted thematic tagging
+system is added. Additional category definitions require data changes only.
 
-Two tables extend the existing schema:
-
-| Table | Columns |
+| Table | Fields and constraints |
 | --- | --- |
-| `text_category` | `id` primary key, required nonblank `label` |
-| `library_text` | `id` primary key, required `category_id` foreign key, optional `author`/`period`, required nonblank `title`/`body`, optional `notes` |
+| `text_category` | Explicit `id` primary key; required nonblank `label` |
+| `library_text` | Explicit `id`; optional `author`, `period`, `notes`; required nonblank `title`, `body` |
+| `text_category_assignment` | `text_id` and `category_id` foreign keys; composite primary key prevents duplicate assignments |
 
-One text has one category. Additional categories require data changes only.
-There is no required relationship to HSK characters or vocabulary, so a text may
-contain characters absent from the HSK selection. There are no annotation or
-matching tables in this increment.
+Category/text IDs must be positive 64-bit integers. The importer rejects duplicate
+IDs, empty or duplicate category assignments, missing references, wrong field
+types, unknown fields, unsupported versions, and blank required values. Required
+text validation checks Unicode whitespace without trimming or rewriting content.
+Optional fields may be omitted or null; omitted values become null. Explicit
+empty strings remain empty. Notes remain null in all five saved works.
 
-The importer rejects duplicate IDs, missing category references, wrong field
-types, unknown fields, unsupported formats/versions, and whitespace-only required
-values. It checks Unicode whitespace without trimming or rewriting the stored
-values. Body punctuation, spaces, and line endings are preserved exactly.
-SQL constraints also enforce keys/references, required values, and empty or
-space-only labels/titles/bodies; the importer handles the broader Unicode
-whitespace check. Optional `author`, `period`, and `notes` may be omitted, null,
-or text. Omitted fields become null; explicit empty strings remain empty.
+Text and category rows export by ID; assignments export by `(text_id, category_id)`.
+Reordering arrays does not change identities or the SQL snapshot. SQL enforces
+keys/references and basic nonblank text checks. The importer additionally enforces
+Unicode nonblank values and at least one category per text; SQL alone does not
+enforce the latter. Body punctuation and line/paragraph breaks remain exact.
 
-`--texts FILE` is optional and works with both `--extracted FILE` and the existing
-character-seed build mode. With no `--texts`, fresh databases contain empty text
-tables. It uses the existing transaction, integrity checks, SQL generator, input
-and overwrite protections, and failure cleanup. Text inputs are protected as
-well as HSK/character inputs. Every output path must be fresh.
+`--texts FILE` works with both existing initialization modes. Omitting it leaves
+all three text tables empty. The shared builder retains transactions, integrity
+checks, protected inputs, overwrite refusal, and failure cleanup. No extraction,
+import, or schema creation occurs during startup or HTTP requests. Startup still
+validates the database; when text tables are present it requires the current
+assignment schema. Databases predating text storage can still serve inventory
+pages and an empty library.
 
-## Pages and dataset choice
+## Library filters and reader
 
-| Page | Appropriate database |
-| --- | --- |
-| `/texts`, `/texts/1` | Combined HSK/text trial for the poem; no-text builds show an empty library |
-| `/` | Fixed 140-character inventory built from `data/inventory.json`; its sample-specific description is unchanged |
-| `/api/characters` | Character fixture, HSK-only, or combined database; counts reflect the chosen database |
+`GET /texts` accepts ordinary GET parameters `category_id`, `author`, and `period`.
+The 类别、作者、年代 dropdowns each have 全部; 筛选 submits and 重置 clears filters.
+Selections remain visible, with a result count and a no-results message.
 
-The server defaults to `build/inventory.sqlite`. Set `CHINESELEARNING_DATABASE`
-explicitly for the combined trial. Opening `/` with that database still shows
-the existing sample-specific page shell; use `/texts` for this trial and the
-140-character database when evaluating the inventory page.
+- Category filtering matches any assignment; each text appears once.
+- Author and period are exact, case-sensitive matches; active filters combine
+  with AND. Empty values mean no filter. Values are bound SQL parameters.
+- Category IDs must be positive 64-bit decimal integers; malformed values return
+  HTTP 422 with a clear message. Valid values with no matches return HTTP 200.
+- Texts are ordered by text ID. Assigned categories are displayed by category ID.
+- Choices always come from the full library: assigned categories by ID, distinct
+  nonblank authors/periods by Unicode order. Blank metadata and unused category
+  definitions do not appear as choices. An unmatched submitted value is shown as
+  a selected “无匹配值” option so it can be inspected/reset; it is not stored.
 
-The library lists titles linked to their readers, categories, authors, and
-periods, ordered by explicit text ID ascending. An empty library says
-“暂无文章。” Pre-library databases lacking text tables also show that empty state
-and keep their existing inventory behavior.
+There is no pagination or JavaScript for this feature. The reader escapes all
+imported content, preserves whitespace, omits missing author/period metadata,
+and links back to the library. Notes are stored but never selected/displayed.
+Unknown text IDs return HTTP 404. No editing, matching, annotation, pinyin,
+exercise, account, or localization features are added.
 
-The reader uses Chinese metadata labels, visually preserves whitespace and line
-breaks, and links back to the library. Unknown IDs return HTTP 404. Missing
-optional author/period fields are omitted. Jinja autoescaping applies to all
-imported values; they are never trusted HTML. Editorial notes are stored but
-not selected or automatically displayed by either page.
+## Sample works and reference choices
 
-There is no editing UI, text lookup/highlighting, vocabulary segmentation,
-annotation, teaching association, pinyin, hover definition, exercise,
-authentication, student results, or localization framework.
+Full original wording was checked before import. Only the classical works are
+included; modern notes, translations, pronunciation inserts, and the appended
+《桃花源诗》 are excluded. Simplified characters and modern punctuation are used.
+Poems have one couplet per line; 《桃花源记》 has five paragraphs separated by blank
+lines. Period values use the requested dynasty labels, not precise composition
+dates. Reference links and material choices:
+
+| ID | Title / author / period / category | Reference and choice |
+| --- | --- | --- |
+| 1 | 枫桥夜泊 / 张继 / 唐朝 / 诗词 | Existing owner-supplied body and ID unchanged |
+| 2 | 春晓 / 孟浩然 / 唐朝 / 诗词 | [Wikisource, with anthology references](https://zh.wikisource.org/zh-hans/春曉_(孟浩然)): use the main reading “夜来风雨声” and “花落知多少”; the page records “欲知昨夜风” and “无” variants |
+| 3 | 赠汪伦 / 李白 / 唐朝 / 诗词 | [Wikisource, 全唐诗卷171](https://zh.wikisource.org/zh-hans/贈汪倫), cross-checked with [古文岛](https://m.gushiwen.cn/shiwenv_ca9eaf40a6ce.aspx): retain “将欲行”; the latter records “欲远行” as a manuscript variant |
+| 4 | 绝句（迟日江山丽） / 杜甫 / 唐朝 / 诗词 | [Wikisource](https://zh.wikisource.org/zh-hans/絕句（遲日江山麗）), cross-checked with [古文岛](https://m.gushiwen.cn/gushiwen_d94549507d.aspx); preserve the disambiguating title; import only this complete four-line work |
+| 5 | 桃花源记 / 陶渊明 / 东晋 / 文言 | [古文岛 original text](https://www.gushiwen.cn/GuShiWen.aspx?id=505e1de493), cross-checked against the [国文学习网 original](https://cerclearning.tp.edu.tw/classical/datapage/144) and [Wikisource](https://zh.wikisource.org/zh-hans/桃花源記) |
+
+For 《桃花源记》, the selected simplified text follows 古文岛's prose wording and
+five-paragraph structure, omitting its parenthetical pronunciation aids. It uses
+“作食”; 国文学习网 has “做食”. It omits “为” before “设酒”; Wikisource retains that
+word and appends the separate poem. The saved text ends at “后遂无问津者。”
+Traditional forms such as 纔、彷彿、誌、餘、衣著 correspond to the saved simplified
+才、仿佛、志、余、衣着. Modern punctuation follows the selected prose reference.
+No extra categories are assigned just to demonstrate multiple assignments;
+separate test fixtures cover that behavior.
+
+## URLs, liveness, and dataset choice
+
+With the server above:
+
+- Library: `http://localhost:8000/texts`
+- Readers: `/texts/1` 枫桥夜泊; `/texts/2` 春晓; `/texts/3` 赠汪伦;
+  `/texts/4` 绝句（迟日江山丽）; `/texts/5` 桃花源记.
+- Liveness: `http://localhost:8000/health`, HTTP 200 and `{"status":"ok"}`.
+
+`/health` does no database/source work per request and exposes no internal details.
+It confirms application liveness, not ongoing database readiness. Startup database
+validation still occurs before the application can serve it.
+
+The default database remains `build/inventory.sqlite`. Use the fixed 140-character
+inventory database for `/`, whose sample-specific description is unchanged. Use
+the combined database for `/texts`; `/api/characters` works with both datasets.
 
 ## Artifacts and verification
 
-The combined trial contains 248 characters, 294 vocabulary entries, 396
-reading/forms, 1,115 meanings, 470 constituent relations, 799 vocabulary HSK
-memberships, 744 character HSK relations, five categories, and one text. The
-original eight- and 140-character manifests and the HSK extraction JSON remain
-unchanged. Their SQL snapshots were regenerated with empty text tables and
-clean DDL whitespace.
+The combined snapshot is `data/hsk-text-library.sqlite.sql`: 248 characters, 294
+vocabulary entries, five category definitions, five texts, and five assignments.
+The existing HSK reading/meaning/constituent counts remain unchanged. All four SQL
+snapshots are regenerated by the shared builder with clean DDL whitespace.
+Historical files and previous character/HSK JSON inputs remain unchanged.
 
 ```sh
 uv run --locked pytest -q
@@ -138,10 +168,8 @@ node tests/inventory_controller.test.mjs
 git diff --check
 ```
 
-Tests cover explicit ID/reference preservation, invalid imports, exact Unicode
-and line endings, combined builds and SQL-only restoration, previous build
-modes, output protection and failure cleanup, and library/reader responses,
-escaping, empty states, and missing IDs. Snapshot tests cover all four saved SQL
-exports. No browser or Playwright tooling was installed during implementation;
-visual rendering, Chinese fonts, narrow-screen wrapping, and keyboard interaction
-remain unverified. The HTTP tests check rendered HTML and the shipped CSS.
+Tests cover format/version validation, multiple assignments and restoration,
+filters and dropdowns, escaping, exact body preservation, no-query liveness,
+previous build modes, output protection/failure cleanup, and all saved snapshots.
+No local browser or Playwright tooling was available; visible filter interaction,
+navigation, Chinese fonts, and long-text layout remain visually unverified.

@@ -1,18 +1,59 @@
 {% extends "text_base.html" %}
 {% block content %}
     <h1>文章库</h1>
+    <form method="get" action="{{ url_for('text_library') }}" class="filters">
+      <div>
+        <label for="category-filter">类别</label>
+        <select id="category-filter" name="category_id">
+          <option value="">全部</option>
+          {% if filters.category_id and filters.category_id not in choices.categories | map(attribute='id') | list %}
+          <option value="{{ filters.category_id }}" selected>{{ filters.category_id }}（无匹配值）</option>
+          {% endif %}
+          {% for category in choices.categories %}
+          <option value="{{ category.id }}"{% if filters.category_id == category.id %} selected{% endif %}>{{ category.label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="author-filter">作者</label>
+        <select id="author-filter" name="author">
+          <option value="">全部</option>
+          {% if filters.author and filters.author not in choices.authors %}
+          <option value="{{ filters.author }}" selected>{{ filters.author }}（无匹配值）</option>
+          {% endif %}
+          {% for author in choices.authors %}
+          <option value="{{ author }}"{% if filters.author == author %} selected{% endif %}>{{ author }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label for="period-filter">年代</label>
+        <select id="period-filter" name="period">
+          <option value="">全部</option>
+          {% if filters.period and filters.period not in choices.periods %}
+          <option value="{{ filters.period }}" selected>{{ filters.period }}（无匹配值）</option>
+          {% endif %}
+          {% for period in choices.periods %}
+          <option value="{{ period }}"{% if filters.period == period %} selected{% endif %}>{{ period }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit">筛选</button>
+      <a href="{{ url_for('text_library') }}">重置</a>
+    </form>
+    <p role="status">共 {{ texts | length }} 篇文章</p>
     {% if texts %}
     <ul class="text-list">
       {% for text in texts %}
       <li>
         <h2>标题：<a href="{{ url_for('text_reader', text_id=text.id) }}">{{ text.title }}</a></h2>
-        <p>类别：{{ text.category_label }}</p>
+        <p>类别：{% for category in text.categories %}{{ category.label }}{% if not loop.last %}、{% endif %}{% endfor %}</p>
         {% if text.author %}<p>作者：{{ text.author }}</p>{% endif %}
         {% if text.period %}<p>年代：{{ text.period }}</p>{% endif %}
       </li>
       {% endfor %}
     </ul>
     {% else %}
-    <p>暂无文章。</p>
+    <p>{{ '没有符合筛选条件的文章。' if filters.category_id or filters.author or filters.period else '暂无文章。' }}</p>
     {% endif %}
 {% endblock %}
