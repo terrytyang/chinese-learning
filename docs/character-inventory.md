@@ -21,7 +21,9 @@ source during preparation. Ordinary rebuilds reuse the selected characters;
 they do not invoke sampling. IDs follow saved manifest order.
 
 The existing five character tables are unchanged. Fresh builds also include
-five empty vocabulary tables from the [HSK extraction increment](hsk-extraction.md). The builder retains
+five empty vocabulary tables from the [HSK extraction increment](hsk-extraction.md)
+and two empty text tables from the [text library increment](text-library.md),
+unless text input is supplied. The builder retains
 all available scheme memberships, optional single best-effort traditional
 forms, NULL English glosses and usage notes, and separate recognition and
 production statuses. Initial `not_encountered` codes are placeholder trial

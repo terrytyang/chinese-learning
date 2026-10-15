@@ -7,106 +7,127 @@ PRAGMA foreign_keys = ON;
 BEGIN;
 
 CREATE TABLE hanzi_character (
-	id INTEGER NOT NULL, 
-	simplified VARCHAR NOT NULL, 
-	traditional VARCHAR, 
-	english_gloss TEXT, 
-	usage_note TEXT, 
-	CONSTRAINT pk_hanzi_character PRIMARY KEY (id), 
-	CONSTRAINT ck_hanzi_character_single_simplified CHECK (length(simplified) = 1), 
-	CONSTRAINT ck_hanzi_character_single_traditional CHECK (traditional IS NULL OR length(traditional) = 1), 
+	id INTEGER NOT NULL,
+	simplified VARCHAR NOT NULL,
+	traditional VARCHAR,
+	english_gloss TEXT,
+	usage_note TEXT,
+	CONSTRAINT pk_hanzi_character PRIMARY KEY (id),
+	CONSTRAINT ck_hanzi_character_single_simplified CHECK (length(simplified) = 1),
+	CONSTRAINT ck_hanzi_character_single_traditional CHECK (traditional IS NULL OR length(traditional) = 1),
 	CONSTRAINT uq_hanzi_character_simplified UNIQUE (simplified)
 );
 
 CREATE TABLE hsk_scheme (
-	id INTEGER NOT NULL, 
-	code VARCHAR NOT NULL, 
-	label TEXT NOT NULL, 
-	max_level INTEGER NOT NULL, 
-	CONSTRAINT pk_hsk_scheme PRIMARY KEY (id), 
-	CONSTRAINT ck_hsk_scheme_positive_max_level CHECK (max_level > 0), 
+	id INTEGER NOT NULL,
+	code VARCHAR NOT NULL,
+	label TEXT NOT NULL,
+	max_level INTEGER NOT NULL,
+	CONSTRAINT pk_hsk_scheme PRIMARY KEY (id),
+	CONSTRAINT ck_hsk_scheme_positive_max_level CHECK (max_level > 0),
 	CONSTRAINT uq_hsk_scheme_code UNIQUE (code)
 );
 
 CREATE TABLE learning_status (
-	id INTEGER NOT NULL, 
-	code VARCHAR NOT NULL, 
-	label TEXT NOT NULL, 
-	CONSTRAINT pk_learning_status PRIMARY KEY (id), 
+	id INTEGER NOT NULL,
+	code VARCHAR NOT NULL,
+	label TEXT NOT NULL,
+	CONSTRAINT pk_learning_status PRIMARY KEY (id),
 	CONSTRAINT uq_learning_status_code UNIQUE (code)
 );
 
+CREATE TABLE text_category (
+	id INTEGER NOT NULL,
+	label TEXT NOT NULL,
+	CONSTRAINT pk_text_category PRIMARY KEY (id),
+	CONSTRAINT ck_text_category_nonblank_label CHECK (length(trim(label)) > 0)
+);
+
 CREATE TABLE vocabulary_entry (
-	id INTEGER NOT NULL, 
-	simplified TEXT NOT NULL, 
-	CONSTRAINT pk_vocabulary_entry PRIMARY KEY (id), 
+	id INTEGER NOT NULL,
+	simplified TEXT NOT NULL,
+	CONSTRAINT pk_vocabulary_entry PRIMARY KEY (id),
 	CONSTRAINT ck_vocabulary_entry_nonempty_simplified CHECK (length(simplified) > 0)
 );
 
 CREATE TABLE character_hsk_level (
-	character_id INTEGER NOT NULL, 
-	hsk_scheme_id INTEGER NOT NULL, 
-	level INTEGER NOT NULL, 
-	CONSTRAINT pk_character_hsk_level PRIMARY KEY (character_id, hsk_scheme_id), 
-	CONSTRAINT ck_character_hsk_level_positive_level CHECK (level > 0), 
-	CONSTRAINT fk_character_hsk_level_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id), 
+	character_id INTEGER NOT NULL,
+	hsk_scheme_id INTEGER NOT NULL,
+	level INTEGER NOT NULL,
+	CONSTRAINT pk_character_hsk_level PRIMARY KEY (character_id, hsk_scheme_id),
+	CONSTRAINT ck_character_hsk_level_positive_level CHECK (level > 0),
+	CONSTRAINT fk_character_hsk_level_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id),
 	CONSTRAINT fk_character_hsk_level_hsk_scheme_id_hsk_scheme FOREIGN KEY(hsk_scheme_id) REFERENCES hsk_scheme (id)
 );
 
 CREATE TABLE character_learning (
-	character_id INTEGER NOT NULL, 
-	recognition_status_id INTEGER NOT NULL, 
-	production_status_id INTEGER NOT NULL, 
-	CONSTRAINT pk_character_learning PRIMARY KEY (character_id), 
-	CONSTRAINT fk_character_learning_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id), 
-	CONSTRAINT fk_character_learning_recognition_status_id_learning_status FOREIGN KEY(recognition_status_id) REFERENCES learning_status (id), 
+	character_id INTEGER NOT NULL,
+	recognition_status_id INTEGER NOT NULL,
+	production_status_id INTEGER NOT NULL,
+	CONSTRAINT pk_character_learning PRIMARY KEY (character_id),
+	CONSTRAINT fk_character_learning_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id),
+	CONSTRAINT fk_character_learning_recognition_status_id_learning_status FOREIGN KEY(recognition_status_id) REFERENCES learning_status (id),
 	CONSTRAINT fk_character_learning_production_status_id_learning_status FOREIGN KEY(production_status_id) REFERENCES learning_status (id)
 );
 
+CREATE TABLE library_text (
+	id INTEGER NOT NULL,
+	category_id INTEGER NOT NULL,
+	author TEXT,
+	period TEXT,
+	title TEXT NOT NULL,
+	body TEXT NOT NULL,
+	notes TEXT,
+	CONSTRAINT pk_library_text PRIMARY KEY (id),
+	CONSTRAINT ck_library_text_nonblank_title CHECK (length(trim(title)) > 0),
+	CONSTRAINT ck_library_text_nonblank_body CHECK (length(trim(body)) > 0),
+	CONSTRAINT fk_library_text_category_id_text_category FOREIGN KEY(category_id) REFERENCES text_category (id)
+);
+
 CREATE TABLE vocabulary_character (
-	vocabulary_id INTEGER NOT NULL, 
-	position INTEGER NOT NULL, 
-	character_id INTEGER NOT NULL, 
-	CONSTRAINT pk_vocabulary_character PRIMARY KEY (vocabulary_id, position), 
-	CONSTRAINT ck_vocabulary_character_positive_position CHECK (position > 0), 
-	CONSTRAINT fk_vocabulary_character_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id), 
+	vocabulary_id INTEGER NOT NULL,
+	position INTEGER NOT NULL,
+	character_id INTEGER NOT NULL,
+	CONSTRAINT pk_vocabulary_character PRIMARY KEY (vocabulary_id, position),
+	CONSTRAINT ck_vocabulary_character_positive_position CHECK (position > 0),
+	CONSTRAINT fk_vocabulary_character_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id),
 	CONSTRAINT fk_vocabulary_character_character_id_hanzi_character FOREIGN KEY(character_id) REFERENCES hanzi_character (id)
 );
 
 CREATE TABLE vocabulary_hsk_level (
-	vocabulary_id INTEGER NOT NULL, 
-	position INTEGER NOT NULL, 
-	hsk_scheme_id INTEGER NOT NULL, 
-	level INTEGER NOT NULL, 
-	CONSTRAINT pk_vocabulary_hsk_level PRIMARY KEY (vocabulary_id, position), 
-	CONSTRAINT ck_vocabulary_hsk_level_positive_position CHECK (position > 0), 
-	CONSTRAINT ck_vocabulary_hsk_level_positive_level CHECK (level > 0), 
-	CONSTRAINT fk_vocabulary_hsk_level_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id), 
+	vocabulary_id INTEGER NOT NULL,
+	position INTEGER NOT NULL,
+	hsk_scheme_id INTEGER NOT NULL,
+	level INTEGER NOT NULL,
+	CONSTRAINT pk_vocabulary_hsk_level PRIMARY KEY (vocabulary_id, position),
+	CONSTRAINT ck_vocabulary_hsk_level_positive_position CHECK (position > 0),
+	CONSTRAINT ck_vocabulary_hsk_level_positive_level CHECK (level > 0),
+	CONSTRAINT fk_vocabulary_hsk_level_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id),
 	CONSTRAINT fk_vocabulary_hsk_level_hsk_scheme_id_hsk_scheme FOREIGN KEY(hsk_scheme_id) REFERENCES hsk_scheme (id)
 );
 
 CREATE TABLE vocabulary_reading (
-	id INTEGER NOT NULL, 
-	vocabulary_id INTEGER NOT NULL, 
-	position INTEGER NOT NULL, 
-	traditional TEXT NOT NULL, 
-	pinyin TEXT NOT NULL, 
-	numeric TEXT NOT NULL, 
-	wadegiles TEXT NOT NULL, 
-	bopomofo TEXT NOT NULL, 
-	romatzyh TEXT NOT NULL, 
-	CONSTRAINT pk_vocabulary_reading PRIMARY KEY (id), 
-	CONSTRAINT uq_vocabulary_reading_vocabulary_id UNIQUE (vocabulary_id, position), 
-	CONSTRAINT ck_vocabulary_reading_positive_position CHECK (position > 0), 
+	id INTEGER NOT NULL,
+	vocabulary_id INTEGER NOT NULL,
+	position INTEGER NOT NULL,
+	traditional TEXT NOT NULL,
+	pinyin TEXT NOT NULL,
+	numeric TEXT NOT NULL,
+	wadegiles TEXT NOT NULL,
+	bopomofo TEXT NOT NULL,
+	romatzyh TEXT NOT NULL,
+	CONSTRAINT pk_vocabulary_reading PRIMARY KEY (id),
+	CONSTRAINT uq_vocabulary_reading_vocabulary_id UNIQUE (vocabulary_id, position),
+	CONSTRAINT ck_vocabulary_reading_positive_position CHECK (position > 0),
 	CONSTRAINT fk_vocabulary_reading_vocabulary_id_vocabulary_entry FOREIGN KEY(vocabulary_id) REFERENCES vocabulary_entry (id)
 );
 
 CREATE TABLE vocabulary_meaning (
-	reading_id INTEGER NOT NULL, 
-	position INTEGER NOT NULL, 
-	meaning TEXT NOT NULL, 
-	CONSTRAINT pk_vocabulary_meaning PRIMARY KEY (reading_id, position), 
-	CONSTRAINT ck_vocabulary_meaning_positive_position CHECK (position > 0), 
+	reading_id INTEGER NOT NULL,
+	position INTEGER NOT NULL,
+	meaning TEXT NOT NULL,
+	CONSTRAINT pk_vocabulary_meaning PRIMARY KEY (reading_id, position),
+	CONSTRAINT ck_vocabulary_meaning_positive_position CHECK (position > 0),
 	CONSTRAINT fk_vocabulary_meaning_reading_id_vocabulary_reading FOREIGN KEY(reading_id) REFERENCES vocabulary_reading (id)
 );
 

@@ -131,7 +131,9 @@ No character pronunciation is inferred by splitting vocabulary pinyin. Existing
 character trial statuses are initialized as before; vocabulary has no learner
 state. Part-of-speech tags, classifiers, radical/frequency fields, and historical
 import-run provenance are not imported in this increment. There is no enrichment,
-text storage/matching, annotation, exercise, or new vocabulary UI.
+text matching, annotation, exercise, or new vocabulary UI. The separate
+[text library increment](text-library.md) adds curated text storage and a plain
+reader; it does not extend this extraction format.
 
 ## Verified first-trial counts
 
@@ -159,6 +161,15 @@ empty tables and retain their existing data. The inventory API can query all
 248 characters in the HSK database; the existing page still describes the saved
 140-character sample, so use that fixture for the page. This increment adds no
 page that presents or labels the HSK collection.
+
+## Combined text-library build
+
+Add `--texts data/text-library.json` to the initializer to include the five
+curated categories and 《枫桥夜泊》 with explicit IDs. See
+[text library commands](text-library.md) for the combined build and reader.
+The HSK extraction JSON and all HSK records remain unchanged. Fresh HSK-only
+builds now have empty `text_category` and `library_text` tables; the regenerated
+HSK SQL snapshot includes them and removes trailing DDL whitespace.
 
 ## Validation
 

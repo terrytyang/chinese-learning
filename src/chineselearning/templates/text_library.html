@@ -1,0 +1,18 @@
+{% extends "text_base.html" %}
+{% block content %}
+    <h1>文章库</h1>
+    {% if texts %}
+    <ul class="text-list">
+      {% for text in texts %}
+      <li>
+        <h2>标题：<a href="{{ url_for('text_reader', text_id=text.id) }}">{{ text.title }}</a></h2>
+        <p>类别：{{ text.category_label }}</p>
+        {% if text.author %}<p>作者：{{ text.author }}</p>{% endif %}
+        {% if text.period %}<p>年代：{{ text.period }}</p>{% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>暂无文章。</p>
+    {% endif %}
+{% endblock %}

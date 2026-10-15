@@ -97,7 +97,21 @@ optional ordered HSK memberships, source traditional forms/readings and ordered
 meanings, and ordered character constituents. The initializer can build from
 this JSON without the historical database. The eight- and 140-character seeds
 remain separate fixtures; the inventory page still describes the latter.
-Character pronunciation, vocabulary learner state, text storage/matching, and
-automatic enrichment remain deferred.
+The next small increment adds a [text library and plain reader](text-library.md)
+with 《枫桥夜泊》 as the first curated input. `text_category` and `library_text`
+use English identifiers; Chinese labels and content are values. Separate,
+versioned `data/text-library.json` supplies explicit category/text IDs and their
+references. `--texts` adds these records to fresh builds without renumbering.
+`data/hsk-text-library.sqlite.sql` restores the combined trial independently.
+The `/texts` library and `/texts/{id}` reader use Chinese display labels,
+escape imported content, preserve body whitespace, and keep editorial notes
+stored but hidden. The `/` page remains the 140-character sample and should be
+served with its inventory database. The character API also works against the
+combined database. DDL generation now removes trailing whitespace, and all SQL
+snapshots are regenerated.
+
+Character pronunciation, vocabulary learner state, text matching, annotations,
+exercises, and automatic enrichment remain deferred. No migrations or stable-ID
+infrastructure were added; curated inputs and exports preserve supplied IDs.
 
 The project uses local Git on `main`; remote hosting remains undecided.

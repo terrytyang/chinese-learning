@@ -41,6 +41,7 @@ def test_selected_characters_have_independent_ids_and_blank_glosses(built):
         "character_hsk_level": 24, "character_learning": 8,
         "vocabulary_entry": 0, "vocabulary_reading": 0, "vocabulary_meaning": 0,
         "vocabulary_hsk_level": 0, "vocabulary_character": 0,
+        "text_category": 0, "library_text": 0,
     }
     with sqlite3.connect(output) as connection:
         actual = connection.execute(

@@ -205,6 +205,7 @@ def test_json_build_and_sql_restore_need_no_historical_source(tmp_path, monkeypa
         "character_hsk_level": 744, "character_learning": 248,
         "vocabulary_entry": 294, "vocabulary_reading": 396, "vocabulary_meaning": 1115,
         "vocabulary_hsk_level": 799, "vocabulary_character": 470,
+        "text_category": 0, "library_text": 0,
     }
     assert sql.read_bytes() == (ROOT / "data/hsk-newest-level1.sqlite.sql").read_bytes()
     restored = tmp_path / "restored.sqlite"

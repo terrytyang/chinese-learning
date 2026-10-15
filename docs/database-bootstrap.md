@@ -99,6 +99,14 @@ tables and JSON-only loading through `chineselearning-init --extracted FILE`.
 Both original fixture snapshots include those tables empty. Default builds
 continue to use the eight-character seed and historical read-only source.
 
+The [text library increment](text-library.md) adds `text_category` and
+`library_text`. Pass `--texts data/text-library.json` alongside either existing
+input mode to import the curated categories and texts with their explicit IDs.
+Omitting it leaves those tables empty. All three previous SQL snapshots were
+regenerated from the shared builder, including the DDL whitespace fix; existing
+data records are unchanged. `data/hsk-text-library.sqlite.sql` restores the
+combined HSK/text trial independently of both JSON inputs.
+
 ## Tests and portability
 
 Tests build real SQLite files, compare selected records, verify bound-character

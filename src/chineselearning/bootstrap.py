@@ -153,10 +153,11 @@ def learning_status_rows():
 
 def schema_sql(dialect_name="sqlite"):
     dialect = {"sqlite": sqlite.dialect, "postgresql": postgresql.dialect}[dialect_name]()
-    return "\n\n".join(
+    ddl = "\n\n".join(
         str(CreateTable(table).compile(dialect=dialect)).strip() + ";"
         for table in metadata.sorted_tables
     )
+    return "\n".join(line.rstrip() for line in ddl.splitlines())
 
 
 def snapshot_sql(rows):
@@ -187,24 +188,26 @@ def sqlite_engine(path):
     return engine
 
 
-def build_database(source_path, selection_path, output_path, sql_path=None):
+def build_database(source_path, selection_path, output_path, sql_path=None, *, texts_path=None):
     return _build_database(
         lambda: prepare_rows(source_path, selection_path),
-        [source_path, selection_path], output_path, sql_path,
+        [source_path, selection_path], output_path, sql_path, texts_path,
     )
 
 
-def build_extracted_database(extraction_path, output_path, sql_path=None):
+def build_extracted_database(extraction_path, output_path, sql_path=None, *, texts_path=None):
     return _build_database(
         lambda: prepare_extracted_rows(extraction_path),
-        [extraction_path], output_path, sql_path,
+        [extraction_path], output_path, sql_path, texts_path,
     )
 
 
-def _build_database(prepare, input_paths, output_path, sql_path):
+def _build_database(prepare, input_paths, output_path, sql_path, texts_path=None):
     output = Path(output_path).absolute()
     sql_output = Path(sql_path).absolute() if sql_path is not None else None
     protected = {Path(path).resolve() for path in input_paths}
+    if texts_path is not None:
+        protected.add(Path(texts_path).resolve())
     outputs = [output] + ([sql_output] if sql_output else [])
     resolved = [path.resolve() for path in outputs]
     if len(set(resolved)) != len(outputs) or any(path in protected for path in resolved):
@@ -213,6 +216,10 @@ def _build_database(prepare, input_paths, output_path, sql_path):
         if path.exists() or path.is_symlink():
             raise FileExistsError(f"Refusing to overwrite: {path}")
     rows = prepare()
+    if texts_path is not None:
+        from chineselearning.curated_text import read_rows
+
+        rows.update(read_rows(texts_path))
     sql_text = snapshot_sql(rows) if sql_output else None
     temporary = []
     published = []
@@ -257,6 +264,7 @@ def main():
     inputs = parser.add_mutually_exclusive_group()
     inputs.add_argument("--seed", type=Path)
     inputs.add_argument("--extracted", type=Path, help="Self-contained extracted JSON; no historical source access")
+    parser.add_argument("--texts", type=Path, help="Versioned curated-text JSON with explicit IDs")
     parser.add_argument("--output", type=Path)
     parser.add_argument("--sql-output", type=Path)
     parser.add_argument("--print-schema", choices=("sqlite", "postgresql"))
@@ -272,11 +280,14 @@ def main():
         parser.error("--extracted cannot be combined with --source")
     try:
         if args.extracted:
-            counts = build_extracted_database(args.extracted, args.output, args.sql_output)
+            counts = build_extracted_database(
+                args.extracted, args.output, args.sql_output, texts_path=args.texts,
+            )
         else:
             counts = build_database(
                 args.source or Path("hsk-original/hsk_vocab.sqlite"),
                 args.seed or Path("data/bootstrap.json"), args.output, args.sql_output,
+                texts_path=args.texts,
             )
     except (OSError, ValueError, sqlite3.Error, SQLAlchemyError) as error:
         parser.exit(1, f"Initialization failed: {error}\n")

@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from chineselearning.inventory_query import (
     InvalidInventoryQuery, list_characters, open_inventory_database,
 )
+from chineselearning.text_query import get_text, list_texts
 
 
 class CharacterItem(BaseModel):
@@ -63,6 +64,21 @@ def create_app(database_path=None):
     @app.get("/", response_class=HTMLResponse)
     def inventory_page(request: Request):
         return templates.TemplateResponse(request=request, name="inventory.html")
+
+    @app.get("/texts", response_class=HTMLResponse)
+    def text_library(request: Request):
+        return templates.TemplateResponse(
+            request=request, name="text_library.html", context={"texts": list_texts(engine)},
+        )
+
+    @app.get("/texts/{text_id}", response_class=HTMLResponse)
+    def text_reader(request: Request, text_id: int):
+        text = get_text(engine, text_id)
+        if text is None:
+            raise HTTPException(status_code=404, detail="未找到文章")
+        return templates.TemplateResponse(
+            request=request, name="text_reader.html", context={"text": text},
+        )
 
     @app.get("/api/characters", response_model=CharacterPage)
     def characters(

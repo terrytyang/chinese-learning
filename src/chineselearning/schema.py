@@ -124,3 +124,25 @@ vocabulary_character = Table(
     Column("character_id", ForeignKey("hanzi_character.id"), nullable=False),
     CheckConstraint("position > 0", name="positive_position"),
 )
+
+text_category = Table(
+    "text_category",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=False),
+    Column("label", Text, nullable=False),
+    CheckConstraint("length(trim(label)) > 0", name="nonblank_label"),
+)
+
+library_text = Table(
+    "library_text",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=False),
+    Column("category_id", ForeignKey("text_category.id"), nullable=False),
+    Column("author", Text),
+    Column("period", Text),
+    Column("title", Text, nullable=False),
+    Column("body", Text, nullable=False),
+    Column("notes", Text),
+    CheckConstraint("length(trim(title)) > 0", name="nonblank_title"),
+    CheckConstraint("length(trim(body)) > 0", name="nonblank_body"),
+)

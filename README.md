@@ -6,7 +6,7 @@ examination is one milestone, not the definition of the curriculum.
 
 The application extracts HSK vocabulary into self-contained JSON, builds
 reproducible character and vocabulary databases, and serves a read-only
-character inventory page with a JSON API.
+character inventory page with a JSON API, plus a text library and plain reader.
 The trial stack is Python 3.13, FastAPI, SQLAlchemy, Jinja2, and htmx, with SQLite
 initially. The inventory uses FastAPI, Jinja2, plain CSS, and a small JavaScript
 module; htmx and other frontend tooling are deferred.
@@ -82,6 +82,22 @@ Use fresh output paths. The second command needs only the JSON. No extraction
 runs during startup or requests. See [HSK extraction](docs/hsk-extraction.md) for
 exact/cumulative selection semantics, artifacts, counts, and limitations. The
 existing inventory page continues to describe its 140-character fixture.
+
+## Text library and reader
+
+The first curated text is 《枫桥夜泊》. Build its library alongside the existing
+HSK-1 data using only the saved JSON inputs:
+
+```sh
+uv run --locked chineselearning-init --extracted data/hsk-newest-level1.json --texts data/text-library.json --output build/hsk-text-library-rebuilt.sqlite --sql-output build/hsk-text-library-rebuilt.sql
+CHINESELEARNING_DATABASE=build/hsk-text-library-rebuilt.sqlite uv run --locked uvicorn chineselearning.web:create_app --factory --host 0.0.0.0 --port 8000
+```
+
+Use fresh output paths. Open `http://localhost:8000/texts` or `/texts/1` through
+VS Code port forwarding. The existing `/` inventory page still describes the
+140-character fixture; use its database for that page. The character API works
+against both datasets. See [text library documentation](docs/text-library.md)
+for explicit IDs, import validation, SQL restoration, and verification limits.
 
 ## Layout
 
