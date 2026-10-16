@@ -28,7 +28,7 @@ def main(argv=None):
     if args.command == "build":
         try:
             counts = db.build(args.db, DATA_DIR)
-        except (TextFileError, AnnotationError) as e:
+        except (TextFileError, AnnotationError, db.GlossFileError) as e:
             sys.exit(f"build failed: {e}")
         print(f"{args.db}: " + ", ".join(f"{table} {n}" for table, n in counts.items()))
     elif args.command == "serve":

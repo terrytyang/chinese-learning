@@ -1,6 +1,9 @@
 import sqlite3
 
+import pytest
+
 from chineselearning import db
+from chineselearning.db import GlossFileError
 
 
 def test_build_counts(built):
@@ -35,3 +38,34 @@ def test_find_words_never_spans_a_line_break_or_punctuation(built):
     assert [w["simplified"] for w in db.find_words(conn, "山中\n国家")] == ["国家"]
     assert [w["simplified"] for w in db.find_words(conn, "山中，国家")] == ["国家"]
     assert [w["simplified"] for w in db.find_words(conn, "山中国家")] == ["中国", "国家"]
+
+
+def test_character_glosses_loaded(built):
+    path, counts = built
+    assert counts["character_gloss"] == 248
+    conn = db.connect(path, readonly=True)
+    assert conn.execute("SELECT gloss FROM character WHERE char = '月'").fetchone()[0] == "moon, month"
+    assert conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0] == 248
+
+
+@pytest.mark.parametrize(
+    "lines, message",
+    [
+        (["月\tmoon", "鿿\tnothing"], "gloss.tsv:2: character '鿿' is not in the master"),
+        (["月\tmoon", "# comment", "", "月\tmonth"], "gloss.tsv:4: duplicate character '月' (also on line 1)"),
+        (["月\t  "], "gloss.tsv:1: blank gloss for '月'"),
+        (["月\tmoon\tmonth"], "gloss.tsv:1: expected two tab-separated columns, got 3"),
+        (["月"], "gloss.tsv:1: expected two tab-separated columns, got 1"),
+        (["月\t" + "x" * 121], "gloss.tsv:1: gloss for '月' is 121 characters, over 120"),
+    ],
+)
+def test_bad_gloss_line_fails_naming_the_line(built, tmp_path, lines, message):
+    path = tmp_path / "gloss.tsv"
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    conn = db.connect(built[0])
+    try:
+        with pytest.raises(GlossFileError) as info:
+            db.load_character_glosses(conn, path)
+        assert str(info.value).endswith(message)
+    finally:
+        conn.rollback()

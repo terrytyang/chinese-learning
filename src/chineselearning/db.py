@@ -29,6 +29,32 @@ def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
     return conn
 
 
+class GlossFileError(ValueError):
+    """data/character-gloss.tsv violates its format; the message names the line."""
+
+
+def load_character_glosses(conn, path) -> int:
+    """Apply the curated overlay `char<TAB>gloss` (rules: docs/prompts/character-gloss.md). Returns how many were set."""
+    seen = {}
+    for number, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip() or line.startswith("#"):
+            continue
+        columns = line.split("\t")
+        if len(columns) != 2:
+            raise GlossFileError(f"{path}:{number}: expected two tab-separated columns, got {len(columns)}")
+        char, gloss = columns[0].strip(), columns[1].strip()
+        if not gloss:
+            raise GlossFileError(f"{path}:{number}: blank gloss for {char!r}")
+        if len(gloss) > 120:
+            raise GlossFileError(f"{path}:{number}: gloss for {char!r} is {len(gloss)} characters, over 120")
+        if char in seen:
+            raise GlossFileError(f"{path}:{number}: duplicate character {char!r} (also on line {seen[char]})")
+        if conn.execute("UPDATE character SET gloss = ? WHERE char = ?", (gloss, char)).rowcount == 0:
+            raise GlossFileError(f"{path}:{number}: character {char!r} is not in the master")
+        seen[char] = number
+    return len(seen)
+
+
 def build(db_path, data_dir) -> dict[str, int]:
     """Delete and recreate the content database from data/. Returns row counts."""
     db_path, data_dir = Path(db_path), Path(data_dir)
@@ -39,6 +65,7 @@ def build(db_path, data_dir) -> dict[str, int]:
     conn = connect(db_path)
     with conn:
         conn.executescript((data_dir / "hsk.sql").read_text(encoding="utf-8"))
+        load_character_glosses(conn, data_dir / "character-gloss.tsv")
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         for t in texts:
             conn.execute(
@@ -50,6 +77,7 @@ def build(db_path, data_dir) -> dict[str, int]:
                 conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (t.id, tag))
         annotation_files.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
+    counts["character_gloss"] = conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0]
     conn.close()
     return counts
 

@@ -31,6 +31,8 @@ def test_text_1_flags_missing_characters_and_finds_no_words(client):
     assert set(missing_chars(r.text)) >= {"啼", "枫"}
     assert "28 字，" in r.text and "0 个词" in r.text
     assert re.search(r'<td class="char">月</td>\s*<td class="reading">\s*<span class="pinyin">yuè</span> <small>默认</small>', r.text)
+    assert re.search(r'<td class="char">月</td>\s*<td class="reading">.*?</td>\s*<td class="gloss">moon, month</td>', r.text, re.S)
+    assert re.search(r'<td class="char">啼</td>\s*<td class="reading">.*?</td>\s*<td class="gloss"></td>', r.text, re.S)
 
 
 def test_text_page_no_longer_computes_candidates(client):
@@ -47,4 +49,5 @@ def test_api_characters(client):
     rows = client.get("/api/characters", params={"chars": "月落乌啼月"}).json()["characters"]
     assert [c["char"] for c in rows] == ["月", "落", "乌", "啼"]
     assert rows[0]["pinyin"] == "yuè" and rows[0]["hsk_level"] == 1 and rows[0]["found"]
+    assert rows[0]["gloss"] == "moon, month"
     assert rows[3] == {"char": "啼", "found": False}

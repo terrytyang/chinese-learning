@@ -117,7 +117,7 @@
 <section>
   <h2>字表</h2>
   <table class="characters">
-    <thead><tr><th>字</th><th>拼音</th><th>级</th><th>版本</th><th>状态</th><th></th><th></th></tr></thead>
+    <thead><tr><th>字</th><th>拼音</th><th>释义</th><th>级</th><th>版本</th><th>状态</th><th></th><th></th></tr></thead>
     <tbody>
     {% for c in characters %}
       {% if c.found %}
@@ -142,6 +142,7 @@
           {% endif %}
           {% if c.override %}<form method="post" action="{{ base }}/readings/{{ c.char }}/delete{{ q }}"><button>清除</button></form>{% endif %}
         </td>
+        <td class="gloss">{{ c.gloss or "" }}</td>
         {% if c.found %}
         <td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td>{{ state_cell("character", c.char, c.state) }}<td></td>
         {% else %}
