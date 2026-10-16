@@ -2,15 +2,10 @@
 __pycache__/
 *.py[cod]
 .venv/
-.env
-.env.*
-!.env.example
-node_modules/
 .pytest_cache/
 build/
-
-# Local agent state and credentials, if created inside the workspace.
-.codex/
+.claude/settings.local.json
+.claude/*.local.*
 
 # hsk-original/hsk_vocab.sqlite is intentionally tracked.
 *.sqlite-wal

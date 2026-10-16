@@ -1,174 +1,53 @@
 # Development environment
 
-## Start without VS Code
+All development happens inside a container so that nothing is installed on the
+Mac. VS Code owns the container; any Mac terminal can attach to it.
 
-The root `compose.yaml` uses this same Dockerfile for an independent terminal
-environment. From the project root on the Docker host:
+## Day to day
+
+1. Start Docker Desktop, open this folder in VS Code, **Dev Containers: Reopen in
+   Container**. Use VS Code for editing and its Ports panel for `localhost:8000`.
+2. From iTerm2 (or any terminal) in the project folder:
+
+   ```sh
+   bin/dev                      # Claude Code, inside the container
+   bin/dev bash                 # a shell inside the container
+   bin/dev uv run pytest -q
+   bin/dev uv run chineselearning serve
+   ```
+
+   `bin/dev` finds the running Dev Container for this checkout and `docker exec`s
+   into it as the `node` user. First time, `bin/dev` will ask you to sign in; if
+   the browser callback never reaches the container, paste the code it shows.
+
+## Without VS Code
+
+`compose.yaml` builds the same Dockerfile into a separate container with its own
+`.venv`, sharing only the Claude Code login:
 
 ```sh
+docker volume create chineselearning-claude-state   # once per Docker host
 docker compose build dev
-docker compose run --rm dev
+docker compose run --rm dev                          # shell; deps synced on entry
+docker compose run --rm dev claude
+docker compose run --rm --service-ports dev uv run chineselearning serve
 ```
 
-This opens a shell after synchronizing locked Python dependencies. Inside it,
-run `codex`, `uv run --locked pytest -q`, or the database initialization commands.
-Exiting removes the one-off container; repository edits and named volumes persist.
+`--service-ports` is needed for a one-off container to publish port 8000 (bound
+to `127.0.0.1` on the host). Note that `docker compose build` and VS Code build
+separate images from the same Dockerfile; the layer cache is shared.
 
-Run a command directly, without opening a shell:
+## What persists
 
-```sh
-docker compose run --rm dev codex
-docker compose run --rm -T dev uv run --locked pytest -q
-```
+- The repository is bind-mounted; edits are edits to your checkout.
+- The `chineselearning-claude-state` volume holds Claude Code's login, settings
+  and session history, and survives **Rebuild Container**. `CLAUDE_CONFIG_DIR`
+  points at it so the `.claude.json` account file lands there too. Deleting the
+  volume signs you out.
+- Compose keeps its own `.venv` and uv cache in named volumes.
+- `hsk-original/` is mounted read-only under Compose.
 
-For a persistent development container:
+## Updating tools
 
-```sh
-docker compose up -d dev
-docker compose exec dev bash
-docker compose down
-```
-
-The application distribution and Python package are `chineselearning`, and its
-initialization command is `chineselearning-init`. This setup is for development
-tools. The inventory trial serves its page and API on port 8000; Compose publishes
-that port only on host `127.0.0.1`.
-
-The application rename intentionally leaves these environment names unchanged:
-
-- The existing host checkout directory keeps its name, such as `chineselearn`.
-- VS Code retains its current workspace path (`/workspaces/chineselearn` in the
-  existing container); Compose retains `/workspaces/chinese_learning`.
-- The Compose project remains `chinese_learning`, the image remains
-  `chinese_learning_dev:local`, and the `python_env` and `uv_cache` volume keys
-  retain their project-prefixed Docker names. Service and container names also
-  remain unchanged, as does `/usr/local/bin/chinese_learning-entrypoint`.
-- The shared Codex state volume remains `chineselearn-codex-state`.
-
-These exceptions preserve existing containers, storage, login, and history.
-They are environment identifiers, not alternative application/package names.
-
-Compose binds the repository and mounts `hsk-original/` read-only. A separate
-Python environment volume covers `.venv`, so it cannot overwrite VS Code's
-environment. Its uv cache is also persistent. Run `uv` through the container,
-not against the Compose environment from the host.
-
-Compose shares your existing `chineselearn-codex-state` volume with VS Code.
-This deliberately retains its old name to preserve login and history. The
-volume is external to Compose, so `docker compose down -v` does not delete it;
-that command does delete Compose's Python environment and uv cache. Run separate
-Codex sessions rather than resuming the same session concurrently in both
-environments, and avoid simultaneous edits to the same source files.
-
-On a new Docker host, create the Codex state volume before starting Compose:
-
-```sh
-docker volume create chineselearn-codex-state
-docker compose run --rm dev codex login --device-auth
-```
-
-To use a different state volume name, create it first and set
-`CODEX_STATE_VOLUME` when invoking Compose. That changes the selected storage;
-it does not transfer existing login or history.
-
-## Start locally
-
-1. Start Docker Desktop.
-2. Open this project folder in VS Code.
-3. Run **Dev Containers: Reopen in Container** from the command palette.
-4. Open a terminal in the container and sign in:
-
-   ```sh
-   codex login --device-auth
-   codex login status
-   ```
-
-   Complete the browser step yourself. Device code login may need enabling in
-   your ChatGPT account's security settings or workspace permissions.
-5. Start a session from the project root:
-
-   ```sh
-   codex
-   ```
-
-   Suggested first prompt:
-
-   > Read docs/project-context.md and README.md. Summarize the current project
-   > and discuss the next data-modeling step with me before changing files.
-
-The container includes Node.js for installing Codex, Python 3.13 managed by uv
-for application tools, system Python for the historical loader, SQLite tools,
-Git, and ripgrep. Codex CLI is pinned to 0.162.1 and uv to an image digest in
-the Dockerfile. The base image and operating-system packages are not fully pinned.
-
-Container creation runs `uv sync --locked` to install the project's locked
-dependencies in `.venv`. After pulling dependency changes, run that command
-again. Use `uv run` for application commands and tests. See
-[database initialization](../docs/database-bootstrap.md) for the first milestone.
-
-After the application rename, run `uv sync --locked` in each active environment
-to install `chineselearning` and refresh the `chineselearning-init` command.
-For an existing persistent Compose container, run
-`docker compose exec dev uv sync --locked` from the Docker host; one-off Compose
-containers synchronize on startup. Restart long-lived Python processes to
-reload imports. This naming change does not require recreating containers.
-
-## Run the inventory trial
-
-See [character inventory](../docs/character-inventory.md) for fresh database
-builds and the server command. VS Code forwards port 8000 to localhost; in an
-already-running Dev Container, use the Ports panel to forward it manually if
-needed. Compose publishes `127.0.0.1:8000:8000`; run one-off servers with
-`docker compose run --rm --service-ports dev ...` to enable that mapping.
-
-After this dependency update, run `uv sync --locked` in the Dev Container and
-`docker compose exec dev uv sync --locked` for an active Compose environment.
-Restart any Python server after syncing. Existing Compose containers do not
-acquire new published ports automatically. To try the page without recreating
-them, start a separate one-off server with `--service-ports` as documented.
-Avoid simultaneous dependency synchronization in containers sharing `.venv`.
-Workspace paths, Docker resource names, and Codex state storage are unchanged.
-
-If you already have the original container running, use **Dev Containers:
-Rebuild Container** to obtain uv and Python 3.13. Your Codex state volume survives.
-
-## Persistent state
-
-VS Code mounts the project folder into the container. Edits there are edits to
-your checkout. The Docker volume `chineselearn-codex-state` holds Codex's login,
-configuration, and session history separately from the repository and survives
-container recreation. It is shared by containers using this definition on the
-same Docker host. Deleting that volume removes that state.
-
-The container uses its own login; it does not mount your Mac's Codex directory.
-Credentials are never baked into the image. Keep Codex's normal permission and
-sandbox controls enabled. If a tool fails inside the container, inspect the
-specific failure before changing permissions.
-
-The configuration disables Docker's default seccomp filter because it blocks
-namespace creation required by Codex's Linux sandbox on the tested Docker
-Desktop host. Codex's sandbox remains enabled. The container still runs as the
-non-root `node` user, without privileged mode or access to the Docker socket.
-Recheck sandbox compatibility when moving to a hosted Docker machine; host
-security policy may differ.
-
-## Move to a hosted development machine
-
-Provision a Linux machine with Docker and SSH access. Once this project is in
-Git, clone it on that machine, connect using VS Code Remote SSH, and reopen the
-folder in its Dev Container. The same Dockerfile and configuration apply; no
-Mac-specific workspace path is embedded here.
-
-The Docker volume is local to each Docker host, so sign in again on the new
-host. Commit or otherwise preserve project changes before moving. Session
-history does not automatically move with the repository.
-
-## Update tools
-
-Change `CODEX_VERSION` in the Dockerfile and run **Dev Containers: Rebuild
-Container**. A container rebuild preserves the Codex state volume.
-
-## Official references
-
-- [Codex CLI](https://learn.chatgpt.com/docs/codex/cli)
-- [Authentication, including device code login](https://learn.chatgpt.com/docs/auth)
+Claude Code auto-update is disabled inside the image. To update it, uv, or Python:
+**Dev Containers: Rebuild Container** (or `docker compose build --no-cache dev`).

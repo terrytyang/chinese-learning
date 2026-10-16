@@ -1,1 +1,1 @@
-"""Chinese learning application data tools."""
+"""Chinese learning and teaching system."""

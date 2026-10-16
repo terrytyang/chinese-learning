@@ -1,30 +1,23 @@
 {
-  "name": "Chinese Learning — Codex",
-  "build": {
-    "dockerfile": "Dockerfile",
-    "context": "."
-  },
+  "name": "chineselearning",
+  "build": { "dockerfile": "Dockerfile", "context": "." },
   "remoteUser": "node",
+  "workspaceFolder": "/workspaces/chineselearning",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspaces/chineselearning,type=bind",
   "forwardPorts": [8000],
-  "portsAttributes": {
-    "8000": {
-      "label": "Character inventory",
-      "onAutoForward": "notify"
-    }
-  },
-  "runArgs": [
-    "--security-opt", "seccomp=unconfined"
-  ],
+  "portsAttributes": { "8000": { "label": "chineselearning", "onAutoForward": "notify" } },
   "mounts": [
-    "source=chineselearn-codex-state,target=/home/node/.codex,type=volume"
+    "source=chineselearning-claude-state,target=/home/node/.claude,type=volume"
   ],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "DISABLE_AUTOUPDATER": "1"
+  },
   "customizations": {
     "vscode": {
-      "settings": {
-        "terminal.integrated.defaultProfile.linux": "bash",
-        "remote.localPortHost": "localhost"
-      }
+      "extensions": ["anthropic.claude-code", "ms-python.python"],
+      "settings": { "terminal.integrated.defaultProfile.linux": "bash" }
     }
   },
-  "postCreateCommand": "uv sync --locked && codex --version && uv run python --version && sqlite3 --version && git --version && rg --version"
+  "postCreateCommand": "uv sync --locked && claude --version"
 }
