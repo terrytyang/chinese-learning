@@ -1,6 +1,15 @@
 {% extends "base.html" %}
 {% block title %}{{ text.title }}{% endblock %}
+{# A submitted value is kept only in the form it came from (same kind, and same character for inline forms). #}
+{% macro keep(kind, field, char=none) -%}
+{%- if submitted.kind == kind and (char is none or submitted.char == char) %}{{ submitted[field] or "" }}{% endif -%}
+{%- endmacro %}
+{% macro master(a) -%}
+<td>{{ a.pinyin or "" }}</td><td>{% if a.word_id %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("；") }}</td>
+{%- endmacro %}
 {% block content %}
+{% set base = "/texts/" ~ text.id %}
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
 <article class="text">
   <h1>{{ text.title }}</h1>
   <dl class="meta">
@@ -14,17 +23,86 @@
 
 <p class="counts">{{ characters | length }} 字，{{ missing }} 个不在字库，{{ words | length }} 个词</p>
 
+<section class="annotations">
+  <h2>标注</h2>
+  <h3>学习字</h3>
+  {% if annotations.characters %}
+  <table>
+    <thead><tr><th>字</th><th>释义</th><th></th></tr></thead>
+    <tbody>
+    {% for a in annotations.characters %}
+      <tr><td class="char">{{ a.char }}</td><td>{{ a.gloss or "" }}</td>
+          <td><form method="post" action="{{ base }}/characters/{{ a.char }}/delete"><button>删除</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">暂无</p>{% endif %}
+
+  <h3>词</h3>
+  {% if annotations.words %}
+  <table>
+    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th></th></tr></thead>
+    <tbody>
+    {% for a in annotations.words %}
+      <tr><td class="word">{{ a.surface }}</td>{{ master(a) }}
+          <td><form method="post" action="{{ base }}/words/{{ a.surface }}/delete"><button>删除</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">暂无</p>{% endif %}
+
+  <h3>扩展</h3>
+  {% if annotations.expansions %}
+  <table>
+    <thead><tr><th>字</th><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th></th></tr></thead>
+    <tbody>
+    {% for a in annotations.expansions %}
+      <tr><td class="char">{{ a.char }}</td><td class="word">{{ a.surface }}</td>{{ master(a) }}
+          <td><form method="post" action="{{ base }}/expansions/{{ a.char }}/{{ a.surface }}/delete"><button>删除</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">暂无</p>{% endif %}
+
+  <h3>注</h3>
+  {% if annotations.notes %}
+  <table>
+    <thead><tr><th>锚</th><th>注</th><th></th></tr></thead>
+    <tbody>
+    {% for a in annotations.notes %}
+      <tr><td>{{ a.anchor or "" }}</td><td>{{ a.note }}</td>
+          <td><form method="post" action="{{ base }}/notes/{{ a.id }}/delete"><button>删除</button></form></td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">暂无</p>{% endif %}
+</section>
+
 <section>
   <h2>字表</h2>
   <table class="characters">
-    <thead><tr><th>字</th><th>拼音</th><th>级</th><th>版本</th><th></th></tr></thead>
+    <thead><tr><th>字</th><th>拼音</th><th>级</th><th>版本</th><th></th><th></th></tr></thead>
     <tbody>
     {% for c in characters %}
       {% if c.found %}
-      <tr><td class="char">{{ c.char }}</td><td>{{ c.pinyin }}</td><td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td><td></td></tr>
+      <tr><td class="char">{{ c.char }}</td><td>{{ c.pinyin }}</td><td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td><td></td>
       {% else %}
-      <tr class="missing"><td class="char">{{ c.char }}</td><td></td><td></td><td></td><td class="marker">不在字库</td></tr>
+      <tr class="missing"><td class="char">{{ c.char }}</td><td></td><td></td><td></td><td class="marker">不在字库</td>
       {% endif %}
+        <td class="actions">
+          <form method="post" action="{{ base }}/characters">
+            <input type="hidden" name="char" value="{{ c.char }}">
+            <input name="gloss" placeholder="释义" size="10" value="{{ keep('character', 'gloss', c.char) }}">
+            <button>加入学习</button>
+          </form>
+          <form method="post" action="{{ base }}/expansions">
+            <input type="hidden" name="char" value="{{ c.char }}">
+            <input name="surface" placeholder="词" size="5" value="{{ keep('expansion', 'surface', c.char) }}">
+            <input name="gloss" placeholder="释义" size="10" value="{{ keep('expansion', 'gloss', c.char) }}">
+            <button>扩展</button>
+          </form>
+        </td>
+      </tr>
     {% endfor %}
     </tbody>
   </table>
@@ -34,15 +112,29 @@
   <h2>词表</h2>
   {% if words %}
   <table class="words">
-    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>版本</th><th>释义</th></tr></thead>
+    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>版本</th><th>释义</th><th></th></tr></thead>
     <tbody>
     {% for w in words %}
-      <tr><td class="word">{{ w.simplified }}</td><td>{{ w.pinyin }}</td><td>{{ w.hsk_level | hsk }}</td><td>{{ "新" if w.hsk_edition == "latest" else "旧" }}</td><td>{{ w.meanings[:3] | join("；") }}</td></tr>
+      <tr><td class="word">{{ w.simplified }}</td><td>{{ w.pinyin }}</td><td>{{ w.hsk_level | hsk }}</td><td>{{ "新" if w.hsk_edition == "latest" else "旧" }}</td><td>{{ w.meanings[:3] | join("；") }}</td>
+          <td><form method="post" action="{{ base }}/words"><input type="hidden" name="surface" value="{{ w.simplified }}"><button>加入</button></form></td></tr>
     {% endfor %}
     </tbody>
   </table>
   {% else %}
   <p class="empty">没有找到词库里的词。</p>
   {% endif %}
+
+  <h3>添加词</h3>
+  <form method="post" action="{{ base }}/words">
+    <input name="surface" placeholder="词" size="8" value="{{ keep('word', 'surface') }}">
+    <input name="gloss" placeholder="释义" size="20" value="{{ keep('word', 'gloss') }}">
+    <button>添加</button>
+  </form>
+  <h3>添加注</h3>
+  <form method="post" action="{{ base }}/notes">
+    <input name="anchor" placeholder="锚（正文片段）" size="10" value="{{ keep('note', 'anchor') }}">
+    <input name="note" placeholder="注" size="40" value="{{ keep('note', 'note') }}">
+    <button>添加</button>
+  </form>
 </section>
 {% endblock %}

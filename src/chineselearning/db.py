@@ -1,17 +1,16 @@
 """Content database (build/content.sqlite): open, build from data/, query."""
 
 import json
-import re
 import sqlite3
 from pathlib import Path
 
+from . import annotations
 from . import texts as text_files
+from .texts import HAN, HAN_RUN
 
 PACKAGE_DIR = Path(__file__).parent
 SCHEMA_PATH = PACKAGE_DIR / "schema.sql"
-CONTENT_TABLES = ("character", "word", "text", "tag")
-# Han characters (CJK unified ideographs incl. extensions, compatibility, 〇).
-HAN = re.compile(r"[㐀-䶿一-鿿豈-﫿\U00020000-\U000323af〇]")
+CONTENT_TABLES = ("character", "word", "text", "tag", "text_character", "text_word", "text_expansion", "text_note")
 
 
 def connect(path, readonly=False) -> sqlite3.Connection:
@@ -41,6 +40,7 @@ def build(db_path, data_dir) -> dict[str, int]:
             for tag in t.tags:
                 conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
                 conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (t.id, tag))
+        annotations.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
     conn.close()
     return counts
@@ -104,9 +104,9 @@ def lookup_characters(conn, chars) -> list[dict]:
 
 
 def find_words(conn, body: str) -> list[dict]:
-    """Every 2–4 character substring of `body` that is a master word, once each, in order of first appearance."""
-    candidates = dict.fromkeys(body[i : i + n] for n in (2, 3, 4) for i in range(len(body) - n + 1))
-    candidates = [c for c in candidates if HAN.fullmatch(c[0]) and HAN.fullmatch(c[-1])]
+    """Every 2–4 character window inside a run of Han characters that is a master word, once each, in order of first appearance."""
+    runs = [m.group() for m in HAN_RUN.finditer(body)]
+    candidates = list(dict.fromkeys(run[i : i + n] for run in runs for i in range(len(run)) for n in (2, 3, 4) if i + n <= len(run)))
     found = {}
     for chunk in _chunks(candidates):
         marks = ",".join("?" * len(chunk))

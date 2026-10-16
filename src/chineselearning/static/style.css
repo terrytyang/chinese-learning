@@ -11,3 +11,10 @@ th, td { border-bottom: 1px solid #ddd; padding: 0.25rem 0.75rem; text-align: le
 tr.missing { background: #fff3e0; }
 tr.missing .marker { color: #b35c00; font-weight: bold; }
 .counts, .count { color: #555; }
+form { display: inline-block; margin: 0 0.75rem 0 0; }
+input { font: inherit; font-size: 0.9rem; }
+button { font: inherit; font-size: 0.85rem; }
+td.actions form { white-space: nowrap; }
+.error { color: #b00020; border: 1px solid #b00020; padding: 0.5rem 0.75rem; font-weight: bold; }
+.annotations h3 { margin: 1rem 0 0; }
+.empty { color: #888; margin: 0.25rem 0 0.5rem; }

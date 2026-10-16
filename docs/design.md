@@ -19,7 +19,7 @@ second student costs a column, not a redesign). Private, local, never hosted.
 | 1. Reference | `hsk-original/` | permanent, read-only | upstream dataset |
 | 2. Master HSK | `character`, `word` | regenerated rarely | `data/hsk.sql`, produced by `tools/derive_hsk.py` |
 | 3. Texts & annotations | `text`, `tag`, `text_*` | repaved on every build | `data/texts/*.md`, `data/annotations/*.json` (exported by the app) |
-| 4. Learner & collections | `progress`, `collection` | accumulates; never repaved | `build/progress.sqlite`, backed up by hand |
+| 4. Learner | `progress` | accumulates; never repaved | `build/progress.sqlite`, backed up by hand |
 
 Layers 2–3 live in `build/content.sqlite`; `chineselearning build` recreates it from
 `data/` every time. Layer 4 lives in `build/progress.sqlite` and refers to content
@@ -55,25 +55,38 @@ tags: 诗词
 ```
 
 Header: `key: value` lines up to the first blank line; `id`, `title`, `tags`
-required; `tags` comma-separated, at least one; `author`, `period`, `notes`
-optional. Body: everything after the blank line, verbatim. The file name is for
+required; `tags` comma-separated, at least one; `author`, `period`, `notes`,
+`status` (`draft` default, or `ready`) optional. Body: everything after the blank line, verbatim. The file name is for
 humans; identity is the `id`.
 
-Tables: `text(id, title, author, period, body, notes)`, `tag(name)`,
+Tables: `text(id, title, author, period, body, notes, status)`, `tag(name)`,
 `text_tag(text_id, tag_name)`. Tags are literary categories (诗词, 文言, 散文, 节选,
-讲解); the set grows by using a new name in a file.
+讲解); the set grows by using a new name in a file. `status` is `draft` or
+`ready`; student mode lists only `ready` texts. A text with its annotations *is*
+the teaching material; there is no separate "collection". A `lesson` (later)
+orders several texts.
 
 Annotations belong to the text, never to the master tables. The master is a
-dictionary; the text owns how its material is taught. Four kinds, all keyed by
-`text_id`, all created in admin mode and exported back to
-`data/annotations/<id>.json` so a rebuild restores them:
+dictionary; the text owns how its material is taught. Five kinds, all keyed by
+`text_id`, all persisted in `data/annotations/<id>.json` so a rebuild restores
+them:
 
 | Table | Meaning | Row |
 | --- | --- | --- |
 | `text_character` | a character singled out for study in this text | `char`, `gloss` |
-| `text_word` | a word present in the text | `surface`, `word_id` (nullable → `word`), `gloss` |
+| `text_word` | a word present in the text | `surface`, `word_id` (nullable → `word`), `pinyin` (nullable), `gloss` |
 | `text_expansion` | a single character taught through a modern word (月→月亮, 乌→乌鸦) | `char`, `surface`, `word_id` (nullable), `gloss` |
+| `text_reading` | the reading of a character in this text when it is not the default | `char`, `pinyin`, optional `position` |
 | `text_note` | free commentary | `note`, optional `anchor` (substring it refers to) |
+
+Every row carries `origin`: `auto` (deterministic intake), `suggested` (an
+outside tool's proposal), or `manual` (entered or confirmed by the admin).
+Confirming a row sets it to `manual`.
+
+A character's reading in a text resolves in this order: `text_reading` override
+> the reading of a linked `text_word` covering it > the character's primary
+reading. The admin page shows which one applied ("háng 由「银行」确定"), and
+offers a pull-down of `character.readings` only when there is more than one.
 
 Rule for anything with `word_id` + `gloss`: the master entry, when linked,
 always supplies pinyin, level and dictionary meanings; the text's `gloss` is shown
@@ -90,15 +103,31 @@ against `word.simplified`. There is no separate export step to forget.
  "characters": [{"char": "愁", "gloss": "忧愁"}],
  "words":      [{"surface": "寒山寺", "gloss": "苏州城外的寺庙"}],
  "expansions": [{"char": "月", "surface": "月亮", "gloss": null},
-                {"char": "乌", "surface": "乌鸦", "gloss": null}],
+                {"char": "乌", "surface": "乌鸦", "gloss": "crow (not an HSK word, so glossed)"}],
  "notes":      [{"anchor": "月落乌啼", "note": "……"}]}
 ```
 
-Finding candidates is brute force: every 2–4 character substring of the body
-looked up in `word.simplified` — a few hundred to a few thousand lookups per text.
-Expansions are chosen by the admin, one click per character. Inference-assisted
-suggestions are an admin-mode convenience to add later, never part of the data
-path.
+### Intake
+
+`chineselearning intake <text id>` runs once per text, before curation, and
+stores its results as `origin = auto` rows in the annotation file: every 2–4
+character window of the body (within runs of Han characters) that matches
+`word.simplified` becomes a `text_word` — brute force, a few thousand lookups at
+most — and every character absent from the master becomes a `text_character`,
+since it needs the admin's attention. False positives (交通, 无论 in 桃花源记) are
+rows to delete or gloss, not to re-ignore on every view. Intake refuses to run
+on a text that already has annotations unless forced; `build` never runs it.
+Readings are not stored per character: they resolve at view time by the order
+above, and only overrides are rows.
+
+Judgment — which matches are real words here, which single characters deserve
+expansion, contextual glosses, non-default readings — comes from outside the
+app. `docs/prompts/intake.md` is a prompt template with the file schema, the
+rules, and one hand-annotated gold example; any AI tool given it and a text
+produces `data/annotations/<id>.json` with `origin = suggested`. The app never
+calls a model; it validates a file, strictly and with messages that name the
+offending value, because an outside tool is a less trustworthy author than the
+admin.
 
 ### Layer 4: learner state and collections
 
@@ -108,9 +137,8 @@ for local words too). States: `unrecognized`, `recognized` (can read and explain
 can't write), `mastered` (can also write). Current state = latest row; history
 answers "what became recognized last week".
 
-A collection is a named set of characters and words, usually built from one text
-and named after it: `collection(id, name, text_id)`, `collection_item(collection_id,
-kind, key)`. Collections are curated content and are exported like annotations.
+Attempts at exercises (cloze and later games) are logged in the same file:
+`attempt(learner_id, text_id, exercise, score, detail JSON, at)`.
 
 ## Modes
 
@@ -119,10 +147,19 @@ every unique character with pinyin, level and whether it is in the master; the
 word candidates found; the annotations so far. Click a character to add it to
 study, to create an expansion, or to add a local word. Save a collection.
 
-**Student**: the text with toggles for pinyin above characters and for
-hover/tap explanations (character or word granularity); characters tinted by
-HSK level or by progress state. Exercises built from the text: expansion fill-in
-(月落乌啼 → 月__ 落__ …), cloze memorization (poem with characters blanked).
+Every student-facing presentation renders one assembled structure, built by one
+function from a text and its annotations: the body as characters, each with its
+resolved reading, traditional form, level, progress state and study flag; word
+spans with reading and gloss; expansions; notes. New presentations are templates
+over that structure, never new queries.
+
+**Student**: the text with toggles for pinyin (`<ruby>`), traditional (OpenCC
+`s2t`, pure-Python package, overridable per text), hover/tap glosses, and word
+highlighting with the highlighted words listed beneath; characters tinted by
+HSK level or progress state. **Print**: the same structure through `@media print`
+templates — poem with ruby, vocabulary list, 田字格 sheet, cloze sheet. **Games**:
+cloze with a tunable blank ratio (seeded, reproducible), pinyin hints, server-side
+grading, attempts logged to progress.
 
 ## Stack
 
@@ -141,3 +178,6 @@ real database from `data/` and query it.
 - 2026-10-16 Progress keyed by natural keys in its own database file.
 - 2026-10-16 Texts are one Markdown-ish file each with a `key: value` header; no JSON for hand-written content.
 - 2026-10-16 Annotation files store surfaces, not word ids, and are written on every save; no export command.
+- 2026-10-16 No collection entity: a text with its annotations is the material; `status` gates student visibility; `lesson` groups texts later.
+- 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
+- 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.

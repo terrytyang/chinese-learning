@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 from . import db
+from .annotations import AnnotationError
 from .texts import TextFileError
 
 DATA_DIR = "data"
@@ -22,7 +23,7 @@ def main(argv=None):
     if args.command == "build":
         try:
             counts = db.build(args.db, DATA_DIR)
-        except TextFileError as e:
+        except (TextFileError, AnnotationError) as e:
             sys.exit(f"build failed: {e}")
         print(f"{args.db}: " + ", ".join(f"{table} {n}" for table, n in counts.items()))
     elif args.command == "serve":

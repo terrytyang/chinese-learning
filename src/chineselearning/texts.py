@@ -4,8 +4,13 @@ A file is a `key: value` header up to the first blank line, then the body,
 verbatim. Any violation raises TextFileError naming the file.
 """
 
+import re
 from dataclasses import dataclass
 from pathlib import Path
+
+# Han characters (CJK unified ideographs incl. extensions, compatibility, 〇) and maximal runs of them.
+HAN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\U00020000-\U000323af\u3007]")
+HAN_RUN = re.compile(HAN.pattern + "+")
 
 REQUIRED = ("id", "title", "tags")
 OPTIONAL = ("author", "period", "notes")
