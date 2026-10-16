@@ -1,0 +1,64 @@
+{
+  "text_id": 1,
+  "characters": [
+    {
+      "char": "啼",
+      "gloss": "chirping",
+      "origin": "manual"
+    },
+    {
+      "char": "月",
+      "gloss": "moon, month",
+      "origin": "manual"
+    }
+  ],
+  "words": [
+    {
+      "surface": "寒山寺",
+      "pinyin": "hán shān sì",
+      "gloss": "a mountain",
+      "origin": "manual"
+    }
+  ],
+  "expansions": [
+    {
+      "char": "月",
+      "surface": "月亮",
+      "gloss": "the moon",
+      "origin": "manual"
+    },
+    {
+      "char": "月",
+      "surface": "月光",
+      "gloss": "moonlight",
+      "origin": "manual"
+    }
+  ],
+  "readings": [
+    {
+      "char": "乌",
+      "pinyin": "wū",
+      "position": null,
+      "origin": "manual"
+    },
+    {
+      "char": "月",
+      "pinyin": "yuè",
+      "position": null,
+      "origin": "manual"
+    },
+    {
+      "char": "落",
+      "pinyin": "luò",
+      "position": null,
+      "origin": "manual"
+    }
+  ],
+  "notes": [
+    {
+      "anchor": "夜半钟声",
+      "note": "a scene where clock chimes at night",
+      "origin": "manual"
+    }
+  ]
+}

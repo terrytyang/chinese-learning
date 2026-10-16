@@ -7,6 +7,12 @@
 {% macro master(a) -%}
 <td>{{ a.pinyin or "" }}</td><td>{% if a.word_id %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("；") }}</td>
 {%- endmacro %}
+{# Origin badge, 确认 for auto/suggested rows, 删除; `url` is the row's natural-key path. #}
+{% macro origin(a, url) -%}
+<td><span class="origin origin-{{ a.origin }}">{{ {"auto": "自动", "suggested": "建议", "manual": "手动"}[a.origin] }}</span>
+    {% if a.origin != "manual" %}<form method="post" action="{{ url }}/confirm"><button>确认</button></form>{% endif %}</td>
+<td><form method="post" action="{{ url }}/delete"><button>删除</button></form></td>
+{%- endmacro %}
 {% block content %}
 {% set base = "/texts/" ~ text.id %}
 {% if error %}<p class="error">{{ error }}</p>{% endif %}
@@ -21,18 +27,17 @@
   {% if text.notes %}<p class="notes">{{ text.notes }}</p>{% endif %}
 </article>
 
-<p class="counts">{{ characters | length }} 字，{{ missing }} 个不在字库，{{ words | length }} 个词</p>
+<p class="counts">{{ characters | length }} 字，{{ missing }} 个不在字库，{{ annotations.words | length }} 个词</p>
 
 <section class="annotations">
   <h2>标注</h2>
   <h3>学习字</h3>
   {% if annotations.characters %}
   <table>
-    <thead><tr><th>字</th><th>释义</th><th></th></tr></thead>
+    <thead><tr><th>字</th><th>释义</th><th>来源</th><th></th></tr></thead>
     <tbody>
     {% for a in annotations.characters %}
-      <tr><td class="char">{{ a.char }}</td><td>{{ a.gloss or "" }}</td>
-          <td><form method="post" action="{{ base }}/characters/{{ a.char }}/delete"><button>删除</button></form></td></tr>
+      <tr><td class="char">{{ a.char }}</td><td>{{ a.gloss or "" }}</td>{{ origin(a, base ~ "/characters/" ~ a.char) }}</tr>
     {% endfor %}
     </tbody>
   </table>
@@ -41,11 +46,10 @@
   <h3>词</h3>
   {% if annotations.words %}
   <table>
-    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th></th></tr></thead>
+    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th>来源</th><th></th></tr></thead>
     <tbody>
     {% for a in annotations.words %}
-      <tr><td class="word">{{ a.surface }}</td>{{ master(a) }}
-          <td><form method="post" action="{{ base }}/words/{{ a.surface }}/delete"><button>删除</button></form></td></tr>
+      <tr><td class="word">{{ a.surface }}</td>{{ master(a) }}{{ origin(a, base ~ "/words/" ~ a.surface) }}</tr>
     {% endfor %}
     </tbody>
   </table>
@@ -54,11 +58,10 @@
   <h3>扩展</h3>
   {% if annotations.expansions %}
   <table>
-    <thead><tr><th>字</th><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th></th></tr></thead>
+    <thead><tr><th>字</th><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th>来源</th><th></th></tr></thead>
     <tbody>
     {% for a in annotations.expansions %}
-      <tr><td class="char">{{ a.char }}</td><td class="word">{{ a.surface }}</td>{{ master(a) }}
-          <td><form method="post" action="{{ base }}/expansions/{{ a.char }}/{{ a.surface }}/delete"><button>删除</button></form></td></tr>
+      <tr><td class="char">{{ a.char }}</td><td class="word">{{ a.surface }}</td>{{ master(a) }}{{ origin(a, base ~ "/expansions/" ~ a.char ~ "/" ~ a.surface) }}</tr>
     {% endfor %}
     </tbody>
   </table>
@@ -67,11 +70,10 @@
   <h3>注</h3>
   {% if annotations.notes %}
   <table>
-    <thead><tr><th>锚</th><th>注</th><th></th></tr></thead>
+    <thead><tr><th>锚</th><th>注</th><th>来源</th><th></th></tr></thead>
     <tbody>
     {% for a in annotations.notes %}
-      <tr><td>{{ a.anchor or "" }}</td><td>{{ a.note }}</td>
-          <td><form method="post" action="{{ base }}/notes/{{ a.id }}/delete"><button>删除</button></form></td></tr>
+      <tr><td>{{ a.anchor or "" }}</td><td>{{ a.note }}</td>{{ origin(a, base ~ "/notes/" ~ a.id) }}</tr>
     {% endfor %}
     </tbody>
   </table>
@@ -85,10 +87,26 @@
     <tbody>
     {% for c in characters %}
       {% if c.found %}
-      <tr><td class="char">{{ c.char }}</td><td>{{ c.pinyin }}</td><td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td><td></td>
+      <tr><td class="char">{{ c.char }}</td>
       {% else %}
-      <tr class="missing"><td class="char">{{ c.char }}</td><td></td><td></td><td></td><td class="marker">不在字库</td>
+      <tr class="missing"><td class="char">{{ c.char }}</td>
       {% endif %}
+        <td class="reading">
+          {% for r in c.resolved %}<span class="pinyin">{{ r.pinyin or "—" }}</span> <small>{{ r.source | source }}</small>{% if not loop.last %}；{% endif %}{% endfor %}
+          {% if c.readings and c.readings | length > 1 %}
+          <form method="post" action="{{ base }}/readings">
+            <input type="hidden" name="char" value="{{ c.char }}">
+            <select name="pinyin">{% for p in c.readings %}<option{% if p == c.current %} selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+            <button>设定</button>
+          </form>
+          {% endif %}
+          {% if c.override %}<form method="post" action="{{ base }}/readings/{{ c.char }}/delete"><button>清除</button></form>{% endif %}
+        </td>
+        {% if c.found %}
+        <td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td><td></td>
+        {% else %}
+        <td></td><td></td><td class="marker">不在字库</td>
+        {% endif %}
         <td class="actions">
           <form method="post" action="{{ base }}/characters">
             <input type="hidden" name="char" value="{{ c.char }}">
@@ -109,24 +127,10 @@
 </section>
 
 <section>
-  <h2>词表</h2>
-  {% if words %}
-  <table class="words">
-    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>版本</th><th>释义</th><th></th></tr></thead>
-    <tbody>
-    {% for w in words %}
-      <tr><td class="word">{{ w.simplified }}</td><td>{{ w.pinyin }}</td><td>{{ w.hsk_level | hsk }}</td><td>{{ "新" if w.hsk_edition == "latest" else "旧" }}</td><td>{{ w.meanings[:3] | join("；") }}</td>
-          <td><form method="post" action="{{ base }}/words"><input type="hidden" name="surface" value="{{ w.simplified }}"><button>加入</button></form></td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}
-  <p class="empty">没有找到词库里的词。</p>
-  {% endif %}
-
   <h3>添加词</h3>
   <form method="post" action="{{ base }}/words">
     <input name="surface" placeholder="词" size="8" value="{{ keep('word', 'surface') }}">
+    <input name="pinyin" placeholder="拼音" size="12" value="{{ keep('word', 'pinyin') }}">
     <input name="gloss" placeholder="释义" size="20" value="{{ keep('word', 'gloss') }}">
     <button>添加</button>
   </form>

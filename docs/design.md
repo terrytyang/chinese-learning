@@ -55,16 +55,16 @@ tags: 诗词
 ```
 
 Header: `key: value` lines up to the first blank line; `id`, `title`, `tags`
-required; `tags` comma-separated, at least one; `author`, `period`, `notes`,
-`status` (`draft` default, or `ready`) optional. Body: everything after the blank line, verbatim. The file name is for
+required; `tags` comma-separated, at least one; `author`, `period`, `notes`
+optional. Body: everything after the blank line, verbatim. The file name is for
 humans; identity is the `id`.
 
-Tables: `text(id, title, author, period, body, notes, status)`, `tag(name)`,
+Tables: `text(id, title, author, period, body, notes)`, `tag(name)`,
 `text_tag(text_id, tag_name)`. Tags are literary categories (诗词, 文言, 散文, 节选,
-讲解); the set grows by using a new name in a file. `status` is `draft` or
-`ready`; student mode lists only `ready` texts. A text with its annotations *is*
-the teaching material; there is no separate "collection". A `lesson` (later)
-orders several texts.
+讲解); the set grows by using a new name in a file. A text with its annotations
+*is* the teaching material, and it is always in flux: there is no draft/ready
+state and nothing to promote. There is no separate "collection"; a `lesson`
+(later) orders several texts.
 
 Annotations belong to the text, never to the master tables. The master is a
 dictionary; the text owns how its material is taught. Five kinds, all keyed by
@@ -100,11 +100,14 @@ against `word.simplified`. There is no separate export step to forget.
 
 ```json
 {"text_id": 1,
- "characters": [{"char": "愁", "gloss": "忧愁"}],
- "words":      [{"surface": "寒山寺", "gloss": "苏州城外的寺庙"}],
- "expansions": [{"char": "月", "surface": "月亮", "gloss": null},
-                {"char": "乌", "surface": "乌鸦", "gloss": "crow (not an HSK word, so glossed)"}],
- "notes":      [{"anchor": "月落乌啼", "note": "……"}]}
+ "characters": [{"char": "啼", "gloss": "chirp", "origin": "auto"},
+                {"char": "愁", "gloss": "忧愁", "origin": "manual"}],
+ "words":      [{"surface": "寒山寺", "pinyin": "hán shān sì", "hsk_level": 7,
+                 "gloss": "苏州城外的寺庙", "origin": "manual"}],
+ "expansions": [{"char": "月", "surface": "月亮", "gloss": null, "origin": "manual"},
+                {"char": "乌", "surface": "乌鸦", "hsk_level": 7, "gloss": "crow", "origin": "suggested"}],
+ "readings":   [{"char": "舍", "pinyin": "shè", "position": null, "origin": "manual"}],
+ "notes":      [{"anchor": "月落乌啼", "note": "……", "origin": "manual"}]}
 ```
 
 ### Intake
@@ -178,6 +181,7 @@ real database from `data/` and query it.
 - 2026-10-16 Progress keyed by natural keys in its own database file.
 - 2026-10-16 Texts are one Markdown-ish file each with a `key: value` header; no JSON for hand-written content.
 - 2026-10-16 Annotation files store surfaces, not word ids, and are written on every save; no export command.
-- 2026-10-16 No collection entity: a text with its annotations is the material; `status` gates student visibility; `lesson` groups texts later.
+- 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.
+- 2026-10-16 Setting a character's reading replaces the existing override (the pull-down is the editor); every other duplicate add stays a no-op.

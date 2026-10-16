@@ -18,7 +18,14 @@ This is deliberately lossy. Rules:
   * IDs: character.id is the Unicode code point; word.id is the source entry id.
     Both are fixed by the committed SQL file from now on.
 
-Usage: python3 tools/derive_hsk.py [--source hsk-original/hsk_vocab.sqlite] [--output data/hsk.sql]
+Usage:
+  python3 tools/derive_hsk.py                       # full set -> data/hsk.sql
+  python3 tools/derive_hsk.py --db build/hsk.sqlite # also repave a SQLite file
+  python3 tools/derive_hsk.py --edition latest --max-level 3 --output build/hsk-1-3.sql
+
+Filters apply to words; characters are those occurring in the kept words, with
+their level and edition still computed from the whole source. Outputs are
+always overwritten.
 """
 
 import argparse
@@ -72,7 +79,7 @@ def pick_level(levels_by_scheme):
     raise ValueError("no level")
 
 
-def derive(source_path):
+def derive(source_path, keep_edition="all", max_level=None):
     src = sqlite3.connect(f"file:{Path(source_path).resolve()}?mode=ro", uri=True)
     q = lambda sql, *a: src.execute(sql, a).fetchall()
 
@@ -139,13 +146,17 @@ def derive(source_path):
             hsk_level=level, hsk_edition=edition,
         ))
 
-    char_levels = defaultdict(dict)  # char -> {scheme: min level over words containing it}
+    char_levels = defaultdict(dict)  # char -> {scheme: min level over ALL words containing it}
     for w in words:
         for ch in w["simplified"]:
             for scheme, level in levels[w["id"]].items():
                 char_levels[ch][scheme] = min(level, char_levels[ch].get(scheme, 99))
+    words = [w for w in words
+             if (keep_edition == "all" or w["hsk_edition"] == keep_edition)
+             and (max_level is None or w["hsk_level"] <= max_level)]
+    kept = {ch for w in words for ch in w["simplified"]}
     characters = []
-    for ch in sorted(char_levels):
+    for ch in sorted(kept):
         level, edition = pick_level(char_levels[ch])
         readings = pinyin(ch, style=Style.TONE, heteronym=True)[0]
         characters.append(dict(
@@ -156,12 +167,20 @@ def derive(source_path):
     return characters, words, stats
 
 
-def write_sql(characters, words, output_path):
-    db = sqlite3.connect(":memory:")
+def load(characters, words, path=":memory:"):
+    """Create the two tables at `path` (repaved if it is a file) and return the connection."""
+    if path != ":memory:":
+        Path(path).parent.mkdir(parents=True, exist_ok=True)
+        Path(path).unlink(missing_ok=True)
+    db = sqlite3.connect(path)
     db.executescript(SCHEMA)
     db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:hsk_level,:hsk_edition)", characters)
     db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:readings,:pos,:frequency_rank,:hsk_level,:hsk_edition)", words)
     db.commit()
+    return db
+
+
+def write_sql(db, output_path):
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
     with output.open("w", encoding="utf-8", newline="\n") as f:
@@ -172,12 +191,20 @@ def write_sql(characters, words, output_path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--source", default="hsk-original/hsk_vocab.sqlite")
-    ap.add_argument("--output", default="data/hsk.sql")
+    ap.add_argument("--source", default="hsk-original/hsk_vocab.sqlite", help="reference dataset (read-only)")
+    ap.add_argument("--output", default="data/hsk.sql", help="SQL dump to write (overwritten)")
+    ap.add_argument("--db", help="also repave a SQLite file with the same tables")
+    ap.add_argument("--edition", choices=("all", "latest", "old"), default="all",
+                    help="keep only words of this edition (default: all)")
+    ap.add_argument("--max-level", type=int, choices=range(1, 8), metavar="1-7",
+                    help="keep only words at or below this level")
     args = ap.parse_args()
-    characters, words, stats = derive(args.source)
-    write_sql(characters, words, args.output)
-    print(f"characters: {len(characters)}   words: {len(words)}   -> {args.output}")
+    characters, words, stats = derive(args.source, args.edition, args.max_level)
+    db = load(characters, words, args.db or ":memory:")
+    write_sql(db, args.output)
+    db.close()
+    where = args.output + (f" and {args.db}" if args.db else "")
+    print(f"characters: {len(characters)}   words: {len(words)}   -> {where}")
     print(f"polyphone words: {stats['polyphones']}, primary reading reordered: {stats['reordered']}, "
           f"no pypinyin match (source order kept): {len(stats['unmatched'])}")
     for simp, expected, have in stats["unmatched"][:15]:

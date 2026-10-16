@@ -30,15 +30,13 @@ def test_text_1_flags_missing_characters_and_finds_no_words(client):
     assert "月落乌啼霜满天，江枫渔火对愁眠。\n姑苏城外寒山寺，夜半钟声到客船。" in r.text
     assert set(missing_chars(r.text)) >= {"啼", "枫"}
     assert "28 字，" in r.text and "0 个词" in r.text
-    assert re.search(r'<td class="char">月</td><td>yuè</td><td>1</td><td>新</td>', r.text)
+    assert re.search(r'<td class="char">月</td>\s*<td class="reading">\s*<span class="pinyin">yuè</span> <small>默认</small>', r.text)
 
 
-def test_text_5_finds_words(client):
+def test_text_page_no_longer_computes_candidates(client):
     r = client.get("/texts/5")
-    words = re.findall(r'<td class="word">(.*?)</td>', r.text)
-    assert words and words[0] == "桃花" and len(words) == len(set(words))
-    assert "peach blossom" in r.text
-    assert f"{len(words)} 个词" in r.text
+    assert "<h2>词表</h2>" not in r.text and "peach blossom" not in r.text
+    assert '<option selected>shě</option>' in r.text
 
 
 def test_unknown_text_is_404(client):

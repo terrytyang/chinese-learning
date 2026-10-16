@@ -10,7 +10,7 @@ from .texts import HAN, HAN_RUN
 
 PACKAGE_DIR = Path(__file__).parent
 SCHEMA_PATH = PACKAGE_DIR / "schema.sql"
-CONTENT_TABLES = ("character", "word", "text", "tag", "text_character", "text_word", "text_expansion", "text_note")
+CONTENT_TABLES = ("character", "word", "text", "tag", "text_character", "text_word", "text_expansion", "text_reading", "text_note")
 
 
 def connect(path, readonly=False) -> sqlite3.Connection:

@@ -1,9 +1,9 @@
-# Brief 03 — Intake: pre-populated annotations, origin, readings, status
+# Brief 03 — Intake: pre-populated annotations, origin, readings
 
 Read `CLAUDE.md` and `docs/design.md` ("Intake", the annotation table, the
 reading resolution order). Briefs 01–02 are done. This brief moves discovery
 from view time to a one-time `intake` step, adds provenance to every annotation,
-lets the admin fix a character's reading in a text, and gates texts by status.
+and lets the admin fix a character's reading in a text.
 
 Still plain HTML forms, no JavaScript.
 
@@ -18,8 +18,7 @@ Still plain HTML forms, no JavaScript.
   unique index expression, whichever is cleaner in SQLite. `position` is the
   0-based index into the body when the override applies to one occurrence only;
   null means every occurrence. This brief's UI sets only the null form.
-- `text.status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','ready'))`,
-  from an optional `status` header key in the text file.
+- ~~status~~ (dropped by amendment: texts are always in flux)
 - Annotation file: every row gains `"origin"`; words gain `"pinyin"`; a new
   `"readings"` list of `{char, pinyin, position, origin}` sorted by `(char,
   position)`. Key order: `text_id, characters, words, expansions, readings,
@@ -68,8 +67,8 @@ length, else fall back) > `character.pinyin` > none.
   and a 设定 button posting to `POST …/readings` with `char`, `pinyin`. A 清除
   button appears when an override exists (`POST …/readings/{char}/delete`).
 - 添加词 gains a `pinyin` field (optional).
-- The header shows 状态 (草稿 / 可用).
-- `/texts`: a 状态 column and filter.
+
+
 
 ## 6. Routes added
 
@@ -86,9 +85,8 @@ only auto rows and keeps a manual one. Reading resolution on text 5 for 舍 in
 便舍船: primary gives shě; after an override to shè, `source == "override"`;
 for 银 in a text containing the linked word 银行 (use a fixture body), the
 source is `word:银行` and the reading háng for 行. Confirm flips origin.
-Invalid reading rejected with the allowed list in the message. `status` header
-parsed; `/texts?status=ready` filters. Round trip through build still
-byte-identical.
+Invalid reading rejected with the allowed list in the message. Round trip
+through build still byte-identical.
 
 ## Acceptance
 
