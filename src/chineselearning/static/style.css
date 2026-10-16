@@ -1,0 +1,13 @@
+body { font-family: "Noto Serif CJK SC", "Songti SC", serif; max-width: 60rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.6; color: #222; }
+nav { margin-bottom: 1.5rem; }
+nav a { text-decoration: none; font-weight: bold; }
+.filters label { margin-right: 1rem; }
+table { border-collapse: collapse; margin: 0.5rem 0 1.5rem; }
+th, td { border-bottom: 1px solid #ddd; padding: 0.25rem 0.75rem; text-align: left; vertical-align: top; }
+.meta dt { display: inline; font-weight: bold; margin-right: 0.25rem; }
+.meta dd { display: inline; margin: 0 1.5rem 0 0; }
+.body { white-space: pre-line; font-size: 1.25rem; margin: 1rem 0; }
+.char, .word { font-size: 1.25rem; }
+tr.missing { background: #fff3e0; }
+tr.missing .marker { color: #b35c00; font-weight: bold; }
+.counts, .count { color: #555; }

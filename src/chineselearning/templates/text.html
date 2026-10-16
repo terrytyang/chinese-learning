@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}{{ text.title }}{% endblock %}
+{% block content %}
+<article class="text">
+  <h1>{{ text.title }}</h1>
+  <dl class="meta">
+    <dt>作者</dt><dd>{{ text.author or "—" }}</dd>
+    <dt>年代</dt><dd>{{ text.period or "—" }}</dd>
+    <dt>类别</dt><dd>{{ text.tags | join("、") }}</dd>
+  </dl>
+  <div class="body">{{ text.body }}</div>
+  {% if text.notes %}<p class="notes">{{ text.notes }}</p>{% endif %}
+</article>
+
+<p class="counts">{{ characters | length }} 字，{{ missing }} 个不在字库，{{ words | length }} 个词</p>
+
+<section>
+  <h2>字表</h2>
+  <table class="characters">
+    <thead><tr><th>字</th><th>拼音</th><th>级</th><th>版本</th><th></th></tr></thead>
+    <tbody>
+    {% for c in characters %}
+      {% if c.found %}
+      <tr><td class="char">{{ c.char }}</td><td>{{ c.pinyin }}</td><td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td><td></td></tr>
+      {% else %}
+      <tr class="missing"><td class="char">{{ c.char }}</td><td></td><td></td><td></td><td class="marker">不在字库</td></tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>词表</h2>
+  {% if words %}
+  <table class="words">
+    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>版本</th><th>释义</th></tr></thead>
+    <tbody>
+    {% for w in words %}
+      <tr><td class="word">{{ w.simplified }}</td><td>{{ w.pinyin }}</td><td>{{ w.hsk_level | hsk }}</td><td>{{ "新" if w.hsk_edition == "latest" else "旧" }}</td><td>{{ w.meanings[:3] | join("；") }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty">没有找到词库里的词。</p>
+  {% endif %}
+</section>
+{% endblock %}

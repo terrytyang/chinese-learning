@@ -1,0 +1,30 @@
+import sqlite3
+
+from chineselearning import db
+
+
+def test_build_counts(built):
+    path, counts = built
+    assert counts == {"character": 3034, "word": 11470, "text": 5, "tag": 2}
+
+
+def test_build_imports_texts_with_tags(built):
+    conn = db.connect(built[0], readonly=True)
+    assert db.get_text(conn, 1)["tags"] == ["诗词"]
+    assert db.get_text(conn, 5)["period"] == "东晋"
+    assert db.get_text(conn, 1)["body"].startswith("月落乌啼")
+    assert conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1
+
+
+def test_build_overwrites(tmp_path):
+    path = tmp_path / "content.sqlite"
+    path.write_bytes(b"garbage")
+    db.build(path, "data")
+    assert sqlite3.connect(path).execute("SELECT count(*) FROM text").fetchone()[0] == 5
+
+
+def test_cli_build_prints_counts(tmp_path, capsys):
+    from chineselearning.cli import main
+
+    main(["build", "--db", str(tmp_path / "c.sqlite")])
+    assert "character 3034, word 11470, text 5, tag 2" in capsys.readouterr().out
