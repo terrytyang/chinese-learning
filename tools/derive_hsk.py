@@ -13,6 +13,7 @@ This is deliberately lossy. Rules:
     of any word containing them, with the same edition rule.
   * Traditional forms for characters are a majority vote over all words
     containing the character (positional, equal-length forms only); may be null.
+  * `gloss` is left null; `data/character-gloss.tsv` (curated) fills it at build.
   * Dropped: Wade-Giles, Bopomofo, Gwoyeu Romatzyh, numeric pinyin, radicals,
     classifiers, per-edition membership, import provenance.
   * IDs: character.id is the Unicode code point; word.id is the source entry id.
@@ -48,7 +49,8 @@ CREATE TABLE character (
   pinyin TEXT NOT NULL,            -- most common reading
   readings TEXT NOT NULL,          -- JSON list of readings, most common first
   hsk_level INTEGER NOT NULL,      -- 1-7; 7 = bands 7-9
-  hsk_edition TEXT NOT NULL        -- 'latest' or 'old'
+  hsk_edition TEXT NOT NULL,       -- 'latest' or 'old'
+  gloss TEXT                       -- null here; filled at build from data/character-gloss.tsv
 );
 CREATE TABLE word (
   id INTEGER PRIMARY KEY,          -- source entry id, fixed by this file
@@ -174,7 +176,7 @@ def load(characters, words, path=":memory:"):
         Path(path).unlink(missing_ok=True)
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
-    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:hsk_level,:hsk_edition)", characters)
+    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:hsk_level,:hsk_edition,NULL)", characters)
     db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:readings,:pos,:frequency_rank,:hsk_level,:hsk_edition)", words)
     db.commit()
     return db

@@ -1,16 +1,14 @@
-"""Annotations: admin curation of a text, persisted write-through to data/annotations/<id>.json.
+"""Annotations: admin curation of a text (validation, add, edit, remove, confirm, page query).
 
-The JSON file is the source of truth; it stores surfaces, never word ids.
-`build` re-imports every file through the same add_* functions the admin page uses.
+`annotation_files` persists them write-through to data/annotations/<id>.json and
+re-imports them on build through the same add_* functions the admin page uses.
 """
 
 import json
-from pathlib import Path
 
 from . import readings
 from .texts import HAN
 
-KINDS = ("characters", "words", "expansions", "readings", "notes")
 ORIGINS = ("auto", "suggested", "manual")
 # Table and key clause per kind, for remove() and confirm(); readings only in the every-occurrence form.
 TABLES = {
@@ -53,6 +51,23 @@ def _origin(value):
     return value
 
 
+def _level(value):
+    """HSK level for a local word or unlinked expansion: blank means none, else 1–7."""
+    if value in (None, ""):
+        return None
+    if not (isinstance(value, int) or str(value).isdigit()) or not 1 <= int(value) <= 7:
+        raise AnnotationError("级只能是 1 到 7")
+    return int(value)
+
+
+def _local_pinyin(conn, text_id, surface, pinyin):
+    """A local word always stores its reading: the given one, else prefilled from its characters."""
+    pinyin = pinyin or readings.default_pinyin(conn, text_id, surface)
+    if pinyin is None:
+        raise AnnotationError(f"「{surface}」里有字库没有的字，请填写拼音")
+    return pinyin
+
+
 def _resolve(conn, surface, gloss):
     """word_id of a master word; a surface absent from the master must be glossed."""
     row = conn.execute("SELECT id FROM word WHERE simplified = ?", (surface,)).fetchone()
@@ -68,26 +83,24 @@ def add_character(conn, text_id, char, gloss=None, origin="manual"):
     conn.execute("INSERT OR IGNORE INTO text_character (text_id, char, gloss, origin) VALUES (?, ?, ?, ?)", (text_id, char, _clean(gloss), _origin(origin)))
 
 
-def add_word(conn, text_id, surface, gloss=None, pinyin=None, origin="manual"):
+def add_word(conn, text_id, surface, gloss=None, pinyin=None, origin="manual", hsk_level=None):
     body, surface, gloss, pinyin = _body(conn, text_id), _clean(surface), _clean(gloss), _clean(pinyin)
     if not surface or surface not in body:
         raise AnnotationError(f"「{surface or ''}」没有出现在正文里")
-    word_id = _resolve(conn, surface, gloss)
-    if word_id is None and pinyin is None:  # a local word always stores its reading
-        pinyin = readings.default_pinyin(conn, text_id, surface)
-        if pinyin is None:
-            raise AnnotationError(f"「{surface}」里有字库没有的字，请填写拼音")
-    sql = "INSERT OR IGNORE INTO text_word (text_id, surface, word_id, pinyin, gloss, origin) VALUES (?, ?, ?, ?, ?, ?)"
-    conn.execute(sql, (text_id, surface, word_id, pinyin, gloss, _origin(origin)))
+    word_id, level = _resolve(conn, surface, gloss), _level(hsk_level)
+    if word_id is None:
+        pinyin = _local_pinyin(conn, text_id, surface, pinyin)
+    sql = "INSERT OR IGNORE INTO text_word (text_id, surface, word_id, pinyin, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    conn.execute(sql, (text_id, surface, word_id, pinyin, level if word_id is None else None, gloss, _origin(origin)))
 
 
-def add_expansion(conn, text_id, char, surface, gloss=None, origin="manual"):
+def add_expansion(conn, text_id, char, surface, gloss=None, origin="manual", hsk_level=None, replace=False):
     char, surface, gloss = _char_in(_body(conn, text_id), char), _clean(surface), _clean(gloss)
     if not surface:
         raise AnnotationError("请填写扩展词")
-    word_id = _resolve(conn, surface, gloss)
-    sql = "INSERT OR IGNORE INTO text_expansion (text_id, char, surface, word_id, gloss, origin) VALUES (?, ?, ?, ?, ?, ?)"
-    conn.execute(sql, (text_id, char, surface, word_id, gloss, _origin(origin)))
+    word_id, level = _resolve(conn, surface, gloss), _level(hsk_level)
+    sql = f"INSERT OR {'REPLACE' if replace else 'IGNORE'} INTO text_expansion (text_id, char, surface, word_id, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    conn.execute(sql, (text_id, char, surface, word_id, level if word_id is None else None, gloss, _origin(origin)))
 
 
 def add_reading(conn, text_id, char, pinyin, position=None, origin="manual"):
@@ -126,8 +139,38 @@ def confirm(conn, text_id, kind, *key):
     conn.execute(f"UPDATE {table} SET origin = 'manual' WHERE text_id = ? AND {where}", (text_id, *key))
 
 
+def update(conn, text_id, kind, key, fields):
+    """Edit one row in place (validation as for add); origin becomes manual. `key` is the row's natural key tuple."""
+    table, where = TABLES[kind]
+    row = conn.execute(f"SELECT * FROM {table} WHERE text_id = ? AND {where}", (text_id, *key)).fetchone()
+    if row is None:
+        raise AnnotationError("没有这条标注")
+    gloss = _clean(fields.get("gloss"))
+    if kind == "characters":
+        conn.execute("UPDATE text_character SET gloss = ?, origin = 'manual' WHERE text_id = ? AND char = ?", (gloss, text_id, *key))
+    elif kind == "words":
+        pinyin, level = _clean(fields.get("pinyin")), None
+        if row["word_id"] is None:
+            if gloss is None:
+                raise AnnotationError(f"字库里没有「{key[0]}」，请填写释义")
+            conn.execute("UPDATE text_word SET pinyin = NULL WHERE text_id = ? AND surface = ?", (text_id, *key))  # so a prefill ignores the old reading
+            pinyin, level = _local_pinyin(conn, text_id, key[0], pinyin), _level(fields.get("hsk_level"))
+        sql = "UPDATE text_word SET pinyin = ?, hsk_level = ?, gloss = ?, origin = 'manual' WHERE text_id = ? AND surface = ?"
+        conn.execute(sql, (pinyin, level, gloss, text_id, *key))
+    elif kind == "expansions":  # the surface is part of the key: delete and re-add in this transaction
+        remove(conn, text_id, kind, *key)
+        add_expansion(conn, text_id, key[0], fields.get("surface"), gloss, "manual", fields.get("hsk_level"), replace=True)
+    elif kind == "notes":
+        body, note, anchor = _body(conn, text_id), _clean(fields.get("note")), _clean(fields.get("anchor"))
+        if not note:
+            raise AnnotationError("请填写注")
+        if anchor and anchor not in body:
+            raise AnnotationError(f"「{anchor}」没有出现在正文里")
+        conn.execute("UPDATE text_note SET anchor = ?, note = ?, origin = 'manual' WHERE text_id = ? AND id = ?", (anchor, note, text_id, *key))
+
+
 # --- read ------------------------------------------------------------------
-MASTER = "w.hsk_level, w.hsk_edition, w.meanings"
+MASTER = "coalesce(w.hsk_level, t.hsk_level) AS hsk_level, w.hsk_edition, w.meanings"
 
 
 def load(conn, text_id) -> dict:
@@ -147,55 +190,3 @@ def load(conn, text_id) -> dict:
         "notes": sorted(rows("SELECT id, anchor, note, origin FROM text_note WHERE text_id = ?"), key=lambda r: (position(r["anchor"]), r["note"])),
     }
 
-
-def export(conn, text_id) -> dict:
-    """File content: keys in documented order, lists sorted by natural key, surfaces only."""
-    rows = lambda sql: [dict(r) for r in conn.execute(sql, (text_id,))]  # noqa: E731
-    return {
-        "text_id": text_id,
-        "characters": rows("SELECT char, gloss, origin FROM text_character WHERE text_id = ? ORDER BY char"),
-        "words": rows("SELECT surface, pinyin, gloss, origin FROM text_word WHERE text_id = ? ORDER BY surface"),
-        "expansions": rows("SELECT char, surface, gloss, origin FROM text_expansion WHERE text_id = ? ORDER BY char, surface"),
-        "readings": rows("SELECT char, pinyin, position, origin FROM text_reading WHERE text_id = ? ORDER BY char, position"),
-        "notes": rows("SELECT anchor, note, origin FROM text_note WHERE text_id = ? ORDER BY coalesce(anchor, ''), note"),
-    }
-
-
-# --- files -----------------------------------------------------------------
-
-def file_path(data_dir, text_id) -> Path:
-    return Path(data_dir) / "annotations" / f"{text_id}.json"
-
-
-def write_file(conn, text_id, data_dir):
-    """Rewrite data/annotations/<id>.json from the database; no annotations, no file."""
-    path, data = file_path(data_dir, text_id), export(conn, text_id)
-    if not any(data[kind] for kind in KINDS):
-        path.unlink(missing_ok=True)
-        return
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-
-
-def import_all(conn, data_dir):
-    """Import every data/annotations/*.json; any problem is an AnnotationError naming the file."""
-    for path in sorted(Path(data_dir, "annotations").glob("*.json")):
-        data = json.loads(path.read_text(encoding="utf-8"))
-        text_id = data.get("text_id")
-        try:
-            if path.stem != str(text_id) or not conn.execute("SELECT 1 FROM text WHERE id = ?", (text_id,)).fetchone():
-                raise AnnotationError(f"没有 id 为 {text_id} 的课文")
-            for c in data.get("characters", []):
-                add_character(conn, text_id, c["char"], c.get("gloss"), c.get("origin", "manual"))
-            for r in data.get("readings", []):  # before words, so a local word's prefilled reading sees overrides
-                add_reading(conn, text_id, r["char"], r["pinyin"], r.get("position"), r.get("origin", "manual"))
-            for w in data.get("words", []):
-                add_word(conn, text_id, w["surface"], w.get("gloss"), w.get("pinyin"), w.get("origin", "manual"))
-            for e in data.get("expansions", []):
-                add_expansion(conn, text_id, e["char"], e["surface"], e.get("gloss"), e.get("origin", "manual"))
-            for n in data.get("notes", []):
-                add_note(conn, text_id, n["note"], n.get("anchor"), n.get("origin", "manual"))
-        except AnnotationError as e:
-            raise AnnotationError(f"{path}: {e}") from None
-        except KeyError as e:
-            raise AnnotationError(f"{path}: 缺少字段 {e}") from None

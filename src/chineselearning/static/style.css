@@ -24,3 +24,7 @@ td.actions form { white-space: nowrap; }
 .origin-manual { background: #e8f5e9; }
 td.reading small { color: #777; }
 td.reading form { display: block; margin-top: 0.15rem; }
+td.state form { display: block; white-space: nowrap; }
+td.state button { padding: 0 0.3rem; }
+tr.editing td { background: #f5f5f5; }
+.toggle { margin: 0.5rem 0; }

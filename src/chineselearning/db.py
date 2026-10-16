@@ -4,20 +4,28 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import annotations
+from . import annotation_files
 from . import texts as text_files
 from .texts import HAN, HAN_RUN
 
 PACKAGE_DIR = Path(__file__).parent
 SCHEMA_PATH = PACKAGE_DIR / "schema.sql"
+PROGRESS_SCHEMA_PATH = PACKAGE_DIR / "progress.sql"
 CONTENT_TABLES = ("character", "word", "text", "tag", "text_character", "text_word", "text_expansion", "text_reading", "text_note")
 
 
-def connect(path, readonly=False) -> sqlite3.Connection:
+def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
+    """Open the content database; with `progress_path`, attach the learner database as `progress` (created if missing)."""
     mode = "ro" if readonly else "rwc"
     conn = sqlite3.connect(f"file:{Path(path).resolve()}?mode={mode}", uri=True)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    if progress_path is not None:
+        Path(progress_path).parent.mkdir(parents=True, exist_ok=True)
+        conn.execute("ATTACH DATABASE ? AS progress", (str(Path(progress_path).resolve()),))
+        conn.executescript(PROGRESS_SCHEMA_PATH.read_text(encoding="utf-8"))
+        conn.execute("INSERT INTO progress.learner (id, name) SELECT 1, '学生' WHERE NOT EXISTS (SELECT 1 FROM progress.learner)")
+        conn.commit()
     return conn
 
 
@@ -40,7 +48,7 @@ def build(db_path, data_dir) -> dict[str, int]:
             for tag in t.tags:
                 conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
                 conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (t.id, tag))
-        annotations.import_all(conn, data_dir)
+        annotation_files.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
     conn.close()
     return counts

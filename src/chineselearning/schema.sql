@@ -31,6 +31,7 @@ CREATE TABLE text_word (          -- a word present in the text; word_id null = 
   surface TEXT NOT NULL,
   word_id INTEGER REFERENCES word(id),
   pinyin TEXT,                     -- a local word's reading, or a contextual correction of a linked word's
+  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),  -- local words only; null when linked
   gloss TEXT,
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
   PRIMARY KEY (text_id, surface),
@@ -41,6 +42,7 @@ CREATE TABLE text_expansion (     -- a character taught through a modern word (æ
   char TEXT NOT NULL,
   surface TEXT NOT NULL,
   word_id INTEGER REFERENCES word(id),
+  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),  -- unlinked expansions only
   gloss TEXT,
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
   PRIMARY KEY (text_id, char, surface),

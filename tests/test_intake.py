@@ -4,7 +4,7 @@ import json
 import re
 
 import pytest
-from chineselearning import annotations, db, readings
+from chineselearning import annotation_files, annotations, db, readings
 from chineselearning.annotations import AnnotationError
 from chineselearning.cli import main
 from chineselearning.intake import intake
@@ -17,7 +17,7 @@ def test_intake_text_1_two_auto_characters_no_words(site):
     assert [tuple(r) for r in rows] == [("啼", None, "auto"), ("枫", None, "auto")]
     data = json.loads(site.file.read_text(encoding="utf-8"))
     assert list(data) == ["text_id", "characters", "words", "expansions", "readings", "notes"]
-    assert data["words"] == [] and all(row["origin"] == "auto" for kind in annotations.KINDS for row in data[kind])
+    assert data["words"] == [] and all(row["origin"] == "auto" for kind in annotation_files.KINDS for row in data[kind])
 
 
 def test_intake_text_5_matches_find_words(site):
@@ -29,7 +29,7 @@ def test_intake_text_5_matches_find_words(site):
     assert sorted(r["surface"] for r in rows) == sorted(expected)
     assert all(r["origin"] == "auto" and r["pinyin"] is None for r in rows)
     data = json.loads((site.data / "annotations" / "5.json").read_text(encoding="utf-8"))
-    assert all("origin" in row for kind in annotations.KINDS for row in data[kind])
+    assert all("origin" in row for kind in annotation_files.KINDS for row in data[kind])
     page = site.client.get("/texts/5").text
     assert page.count("自动") == counts["words"] + counts["characters"]
     assert "peach blossom" in page and f"{len(expected)} 个词" in page and "<h2>词表</h2>" not in page

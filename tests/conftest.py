@@ -29,7 +29,7 @@ def built(tmp_path_factory):
 
 @pytest.fixture(scope="session")
 def client(built):
-    return TestClient(create_app(built[0]))
+    return TestClient(create_app(built[0], progress_path=built[0].parent / "progress.sqlite"))
 
 
 @pytest.fixture
@@ -38,5 +38,6 @@ def site(tmp_path):
     data = copy_data(tmp_path / "data")
     db_path = tmp_path / "content.sqlite"
     db.build(db_path, data)
-    client = TestClient(create_app(db_path, data), follow_redirects=False)
-    return SimpleNamespace(data=data, db=db_path, client=client, file=data / "annotations" / "1.json")
+    progress = tmp_path / "progress.sqlite"
+    client = TestClient(create_app(db_path, data, progress), follow_redirects=False)
+    return SimpleNamespace(data=data, db=db_path, progress=progress, client=client, file=data / "annotations" / "1.json")

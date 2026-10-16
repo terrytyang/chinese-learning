@@ -5,7 +5,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from chineselearning import annotations, db
+from chineselearning import annotation_files, annotations, db
 from chineselearning.annotations import AnnotationError
 from chineselearning.web import create_app
 
@@ -22,6 +22,7 @@ EXPECTED_FILE = """{
     {
       "surface": "寒山寺",
       "pinyin": "hán shān sì",
+      "hsk_level": 7,
       "gloss": "苏州城外的寺庙",
       "origin": "manual"
     }
@@ -30,6 +31,7 @@ EXPECTED_FILE = """{
     {
       "char": "乌",
       "surface": "乌鸦",
+      "hsk_level": 7,
       "gloss": "黑色的鸟",
       "origin": "manual"
     },
@@ -66,9 +68,9 @@ def post(site, path, **fields):
 def annotate_text_1(site):
     responses = [
         post(site, "characters", char="愁", gloss="忧愁"),
-        post(site, "words", surface="寒山寺", gloss="苏州城外的寺庙"),
-        post(site, "expansions", char="月", surface="月亮"),
-        post(site, "expansions", char="乌", surface="乌鸦", gloss="黑色的鸟"),
+        post(site, "words", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7"),
+        post(site, "expansions", char="月", surface="月亮", hsk_level="3"),
+        post(site, "expansions", char="乌", surface="乌鸦", gloss="黑色的鸟", hsk_level="7"),
         post(site, "notes", anchor="月落乌啼", note="首句写景"),
         post(site, "readings", char="乌", pinyin="wù"),
     ]
@@ -90,7 +92,7 @@ def test_round_trip_page_file_and_rebuild(site, tmp_path):
     assert expansions["月亮"] is not None and expansions["乌鸦"] is None
     assert tuple(conn.execute("SELECT word_id, gloss FROM text_word WHERE surface = '寒山寺'").fetchone()) == (None, "苏州城外的寺庙")
     assert conn.execute("SELECT gloss FROM text_character WHERE char = '愁'").fetchone()[0] == "忧愁"
-    assert annotations.export(conn, 1) == json.loads(EXPECTED_FILE)
+    assert annotation_files.export(conn, 1) == json.loads(EXPECTED_FILE)
     assert TestClient(create_app(rebuilt, site.data)).get("/texts/1").text == page
 
 
@@ -98,7 +100,7 @@ def test_rewrite_of_unchanged_content_is_byte_identical(site):
     annotate_text_1(site)
     before = site.file.read_bytes()
     conn = db.connect(site.db)
-    annotations.write_file(conn, 1, site.data)
+    annotation_files.write_file(conn, 1, site.data)
     assert site.file.read_bytes() == before
 
 
@@ -150,7 +152,7 @@ def test_delete_removes_row_and_rewrites_file(site):
         assert post(site, path).status_code == 303
     data = json.loads(site.file.read_text(encoding="utf-8"))
     assert (data["characters"], data["expansions"], data["readings"], data["notes"]) == ([], [], [], [])
-    assert data["words"] == [{"surface": "寒山寺", "pinyin": "hán shān sì", "gloss": "苏州城外的寺庙", "origin": "manual"}]
+    assert data["words"] == [{"surface": "寒山寺", "pinyin": "hán shān sì", "hsk_level": 7, "gloss": "苏州城外的寺庙", "origin": "manual"}]
     assert post(site, "words/寒山寺/delete").status_code == 303
     assert not site.file.exists()
     conn = db.connect(site.db, readonly=True)

@@ -1,6 +1,6 @@
 """One-time intake: pre-populate a text's annotations with origin 'auto' (design.md, "Intake")."""
 
-from . import annotations, db
+from . import annotation_files, annotations, db
 from .annotations import AnnotationError
 
 TABLES = ("text_character", "text_word", "text_expansion", "text_reading", "text_note")
@@ -30,5 +30,5 @@ def intake(conn, text_id, data_dir, force=False) -> dict[str, int]:
             annotations.add_character(conn, text_id, c["char"], origin="auto")
     characters = conn.total_changes - before
     conn.commit()
-    annotations.write_file(conn, text_id, data_dir)
+    annotation_files.write_file(conn, text_id, data_dir)
     return {"words": words, "characters": characters}
