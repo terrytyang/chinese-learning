@@ -13,7 +13,7 @@ DEFAULT_DB = "build/content.sqlite"
 DEFAULT_DATA = "data"
 DEFAULT_PROGRESS = "build/progress.sqlite"
 PACKAGE_DIR = Path(__file__).parent
-SOURCE_LABELS = {"override": "指定", "primary": "默认", "none": "无"}
+SOURCE_LABELS = {"manual": "指定", "auto": "默认", "suggested": "建议", "none": "无"}
 
 
 def hsk_label(level) -> str:
@@ -22,7 +22,7 @@ def hsk_label(level) -> str:
 
 
 def source_label(source) -> str:
-    """How a reading was resolved, for the 字表."""
+    """Where a stored reading came from (its origin), for the 字表."""
     return f"由「{source[5:]}」确定" if source.startswith("word:") else SOURCE_LABELS[source]
 
 

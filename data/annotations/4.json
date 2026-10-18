@@ -1,0 +1,137 @@
+{
+  "text_id": 4,
+  "readings": [
+    {
+      "position": 0,
+      "char": "迟",
+      "pinyin": "chí",
+      "origin": "auto"
+    },
+    {
+      "position": 1,
+      "char": "日",
+      "pinyin": "rì",
+      "origin": "auto"
+    },
+    {
+      "position": 2,
+      "char": "江",
+      "pinyin": "jiāng",
+      "origin": "auto"
+    },
+    {
+      "position": 3,
+      "char": "山",
+      "pinyin": "shān",
+      "origin": "auto"
+    },
+    {
+      "position": 4,
+      "char": "丽",
+      "pinyin": "lì",
+      "origin": "auto"
+    },
+    {
+      "position": 6,
+      "char": "春",
+      "pinyin": "chūn",
+      "origin": "auto"
+    },
+    {
+      "position": 7,
+      "char": "风",
+      "pinyin": "fēng",
+      "origin": "auto"
+    },
+    {
+      "position": 8,
+      "char": "花",
+      "pinyin": "huā",
+      "origin": "auto"
+    },
+    {
+      "position": 9,
+      "char": "草",
+      "pinyin": "cǎo",
+      "origin": "auto"
+    },
+    {
+      "position": 10,
+      "char": "香",
+      "pinyin": "xiāng",
+      "origin": "auto"
+    },
+    {
+      "position": 13,
+      "char": "泥",
+      "pinyin": "ní",
+      "origin": "auto"
+    },
+    {
+      "position": 14,
+      "char": "融",
+      "pinyin": "róng",
+      "origin": "auto"
+    },
+    {
+      "position": 15,
+      "char": "飞",
+      "pinyin": "fēi",
+      "origin": "auto"
+    },
+    {
+      "position": 16,
+      "char": "燕",
+      "pinyin": "yàn",
+      "origin": "auto"
+    },
+    {
+      "position": 17,
+      "char": "子",
+      "pinyin": "zi",
+      "origin": "auto"
+    },
+    {
+      "position": 19,
+      "char": "沙",
+      "pinyin": "shā",
+      "origin": "auto"
+    },
+    {
+      "position": 20,
+      "char": "暖",
+      "pinyin": "nuǎn",
+      "origin": "auto"
+    },
+    {
+      "position": 21,
+      "char": "睡",
+      "pinyin": "shuì",
+      "origin": "auto"
+    }
+  ],
+  "characters": [
+    {
+      "char": "鸯",
+      "pinyin": null,
+      "hsk_level": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "char": "鸳",
+      "pinyin": null,
+      "hsk_level": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ],
+  "words": [
+    {
+      "surface": "燕子",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ m.text.title }}{% endblock %}
+{% block title %}{{ m.text.title }}{% if m.lesson %} · {{ m.lesson.name }}{% endif %}{% endblock %}
 {# One body character. Whitespace control matters: any stray whitespace would render as a gap between characters. #}
 {% macro ch(c) -%}
 {%- if c.han -%}
@@ -11,7 +11,7 @@
 {%- endmacro %}
 {% macro word_gloss(w) %}{{ w.gloss or w.meanings | join("；") }}{% endmacro %}
 {% block content %}
-<form method="get" action="/learn/{{ m.text.id }}" class="toggles">
+<form method="get" action="/learn/{{ m.text.id }}{% if m.lesson %}/{{ m.lesson.id }}{% endif %}" class="toggles">
   <label><input type="checkbox" name="pinyin" value="1"{% if o.pinyin %} checked{% endif %}> 拼音</label>
   <label><input type="checkbox" name="traditional" value="1"{% if o.traditional %} checked{% endif %}> 繁体</label>
   <label><input type="checkbox" name="gloss" value="1"{% if o.gloss %} checked{% endif %}> 释义</label>
@@ -21,7 +21,7 @@
   <button>应用</button>
 </form>
 <article>
-  <h1>{{ m.text.title }}</h1>
+  <h1>{{ m.text.title }}{% if m.lesson %} <small class="lesson-name">{{ m.lesson.name }}</small>{% endif %}</h1>
   <p class="meta">{{ m.text.author or "" }}{% if m.text.period %} · {{ m.text.period }}{% endif %}</p>
   <div class="reader tint-{{ o.tint }}">
   {%- for para in paragraphs %}
@@ -51,6 +51,7 @@
 </section>
 {% endif %}
 
+{% if m.lesson %}
 <section class="list study">
   <h2>学习字</h2>
   {% if lists.study %}<table>
@@ -80,4 +81,5 @@
     {% endfor %}</tbody>
   </table>{% else %}<p class="empty">暂无</p>{% endif %}
 </section>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,60 @@
+{
+  "lesson_id": 1,
+  "text_id": 1,
+  "name": "枫桥夜泊",
+  "characters": [
+    "乌",
+    "到",
+    "半",
+    "啼",
+    "城",
+    "声",
+    "外",
+    "夜",
+    "天",
+    "姑",
+    "客",
+    "寒",
+    "对",
+    "寺",
+    "山",
+    "愁",
+    "月",
+    "枫",
+    "江",
+    "渔",
+    "满",
+    "火",
+    "眠",
+    "船",
+    "苏",
+    "落",
+    "钟",
+    "霜"
+  ],
+  "words": [
+    "寒山寺"
+  ],
+  "expansions": [
+    {
+      "char": "月",
+      "surface": "月亮",
+      "gloss": "the moon",
+      "origin": "manual"
+    },
+    {
+      "char": "月",
+      "surface": "月光",
+      "hsk_level": null,
+      "gloss": "moonlight",
+      "origin": "manual"
+    }
+  ],
+  "notes": [
+    {
+      "anchor": "夜半钟声",
+      "note": "a scene where clock chimes at night",
+      "origin": "manual"
+    }
+  ]
+}

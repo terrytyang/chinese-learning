@@ -61,6 +61,7 @@ def test_page_state_column_and_buttons(site):
 
 
 def test_hide_mastered_omits_rows_and_adjusts_counts(site):
+    assert site.client.post("/texts/1/lessons", data={"name": "课"}).status_code == 303
     assert site.client.post("/texts/1/words", data={"surface": "寒山寺", "gloss": "寺", "hsk_level": "7"}).status_code == 303
     assert site.client.post("/texts/1/expansions", data={"char": "月", "surface": "月亮"}).status_code == 303
     for kind, key in (("character", "月"), ("character", "落"), ("word", "寒山寺")):

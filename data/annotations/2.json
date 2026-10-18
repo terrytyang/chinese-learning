@@ -1,0 +1,148 @@
+{
+  "text_id": 2,
+  "readings": [
+    {
+      "position": 0,
+      "char": "春",
+      "pinyin": "chūn",
+      "origin": "auto"
+    },
+    {
+      "position": 1,
+      "char": "眠",
+      "pinyin": "mián",
+      "origin": "auto"
+    },
+    {
+      "position": 2,
+      "char": "不",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 3,
+      "char": "觉",
+      "pinyin": "jué",
+      "origin": "auto"
+    },
+    {
+      "position": 4,
+      "char": "晓",
+      "pinyin": "xiǎo",
+      "origin": "auto"
+    },
+    {
+      "position": 6,
+      "char": "处",
+      "pinyin": "chù",
+      "origin": "auto"
+    },
+    {
+      "position": 7,
+      "char": "处",
+      "pinyin": "chù",
+      "origin": "auto"
+    },
+    {
+      "position": 8,
+      "char": "闻",
+      "pinyin": "wén",
+      "origin": "auto"
+    },
+    {
+      "position": 10,
+      "char": "鸟",
+      "pinyin": "niǎo",
+      "origin": "auto"
+    },
+    {
+      "position": 13,
+      "char": "夜",
+      "pinyin": "yè",
+      "origin": "auto"
+    },
+    {
+      "position": 14,
+      "char": "来",
+      "pinyin": "lái",
+      "origin": "auto"
+    },
+    {
+      "position": 15,
+      "char": "风",
+      "pinyin": "fēng",
+      "origin": "auto"
+    },
+    {
+      "position": 16,
+      "char": "雨",
+      "pinyin": "yǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 17,
+      "char": "声",
+      "pinyin": "shēng",
+      "origin": "auto"
+    },
+    {
+      "position": 19,
+      "char": "花",
+      "pinyin": "huā",
+      "origin": "auto"
+    },
+    {
+      "position": 20,
+      "char": "落",
+      "pinyin": "luò",
+      "origin": "auto"
+    },
+    {
+      "position": 21,
+      "char": "知",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 22,
+      "char": "多",
+      "pinyin": "duō",
+      "origin": "auto"
+    },
+    {
+      "position": 23,
+      "char": "少",
+      "pinyin": "shǎo",
+      "origin": "auto"
+    }
+  ],
+  "characters": [
+    {
+      "char": "啼",
+      "pinyin": null,
+      "hsk_level": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ],
+  "words": [
+    {
+      "surface": "处处",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "多少",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "风雨",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ]
+}

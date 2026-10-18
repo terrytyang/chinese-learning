@@ -13,9 +13,10 @@ DATA_DIR = ROOT / "data"
 
 
 def copy_data(target):
-    """A private copy of data/ without the owner's annotation files, so tests never depend on curation state."""
+    """A private copy of data/ without the owner's annotation and lesson files, so tests never depend on curation state."""
     shutil.copytree(DATA_DIR, target)
-    shutil.rmtree(target / "annotations", ignore_errors=True)
+    for folder in ("annotations", "lessons"):
+        shutil.rmtree(target / folder, ignore_errors=True)
     return target
 
 

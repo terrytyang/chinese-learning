@@ -69,3 +69,21 @@ def test_bad_gloss_line_fails_naming_the_line(built, tmp_path, lines, message):
         assert str(info.value).endswith(message)
     finally:
         conn.rollback()
+
+
+def test_committed_facts_and_lessons_load(tmp_path):
+    """The converted files in data/ build: a reading for every Han position of every text, and a default lesson each."""
+    from chineselearning.texts import HAN
+
+    path = tmp_path / "live.sqlite"
+    counts = db.build(path, "data")
+    assert counts["lesson"] >= 5 and counts["lesson_expansion"] >= 7 and counts["lesson_note"] >= 1
+    conn = db.connect(path, readonly=True)
+    for text in db.list_texts(conn):
+        body = db.get_text(conn, text["id"])["body"]
+        stored = {r[0] for r in conn.execute("SELECT position FROM text_reading WHERE text_id = ?", (text["id"],))}
+        readable = {i for i, ch in enumerate(body) if HAN.fullmatch(ch) and conn.execute("SELECT 1 FROM character WHERE char = ?", (ch,)).fetchone()}
+        assert readable <= stored, text["title"]
+        assert conn.execute("SELECT count(*) FROM lesson WHERE text_id = ? AND name = ?", (text["id"], text["title"])).fetchone()[0] == 1
+    assert conn.execute("SELECT count(*) FROM lesson_expansion e JOIN lesson l ON l.id = e.lesson_id WHERE l.text_id = 3").fetchone()[0] == 5
+    assert conn.execute("SELECT count(*) FROM lesson_character c JOIN lesson l ON l.id = c.lesson_id WHERE l.text_id = 1").fetchone()[0] == 28

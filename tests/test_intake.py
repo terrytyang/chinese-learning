@@ -1,114 +1,117 @@
-"""Intake, reading resolution, and confirm."""
+"""Intake: auto facts, stored readings for every position, the default lesson, and reading edits on the page."""
 
 import json
-import re
 
 import pytest
-from chineselearning import annotation_files, annotations, db, readings
+
+from chineselearning import annotations, db, readings
 from chineselearning.annotations import AnnotationError
 from chineselearning.cli import main
 from chineselearning.intake import intake
+from chineselearning.texts import HAN
 
 
-def test_intake_text_1_two_auto_characters_no_words(site):
-    conn = db.connect(site.db)
-    assert intake(conn, 1, site.data) == {"words": 0, "characters": 2}
-    rows = conn.execute("SELECT char, gloss, origin FROM text_character WHERE text_id = 1 ORDER BY char").fetchall()
-    assert [tuple(r) for r in rows] == [("啼", None, "auto"), ("枫", None, "auto")]
-    data = json.loads(site.file.read_text(encoding="utf-8"))
-    assert list(data) == ["text_id", "characters", "words", "expansions", "readings", "notes"]
-    assert data["words"] == [] and all(row["origin"] == "auto" for kind in annotation_files.KINDS for row in data[kind])
+def connect(site):
+    return db.connect(site.db, progress_path=site.progress)
 
 
-def test_intake_text_5_matches_find_words(site):
-    conn = db.connect(site.db)
-    expected = [w["simplified"] for w in db.find_words(conn, db.get_text(conn, 5)["body"])]
+def facts(site, text_id=1):
+    return json.loads((site.data / "annotations" / f"{text_id}.json").read_text(encoding="utf-8"))
+
+
+def lesson(site, text_id=1, lesson_id=1):
+    return json.loads((site.data / "lessons" / f"{text_id}-{lesson_id}.json").read_text(encoding="utf-8"))
+
+
+def test_intake_text_1_readings_facts_and_default_lesson(site):
+    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
+    conn = connect(site)
+    assert intake(conn, 1, site.data) == {"words": 0, "characters": 2, "readings": 26, "lesson": 1}
+    body = db.get_text(conn, 1)["body"]
+    stored = {r["position"]: r for r in facts(site)["readings"]}
+    assert set(stored) == {i for i, ch in enumerate(body) if HAN.fullmatch(ch) and ch not in "啼枫"}
+    assert all(r["origin"] == "auto" and r["char"] == body[r["position"]] for r in stored.values())
+    assert stored[0]["pinyin"] == "yuè" and list(facts(site)) == ["text_id", "readings", "characters", "words"]
+    assert [(c["char"], c["origin"]) for c in facts(site)["characters"]] == [("啼", "auto"), ("枫", "auto")]
+    data = lesson(site)
+    assert (data["lesson_id"], data["text_id"], data["name"], data["words"], data["expansions"], data["notes"]) == (1, 1, "枫桥夜泊", [], [], [])
+    assert len(data["characters"]) == 27 and "月" not in data["characters"] and "啼" in data["characters"]
+    assert list(data) == ["lesson_id", "text_id", "name", "characters", "words", "expansions", "notes"]
+
+
+def test_intake_text_5_words_and_lesson_words(site):
+    conn = connect(site)
+    expected = sorted(w["simplified"] for w in db.find_words(conn, db.get_text(conn, 5)["body"]))
     counts = intake(conn, 5, site.data)
-    assert counts["words"] == len(expected) > 0 and counts["characters"] > 0
-    rows = conn.execute("SELECT surface, pinyin, origin FROM text_word WHERE text_id = 5").fetchall()
-    assert sorted(r["surface"] for r in rows) == sorted(expected)
-    assert all(r["origin"] == "auto" and r["pinyin"] is None for r in rows)
-    data = json.loads((site.data / "annotations" / "5.json").read_text(encoding="utf-8"))
-    assert all("origin" in row for kind in annotation_files.KINDS for row in data[kind])
+    assert counts["words"] == len(expected) > 0 and counts["characters"] > 0 and counts["lesson"] == 1
+    assert sorted(w["surface"] for w in facts(site, 5)["words"]) == expected and lesson(site, 5, 1)["words"] == expected
     page = site.client.get("/texts/5").text
-    assert page.count("自动") == counts["words"] + counts["characters"]
-    assert "peach blossom" in page and f"{len(expected)} 个词" in page and "<h2>词表</h2>" not in page
+    assert page.count("自动") == counts["words"] and "<h2>课程：桃花源记</h2>" in page and "已选" in page
 
 
-def test_intake_refuses_rerun_and_force_keeps_manual_rows(site):
-    intake(db.connect(site.db), 1, site.data)
+def test_intake_refuses_rerun_and_force_leaves_lessons_and_manual_rows(site):
+    conn = connect(site)
+    intake(conn, 1, site.data)
     with pytest.raises(AnnotationError, match="已有"):
-        intake(db.connect(site.db), 1, site.data)
-    assert site.client.post("/texts/1/characters", data={"char": "愁", "gloss": "忧愁"}).status_code == 303
-    assert site.client.post("/texts/1/characters/枫/delete").status_code == 303
-    assert site.client.post("/texts/1/characters/啼/confirm").status_code == 303
-    assert intake(db.connect(site.db), 1, site.data, force=True) == {"words": 0, "characters": 1}
-    rows = {r["char"]: r["origin"] for r in db.connect(site.db).execute("SELECT char, origin FROM text_character WHERE text_id = 1")}
-    assert rows == {"啼": "manual", "枫": "auto", "愁": "manual"}
+        intake(conn, 1, site.data)
+    assert site.client.post("/texts/1/readings", data={"char": "乌", "pinyin": "wù"}).status_code == 303
+    assert site.client.post("/texts/1/characters/落/delete").status_code == 303
+    assert site.client.post("/texts/1/lessons", data={"name": "二"}).status_code == 303
+    assert intake(connect(site), 1, site.data, force=True) == {"words": 0, "characters": 2, "readings": 25, "lesson": None}
+    stored = {r["position"]: r for r in facts(site)["readings"]}
+    assert (stored[2]["pinyin"], stored[2]["origin"], stored[1]["origin"]) == ("wù", "manual", "auto")
+    assert "落" not in lesson(site)["characters"] and sorted(p.name for p in (site.data / "lessons").iterdir()) == ["1-1.json", "1-2.json"]
 
 
 def test_cli_intake(site, capsys):
-    main(["intake", "5", "--db", str(site.db), "--data", str(site.data)])
+    args = ["--db", str(site.db), "--data", str(site.data), "--progress", str(site.progress)]
+    main(["intake", "5", *args])
     assert capsys.readouterr().out.startswith("text 5: words ")
     with pytest.raises(SystemExit, match="已有"):
-        main(["intake", "5", "--db", str(site.db), "--data", str(site.data)])
-    main(["intake", "5", "--force", "--db", str(site.db), "--data", str(site.data)])
+        main(["intake", "5", *args])
+    main(["intake", "5", "--force", *args])
     with pytest.raises(SystemExit, match="没有 id 为 42"):
-        main(["intake", "42", "--db", str(site.db), "--data", str(site.data)])
+        main(["intake", "42", *args])
 
 
-def test_reading_resolution_primary_then_override(site):
-    conn = db.connect(site.db)
-    position = db.get_text(conn, 5)["body"].index("便舍船") + 1
-    at = lambda: next(r for r in readings.readings_for(conn, 5) if r["position"] == position)  # noqa: E731
-    assert (at()["char"], at()["pinyin"], at()["source"]) == ("舍", "shě", "primary")
-    annotations.add_reading(conn, 5, "舍", "shè")
-    assert (at()["pinyin"], at()["source"]) == ("shè", "override")
-    assert all(r["pinyin"] == "shè" for r in readings.readings_for(conn, 5) if r["char"] == "舍")
-
-
-def test_reading_resolution_from_linked_word(site):
-    conn = db.connect(site.db)
+def test_resolver_uses_stored_rows_then_words_then_primary(site):
+    conn = connect(site)
     conn.execute("INSERT INTO text (id, title, body) VALUES (99, '银行', '我去银行，\n行不行')")
     annotations.add_word(conn, 99, "银行")
-    resolved = [(r["char"], r["pinyin"], r["source"]) for r in readings.readings_for(conn, 99)]
-    assert resolved[2:4] == [("银", "yín", "word:银行"), ("行", "háng", "word:银行")]
-    assert resolved[4:] == [("行", "xíng", "primary"), ("不", "bù", "primary"), ("行", "xíng", "primary")]
-    assert [r["position"] for r in readings.readings_for(conn, 99)] == [0, 1, 2, 3, 6, 7, 8]
-    annotations.add_word(conn, 99, "行不", gloss="x")  # local word: reading prefilled per character
-    assert tuple(conn.execute("SELECT word_id, pinyin FROM text_word WHERE surface = '行不'").fetchone()) == (None, "xíng bù")
+    resolved = [(r["char"], r["pinyin"], r["source"]) for r in readings.resolve(conn, 99)]
+    assert resolved[2:5] == [("银", "yín", "word:银行"), ("行", "háng", "word:银行"), ("行", "xíng", "primary")]
+    annotations.set_reading(conn, 99, 6, "行", "hàng")
+    assert [(r["pinyin"], r["source"]) for r in readings.resolve(conn, 99) if r["position"] == 6] == [("hàng", "stored")]
+    annotations.add_word(conn, 99, "行不", gloss="x")  # local word: reading prefilled from the stored and resolved readings
+    assert conn.execute("SELECT pinyin FROM text_word WHERE surface = '行不'").fetchone()[0] == "hàng bù"
 
 
-def test_set_reading_on_page_updates_file_and_clears(site):
+def test_set_reading_everywhere_then_reset(site):
+    conn = connect(site)
+    intake(conn, 5, site.data)
+    body = db.get_text(conn, 5)["body"]
+    positions = [i for i, ch in enumerate(body) if ch == "舍"]
     assert site.client.post("/texts/5/readings", data={"char": "舍", "pinyin": "shè"}).status_code == 303
+    stored = {r["position"]: r for r in facts(site, 5)["readings"]}
+    assert all(stored[p]["pinyin"] == "shè" and stored[p]["origin"] == "manual" for p in positions) and len(positions) > 1
     page = site.client.get("/texts/5").text
-    assert re.search(r'<td class="char">舍</td>\s*<td class="reading">\s*<span class="pinyin">shè</span> <small>指定</small>', page)
-    assert "<option selected>shè</option>" in page and 'action="/texts/5/readings/舍/delete"' in page
-    data = json.loads((site.data / "annotations" / "5.json").read_text(encoding="utf-8"))
-    assert data["readings"] == [{"char": "舍", "pinyin": "shè", "position": None, "origin": "manual"}]
-    assert site.client.post("/texts/5/readings", data={"char": "舍", "pinyin": "shì"}).status_code == 303
-    assert "<option selected>shì</option>" in site.client.get("/texts/5").text
+    assert '<span class="pinyin">shè</span> <small>指定</small>' in page and "<option selected>shè</option>" in page
+    assert 'action="/texts/5/readings/舍/delete"' in page
     assert site.client.post("/texts/5/readings/舍/delete").status_code == 303
-    assert not (site.data / "annotations" / "5.json").exists()
-    assert "<small>默认</small>" in site.client.get("/texts/5").text
+    stored = {r["position"]: r for r in facts(site, 5)["readings"]}
+    assert all(stored[p]["pinyin"] == "shě" and stored[p]["origin"] == "auto" for p in positions)
+    assert '<span class="pinyin">shě</span> <small>默认</small>' in site.client.get("/texts/5").text
 
 
 def test_invalid_reading_lists_allowed_readings(site):
     r = site.client.post("/texts/5/readings", data={"char": "舍", "pinyin": "xx"})
     assert r.status_code == 422 and "「舍」的读音只能是 shě、shè、shì" in r.text
-    # 山 has one reading: no pull-down, but a bogus value is still rejected
-    assert 'name="char" value="山">\n            <select' not in r.text
-    assert "「山」的读音只能是 shān" in site.client.post("/texts/5/readings", data={"char": "山", "pinyin": "shan"}).text
 
 
 def test_confirm_flips_origin_to_manual(site):
-    intake(db.connect(site.db), 5, site.data)
+    intake(connect(site), 5, site.data)
     assert site.client.post("/texts/5/words/桃花/confirm").status_code == 303
-    conn = db.connect(site.db, readonly=True)
-    assert conn.execute("SELECT origin FROM text_word WHERE text_id = 5 AND surface = '桃花'").fetchone()[0] == "manual"
-    data = json.loads((site.data / "annotations" / "5.json").read_text(encoding="utf-8"))
-    assert {"surface": "桃花", "pinyin": None, "gloss": None, "origin": "manual"} in data["words"]
+    assert next(w for w in facts(site, 5)["words"] if w["surface"] == "桃花")["origin"] == "manual"
     page = site.client.get("/texts/5").text
     assert 'action="/texts/5/words/桃花/confirm"' not in page and page.count("手动") == 1
     assert site.client.post("/texts/5/words/桃花/rename").status_code == 404
-

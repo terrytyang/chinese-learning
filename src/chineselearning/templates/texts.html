@@ -29,7 +29,8 @@
   <tbody>
   {% for t in texts %}
     <tr>
-      <td><a href="/texts/{{ t.id }}">{{ t.title }}</a></td>
+      <td><a href="/texts/{{ t.id }}">{{ t.title }}</a>
+          {% if t.lessons %}<div class="lessons">{% for l in t.lessons %}<a href="/texts/{{ t.id }}?lesson={{ l.id }}">{{ l.name }}</a> {% endfor %}</div>{% endif %}</td>
       <td>{{ t.author or "" }}</td>
       <td>{{ t.period or "" }}</td>
       <td>{{ t.tags | join("、") }}</td>

@@ -1,8 +1,7 @@
-"""Reading resolution: the pinyin of each character at each position of a text.
+"""Reading resolution, used by intake to fill `text_reading` and by the reset of a character's readings.
 
-Order: a text_reading override for that position > an override for every
-occurrence > the reading of a text_word covering the position (leftmost-longest
-when several do) > the character's primary reading > none.
+Pages never resolve: they read the stored rows. Order: a stored reading > the reading
+of a text word covering the position (leftmost-longest) > the master primary > none.
 """
 
 from .texts import HAN
@@ -14,12 +13,12 @@ def syllables(pinyin, length):
     return parts if len(parts) == length else None
 
 
-def readings_for(conn, text_id) -> list[dict]:
-    """{position, char, pinyin, source} for every Han character of the body, in order."""
+def resolve(conn, text_id, ignore_stored=()) -> list[dict]:
+    """{position, char, pinyin, source} for every Han position; stored rows of the characters in `ignore_stored` are skipped."""
     body = conn.execute("SELECT body FROM text WHERE id = ?", (text_id,)).fetchone()[0]
     chars = sorted(set(HAN.findall(body)))
     primary = dict(conn.execute(f"SELECT char, pinyin FROM character WHERE char IN ({','.join('?' * len(chars))})", chars).fetchall())
-    overrides = {(r["char"], r["position"]): r["pinyin"] for r in conn.execute("SELECT char, position, pinyin FROM text_reading WHERE text_id = ?", (text_id,))}
+    stored = {r["position"]: r["pinyin"] for r in conn.execute("SELECT position, char, pinyin FROM text_reading WHERE text_id = ?", (text_id,)) if r["char"] not in ignore_stored}
     cover = {}  # position -> (start, -length, surface, pinyin): min() picks leftmost, then longest
     sql = "SELECT t.surface, coalesce(t.pinyin, w.pinyin) FROM text_word t LEFT JOIN word w ON w.id = t.word_id WHERE t.text_id = ?"
     for surface, pinyin in conn.execute(sql, (text_id,)).fetchall():
@@ -33,10 +32,8 @@ def readings_for(conn, text_id) -> list[dict]:
         if not HAN.fullmatch(ch):
             continue
         parts = syllables(cover[i][3], -cover[i][1]) if i in cover else None
-        if (ch, i) in overrides:
-            pinyin, source = overrides[ch, i], "override"
-        elif (ch, None) in overrides:
-            pinyin, source = overrides[ch, None], "override"
+        if i in stored:
+            pinyin, source = stored[i], "stored"
         elif parts:
             pinyin, source = parts[i - cover[i][0]], f"word:{cover[i][2]}"
         elif ch in primary:
@@ -48,18 +45,18 @@ def readings_for(conn, text_id) -> list[dict]:
 
 
 def default_pinyin(conn, text_id, surface) -> str | None:
-    """A local word's reading from its characters' resolved readings at its first occurrence; None if any is unknown."""
+    """A local word's reading from its characters' readings at its first occurrence; None if any is unknown."""
     body = conn.execute("SELECT body FROM text WHERE id = ?", (text_id,)).fetchone()[0]
     start = body.find(surface)
-    at = {r["position"]: r["pinyin"] for r in readings_for(conn, text_id)}
+    at = {r["position"]: r["pinyin"] for r in resolve(conn, text_id)}
     parts = [at.get(p) for p in range(start, start + len(surface))]
     return " ".join(parts) if all(parts) else None
 
 
-def by_character(resolved) -> dict[str, list[dict]]:
-    """Distinct {pinyin, source} pairs per character, in order of first occurrence."""
+def by_character(rows) -> dict[str, list[dict]]:
+    """Distinct {pinyin, source} pairs per character, in the rows' order."""
     out: dict[str, list[dict]] = {}
-    for r in resolved:
+    for r in rows:
         pair = {"pinyin": r["pinyin"], "source": r["source"]}
         if pair not in out.setdefault(r["char"], []):
             out[r["char"]].append(pair)

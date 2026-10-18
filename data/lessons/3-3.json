@@ -1,0 +1,74 @@
+{
+  "lesson_id": 3,
+  "text_id": 3,
+  "name": "赠汪伦",
+  "characters": [
+    "上",
+    "不",
+    "乘",
+    "伦",
+    "千",
+    "及",
+    "声",
+    "将",
+    "尺",
+    "岸",
+    "忽",
+    "情",
+    "我",
+    "李",
+    "桃",
+    "欲",
+    "歌",
+    "水",
+    "汪",
+    "深",
+    "潭",
+    "白",
+    "舟",
+    "花",
+    "行",
+    "踏",
+    "送",
+    "闻"
+  ],
+  "words": [
+    "岸上",
+    "桃花",
+    "歌声"
+  ],
+  "expansions": [
+    {
+      "char": "乘",
+      "surface": "乘坐",
+      "gloss": "ride on",
+      "origin": "manual"
+    },
+    {
+      "char": "将",
+      "surface": "将要",
+      "gloss": "about to.",
+      "origin": "manual"
+    },
+    {
+      "char": "岸",
+      "surface": "河岸",
+      "hsk_level": 3,
+      "gloss": "river bank",
+      "origin": "manual"
+    },
+    {
+      "char": "忽",
+      "surface": "忽然",
+      "gloss": "suddenly",
+      "origin": "manual"
+    },
+    {
+      "char": "欲",
+      "surface": "欲望",
+      "gloss": "desire",
+      "origin": "manual"
+    }
+  ],
+  "notes": []
+}

@@ -11,6 +11,7 @@ from .texts import TextFileError
 
 DATA_DIR = "data"
 DEFAULT_DB = "build/content.sqlite"
+DEFAULT_PROGRESS = "build/progress.sqlite"
 
 
 def main(argv=None):
@@ -24,6 +25,7 @@ def main(argv=None):
     intake.add_argument("--force", action="store_true", help="redo the auto rows even if the text already has annotations")
     intake.add_argument("--db", default=DEFAULT_DB)
     intake.add_argument("--data", default=DATA_DIR)
+    intake.add_argument("--progress", default=DEFAULT_PROGRESS, help="learner database; mastered characters stay out of the default lesson")
     args = parser.parse_args(argv)
     if args.command == "build":
         try:
@@ -42,7 +44,7 @@ def main(argv=None):
         from .intake import intake as run_intake
 
         try:
-            counts = run_intake(db.connect(args.db), args.text_id, args.data, force=args.force)
+            counts = run_intake(db.connect(args.db, progress_path=args.progress), args.text_id, args.data, force=args.force)
         except AnnotationError as e:
             sys.exit(f"intake failed: {e}")
-        print(f"text {args.text_id}: words {counts['words']}, characters {counts['characters']}")
+        print(f"text {args.text_id}: " + ", ".join(f"{k} {v}" for k, v in counts.items()))

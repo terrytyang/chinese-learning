@@ -30,7 +30,7 @@ def test_text_1_flags_missing_characters_and_finds_no_words(client):
     assert "月落乌啼霜满天，江枫渔火对愁眠。\n姑苏城外寒山寺，夜半钟声到客船。" in r.text
     assert set(missing_chars(r.text)) >= {"啼", "枫"}
     assert "28 字，" in r.text and "0 个词" in r.text
-    assert re.search(r'<td class="char">月</td>\s*<td class="reading">\s*<span class="pinyin">yuè</span> <small>默认</small>', r.text)
+    assert re.search(r'<td class="char">月</td>\s*<td class="reading">\s*<span class="pinyin">—</span> <small>无</small>', r.text)  # no intake yet
     assert re.search(r'<td class="char">月</td>\s*<td class="reading">.*?</td>\s*<td class="gloss">moon, month</td>', r.text, re.S)
     assert re.search(r'<td class="char">啼</td>\s*<td class="reading">.*?</td>\s*<td class="gloss"></td>', r.text, re.S)
 

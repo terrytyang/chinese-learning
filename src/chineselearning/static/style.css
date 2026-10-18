@@ -53,3 +53,9 @@ tr.editing td { background: #f5f5f5; }
 .bar .s-unrecognized { background: #e57373; }
 .bar .s-recognized { background: #ffd54f; }
 .bar .s-mastered { background: #81c784; }
+.lessons a.current { font-weight: bold; text-decoration: none; }
+.lessons form, .texts .lessons a { margin-left: 0.5rem; }
+.texts .lessons { font-size: 0.9rem; color: #555; }
+tr.lesson td.lesson-name { padding-left: 2.5rem; }
+a.original { font-size: 0.85rem; margin-left: 0.5rem; color: #777; }
+h1 small.lesson-name { font-size: 0.6em; color: #777; margin-left: 0.5rem; }

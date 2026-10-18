@@ -4,14 +4,14 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import annotation_files
+from . import annotation_files, lesson_files
 from . import texts as text_files
 from .texts import HAN, HAN_RUN
 
 PACKAGE_DIR = Path(__file__).parent
 SCHEMA_PATH = PACKAGE_DIR / "schema.sql"
 PROGRESS_SCHEMA_PATH = PACKAGE_DIR / "progress.sql"
-CONTENT_TABLES = ("character", "word", "text", "tag", "text_character", "text_word", "text_expansion", "text_reading", "text_note")
+CONTENT_TABLES = ("character", "word", "text", "tag", "text_reading", "text_character", "text_word", "lesson", "lesson_character", "lesson_word", "lesson_expansion", "lesson_note")
 
 
 def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
@@ -76,6 +76,7 @@ def build(db_path, data_dir) -> dict[str, int]:
                 conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
                 conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (t.id, tag))
         annotation_files.import_all(conn, data_dir)
+        lesson_files.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
     counts["character_gloss"] = conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0]
     conn.close()

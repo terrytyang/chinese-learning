@@ -1,0 +1,29 @@
+{# Shared by the admin text page; imported "with context" so text.id, q, qa, hide_mastered, submitted and edit_values are visible. #}
+{# A submitted value is kept only in the form it came from (same kind, and same character for inline forms). #}
+{% macro keep(kind, field, char=none) -%}
+{%- if submitted.kind == kind and (char is none or submitted.char == char) %}{{ submitted[field] or "" }}{% endif -%}
+{%- endmacro %}
+{% macro level_select(current) -%}
+<select name="hsk_level">{% for n in range(1, 8) %}<option value="{{ n }}"{% if n | string == (current or 7) | string %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>
+{%- endmacro %}
+{% macro master(a) -%}
+<td>{{ a.pinyin or "" }}</td><td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("；") }}</td>
+{%- endmacro %}
+{# Learner state with three buttons; a repeated state is a no-op server-side. #}
+{% macro state_cell(kind, key, state) -%}
+<td class="state">{{ state | state }}
+  <form method="post" action="/texts/{{ text.id }}/progress{{ q }}"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="key" value="{{ key }}">
+  {% for s in ("unrecognized", "recognized", "mastered") %}<button name="state" value="{{ s }}"{% if s == state %} disabled{% endif %}>{{ s | state }}</button>{% endfor %}</form></td>
+{%- endmacro %}
+{# Origin badge with 确认 (when the row has an origin), 编辑, 删除; `key` is the row's natural key as the routes encode it. #}
+{% macro actions(a, kind, key, badge=true) -%}
+{% if badge %}<td><span class="origin origin-{{ a.origin }}">{{ {"auto": "自动", "suggested": "建议", "manual": "手动"}[a.origin] }}</span>
+    {% if a.origin != "manual" %}<form method="post" action="/texts/{{ text.id }}/{{ kind }}/{{ key }}/confirm{{ q }}"><button>确认</button></form>{% endif %}</td>{% endif %}
+<td><a href="/texts/{{ text.id }}?edit={{ kind }}:{{ key }}{{ qa }}">编辑</a>
+    <form method="post" action="/texts/{{ text.id }}/{{ kind }}/{{ key }}/delete{{ q }}"><button>删除</button></form></td>
+{%- endmacro %}
+{# One row replaced by its inline edit form; the caller supplies the fields. #}
+{% macro edit_row(kind, key, span) -%}
+<tr class="editing"><td colspan="{{ span }}"><form method="post" action="/texts/{{ text.id }}/{{ kind }}/{{ key }}/update{{ q }}">
+  {{ caller() }} <button>保存</button> <a href="/texts/{{ text.id }}{{ q }}">取消</a></form></td></tr>
+{%- endmacro %}
