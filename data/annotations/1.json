@@ -16,6 +16,7 @@
     {
       "surface": "寒山寺",
       "pinyin": "hán shān sì",
+      "hsk_level": null,
       "gloss": "a mountain",
       "origin": "manual"
     }
@@ -30,6 +31,7 @@
     {
       "char": "月",
       "surface": "月光",
+      "hsk_level": null,
       "gloss": "moonlight",
       "origin": "manual"
     }
@@ -38,6 +40,12 @@
     {
       "char": "乌",
       "pinyin": "wū",
+      "position": null,
+      "origin": "manual"
+    },
+    {
+      "char": "啼",
+      "pinyin": "ti",
       "position": null,
       "origin": "manual"
     },

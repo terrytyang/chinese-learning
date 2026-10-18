@@ -1,0 +1,40 @@
+{
+  "text_id": 3,
+  "characters": [],
+  "words": [],
+  "expansions": [
+    {
+      "char": "乘",
+      "surface": "乘坐",
+      "gloss": "ride on",
+      "origin": "manual"
+    },
+    {
+      "char": "将",
+      "surface": "将要",
+      "gloss": "about to.",
+      "origin": "manual"
+    },
+    {
+      "char": "岸",
+      "surface": "河岸",
+      "hsk_level": 3,
+      "gloss": "river bank",
+      "origin": "manual"
+    },
+    {
+      "char": "忽",
+      "surface": "忽然",
+      "gloss": "suddenly",
+      "origin": "manual"
+    },
+    {
+      "char": "欲",
+      "surface": "欲望",
+      "gloss": "desire",
+      "origin": "manual"
+    }
+  ],
+  "readings": [],
+  "notes": []
+}

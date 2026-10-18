@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}{{ m.text.title }}{% endblock %}
+{# One body character. Whitespace control matters: any stray whitespace would render as a gap between characters. #}
+{% macro ch(c) -%}
+{%- if c.han -%}
+<span class="c lvl-{{ c.hsk_level or 0 }} state-{{ c.state }}{% if c.study %} study{% endif %}"{% if o.gloss and c.gloss %} data-gloss="{{ c.gloss }}"{% endif %}>
+{%- set shown = c.traditional if o.traditional else c.char -%}
+{%- if o.pinyin %}<ruby>{{ shown }}<rt>{{ c.pinyin or "" }}</rt></ruby>{% else %}{{ shown }}{% endif -%}
+</span>
+{%- else %}{{ c.char }}{% endif -%}
+{%- endmacro %}
+{% macro word_gloss(w) %}{{ w.gloss or w.meanings | join("；") }}{% endmacro %}
+{% block content %}
+<form method="get" action="/learn/{{ m.text.id }}" class="toggles">
+  <label><input type="checkbox" name="pinyin" value="1"{% if o.pinyin %} checked{% endif %}> 拼音</label>
+  <label><input type="checkbox" name="traditional" value="1"{% if o.traditional %} checked{% endif %}> 繁体</label>
+  <label><input type="checkbox" name="gloss" value="1"{% if o.gloss %} checked{% endif %}> 释义</label>
+  <label><input type="checkbox" name="words" value="1"{% if o.words %} checked{% endif %}> 词语</label>
+  着色：{% for value, label in (("none", "无"), ("level", "按等级"), ("state", "按掌握")) %}<label><input type="radio" name="tint" value="{{ value }}"{% if o.tint == value %} checked{% endif %}> {{ label }}</label> {% endfor %}
+  <label><input type="checkbox" name="show_mastered" value="1"{% if o.show_mastered %} checked{% endif %}> 显示已掌握</label>
+  <button>应用</button>
+</form>
+<article>
+  <h1>{{ m.text.title }}</h1>
+  <p class="meta">{{ m.text.author or "" }}{% if m.text.period %} · {{ m.text.period }}{% endif %}</p>
+  <div class="reader tint-{{ o.tint }}">
+  {%- for para in paragraphs %}
+  <p>
+    {%- for line in para -%}
+      {%- for seg in line -%}
+        {%- if seg.word and o.words %}<span class="w" data-gloss="{{ word_gloss(by_surface[seg.word.surface]) }}">{% endif -%}
+        {%- for c in seg.chars %}{{ ch(c) }}{% endfor -%}
+        {%- if seg.word and o.words %}</span>{% endif -%}
+      {%- endfor -%}
+      {%- if not loop.last %}<br>{% endif -%}
+    {%- endfor -%}
+  </p>
+  {%- endfor %}
+  </div>
+</article>
+
+{% if o.words %}
+<section class="list words">
+  <h2>词语</h2>
+  {% if lists.words %}<table>
+    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>释义</th></tr></thead>
+    <tbody>{% for w in lists.words %}
+      <tr><td class="word">{{ w.surface }}</td><td>{{ w.pinyin or "" }}</td><td>{% if w.hsk_level %}{{ w.hsk_level | hsk }}{% endif %}</td><td>{{ word_gloss(w) }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">暂无</p>{% endif %}
+</section>
+{% endif %}
+
+<section class="list study">
+  <h2>学习字</h2>
+  {% if lists.study %}<table>
+    <thead><tr><th>字</th><th>拼音</th><th>释义</th></tr></thead>
+    <tbody>{% for s in lists.study %}
+      <tr><td class="char">{{ s.char }}</td><td>{{ s.pinyin or "" }}</td><td>{{ s.gloss or "" }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">暂无</p>{% endif %}
+</section>
+
+<section class="list expansions">
+  <h2>扩展</h2>
+  {% if lists.expansions %}<table>
+    <thead><tr><th>字</th><th>词</th><th>拼音</th><th>释义</th></tr></thead>
+    <tbody>{% for e in lists.expansions %}
+      <tr><td class="char">{{ e.char }}</td><td class="word">{{ e.surface }}</td><td>{{ e.pinyin or "" }}</td><td>{{ word_gloss(e) }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">暂无</p>{% endif %}
+</section>
+
+<section class="list notes">
+  <h2>注</h2>
+  {% if m.notes %}<table>
+    <thead><tr><th>锚</th><th>注</th></tr></thead>
+    <tbody>{% for n in m.notes %}
+      <tr><td>{{ n.anchor or "" }}</td><td>{{ n.note }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">暂无</p>{% endif %}
+</section>
+{% endblock %}
