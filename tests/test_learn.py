@@ -19,7 +19,7 @@ def test_assemble_text_1_without_and_with_a_lesson(site):
     yue = m["chars"][0]
     assert (yue["pinyin"], yue["source"], yue["traditional"], yue["hsk_level"], yue["gloss"], yue["in_master"], yue["study"]) == (None, "none", "月", 1, "moon, month", True, False)
     intake(conn, 1, site.data)
-    annotations.set_reading_everywhere(conn, 1, "啼", "tí")
+    annotations.set_reading(conn, 1, 3, "啼", "tí")
     annotations.update(conn, 1, "characters", ("啼",), {"gloss": "鸟叫"})
     annotations.add_word(conn, 1, "寒山寺", gloss="苏州的寺")
     lesson_id = lessons.for_text(conn, 1)[0]["id"]
@@ -65,9 +65,8 @@ def reader_body(html):
 
 def test_reader_toggles_on_text_and_lesson(site):
     intake(connect(site), 1, site.data)
-    assert site.client.post("/texts/1/words", data={"surface": "寒山寺", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 303
-    assert site.client.post("/texts/1/words/寒山寺/select").status_code == 303
-    assert site.client.post("/texts/1/characters/愁/update", data={"gloss": "忧愁"}).status_code == 303
+    assert site.client.post("/texts/1/words/new", data={"surface": "寒山寺", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 303
+    assert site.client.post("/texts/1/characters/愁/facts", data={"gloss": "忧愁"}).status_code == 303
     plain = site.client.get("/learn/1").text
     assert '<span class="c lvl-1 state-unrecognized">月</span>' in plain and '<span class="c lvl-0 state-unrecognized">啼</span>' in plain
     assert "study" not in reader_body(plain) and "<h2>学习字</h2>" not in plain and "<ruby>" not in plain and 'class="reader tint-none"' in plain
@@ -92,8 +91,7 @@ def test_reader_toggles_on_text_and_lesson(site):
 
 def test_reader_omits_mastered_from_lists_unless_shown(site):
     intake(connect(site), 1, site.data)
-    assert site.client.post("/texts/1/words", data={"surface": "寒山寺", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 303
-    assert site.client.post("/texts/1/words/寒山寺/select").status_code == 303
+    assert site.client.post("/texts/1/words/new", data={"surface": "寒山寺", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 303
     assert site.client.post("/texts/1/expansions", data={"char": "月", "surface": "月亮"}).status_code == 303
     for kind, key in (("word", "寒山寺"), ("character", "愁")):
         assert site.client.post("/texts/1/progress", data={"kind": kind, "key": key, "state": "mastered"}).status_code == 303
@@ -107,7 +105,7 @@ def test_reader_omits_mastered_from_lists_unless_shown(site):
 def test_learn_index_lists_texts_and_lessons_with_counts(site):
     intake(connect(site), 1, site.data)
     assert site.client.post("/texts/1/lessons", data={"name": "一级字"}).status_code == 303
-    assert site.client.post("/texts/1/characters?lesson=2", data={"char": "月"}).status_code == 303
+    assert site.client.post("/texts/1/characters/add?lesson=2", data={"chars": ["月"]}).status_code == 303
     assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
     assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "落", "state": "recognized"}).status_code == 303
     page = site.client.get("/learn").text

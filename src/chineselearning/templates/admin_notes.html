@@ -1,0 +1,25 @@
+{% from "macros.html" import keep, err, badge, edit_row with context %}
+<section id="notes">
+  <h2>注 <small>{{ lesson.name }}</small></h2>
+  {% if notes %}
+  <table>
+    <thead><tr><th>锚</th><th>注</th><th>来源</th><th></th></tr></thead>
+    <tbody>
+    {% for a in notes %}
+      {% if editing == ("notes", a.id | string) %}{% set v = edit_values or a %}
+      {% call edit_row("notes/" ~ a.id ~ "/update", 4, "note-edit:" ~ a.id) %}锚 <input name="anchor" size="10" value="{{ v.anchor or "" }}"> 注 <input name="note" size="40" value="{{ v.note or "" }}">{% endcall %}
+      {% else %}
+      <tr id="note-{{ a.id }}"><td>{{ a.anchor or "" }}</td><td>{{ a.note }}</td><td>{{ badge(a) }}</td>
+          <td><a href="{{ base }}?edit=notes:{{ a.id }}{{ qa }}#note-{{ a.id }}">编辑</a>
+              <form method="post" action="{{ base }}/notes/{{ a.id }}/delete{{ q }}"><button>删除</button></form></td></tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">暂无</p>{% endif %}
+  <form method="post" action="{{ base }}/notes{{ q }}">{{ err("note-add") }}
+    <input name="anchor" placeholder="锚（正文片段）" size="10" value="{{ keep('note-add', 'anchor') }}">
+    <input name="note" placeholder="注" size="40" value="{{ keep('note-add', 'note') }}">
+    <button>添加</button>
+  </form>
+</section>

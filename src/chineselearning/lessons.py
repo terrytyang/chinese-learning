@@ -93,14 +93,17 @@ def add_expansion(conn, lesson_id, char, surface, gloss=None, origin="manual", h
     conn.execute(sql, (lesson_id, char, surface, word_id, level if word_id is None else None, gloss, origin_of(origin)))
 
 
-def add_note(conn, lesson_id, note, anchor=None, origin="manual"):
+def add_note(conn, lesson_id, note, anchor=None, origin="manual") -> int:
+    """Returns the note's id (the existing one for a duplicate)."""
     body, note, anchor = body_of(conn, _require(conn, lesson_id)["text_id"]), clean(note), clean(anchor)
     if not note:
         raise AnnotationError("请填写注")
     if anchor and anchor not in body:
         raise AnnotationError(f"「{anchor}」没有出现在正文里")
-    if not conn.execute("SELECT 1 FROM lesson_note WHERE lesson_id = ? AND anchor IS ? AND note = ?", (lesson_id, anchor, note)).fetchone():
-        conn.execute("INSERT INTO lesson_note (lesson_id, anchor, note, origin) VALUES (?, ?, ?, ?)", (lesson_id, anchor, note, origin_of(origin)))
+    row = conn.execute("SELECT id FROM lesson_note WHERE lesson_id = ? AND anchor IS ? AND note = ?", (lesson_id, anchor, note)).fetchone()
+    if row:
+        return row[0]
+    return conn.execute("INSERT INTO lesson_note (lesson_id, anchor, note, origin) VALUES (?, ?, ?, ?)", (lesson_id, anchor, note, origin_of(origin))).lastrowid
 
 
 def remove(conn, lesson_id, kind, *key):

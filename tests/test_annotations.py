@@ -22,7 +22,6 @@ EXPECTED_FILE = """{
   "characters": [
     {
       "char": "愁",
-      "pinyin": null,
       "hsk_level": null,
       "gloss": "忧愁",
       "origin": "manual"
@@ -48,23 +47,24 @@ def post(site, path, **fields):
 def annotate_text_1(site):
     responses = [
         post(site, "lessons", name="课"),
-        post(site, "characters", char="愁", gloss="忧愁"),
-        post(site, "words", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7"),
-        post(site, "readings", char="乌", pinyin="wù"),
+        post(site, "characters/add", chars=["愁"]),
+        post(site, "characters/愁/facts", gloss="忧愁"),
+        post(site, "words/new", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7"),
+        post(site, "readings", p2="wù"),
     ]
-    assert [r.status_code for r in responses] == [303] * 4 and responses[1].headers["location"] == "/texts/1"
+    assert [r.status_code for r in responses] == [303] * 5
 
 
 def test_round_trip_page_file_and_rebuild(site, tmp_path):
     annotate_text_1(site)
     page = site.client.get("/texts/1").text
-    for fragment in ("忧愁", "苏州城外的寺庙", "hán shān sì", '<span class="pinyin">wù</span> <small>指定</small>'):
+    for fragment in ('value="忧愁"', "苏州城外的寺庙", "hán shān sì", "<ruby>乌<rt>wù</rt></ruby>"):
         assert fragment in page
     assert site.file.read_text(encoding="utf-8") == EXPECTED_FILE
 
     rebuilt = tmp_path / "again.sqlite"
     counts = db.build(rebuilt, site.data)
-    assert (counts["text_reading"], counts["text_character"], counts["text_word"], counts["lesson"], counts["lesson_character"]) == (1, 1, 1, 1, 1)
+    assert (counts["text_reading"], counts["text_character"], counts["text_word"], counts["lesson"], counts["lesson_character"], counts["lesson_word"]) == (1, 1, 1, 1, 1, 1)
     conn = db.connect(rebuilt, readonly=True)
     assert tuple(conn.execute("SELECT word_id, gloss FROM text_word WHERE surface = '寒山寺'").fetchone()) == (None, "苏州城外的寺庙")
     assert annotation_files.export(conn, 1) == json.loads(EXPECTED_FILE)
@@ -81,42 +81,44 @@ def test_rewrite_of_unchanged_content_is_byte_identical(site):
 @pytest.mark.parametrize(
     "path, fields, message",
     [
-        ("words", {"surface": "月亮"}, "「月亮」没有出现在正文里"),
-        ("words", {"surface": "寒山寺"}, "字库里没有「寒山寺」，请填写释义"),
-        ("words", {"surface": "寒山寺", "gloss": "寺", "hsk_level": "9"}, "级只能是 1 到 7"),
-        ("readings", {"char": "乌", "pinyin": "wu"}, "「乌」的读音只能是 wū、wù"),
-        ("readings", {"char": "人", "pinyin": "rén"}, "「人」不是正文里的单个汉字"),
-        ("readings", {"char": "枫", "pinyin": " "}, "请填写「枫」的读音"),
+        ("words/new", {"surface": "月亮"}, "「月亮」没有出现在正文里"),
+        ("words/new", {"surface": "寒山寺"}, "字库里没有「寒山寺」，请填写释义"),
+        ("words/new", {"surface": "寒山寺", "gloss": "寺", "hsk_level": "9"}, "级只能是 1 到 7"),
+        ("readings", {"p2": "wu"}, "「乌」的读音只能是 wū、wù"),
+        ("readings", {"p7": "x"}, "位置 7 不是汉字"),
+        ("readings", {"p9": " "}, "位置 9「枫」的读音不能为空"),
     ],
 )
 def test_validation_returns_422_with_message(site, path, fields, message):
+    assert post(site, "lessons", name="课").status_code == 303
     r = post(site, path, **fields)
     assert r.status_code == 422 and message in r.text
     assert not site.file.exists()
 
 
 def test_validation_keeps_submitted_values(site):
-    r = post(site, "words", surface="寒山寺", gloss="")
+    assert post(site, "lessons", name="课").status_code == 303
+    r = post(site, "words/new", surface="寒山寺", gloss="")
     assert 'name="surface" placeholder="词" size="8" value="寒山寺"' in r.text
 
 
 def test_duplicate_add_is_a_noop(site):
-    assert post(site, "words", surface="寒山寺", gloss="寺").status_code == 303
-    assert post(site, "words", surface="寒山寺", gloss="别的").status_code == 303
+    assert post(site, "lessons", name="课").status_code == 303
+    assert post(site, "words/new", surface="寒山寺", gloss="寺").status_code == 303
+    assert post(site, "words/new", surface="寒山寺", gloss="别的").status_code == 303
     conn = db.connect(site.db, readonly=True)
     assert [r[0] for r in conn.execute("SELECT gloss FROM text_word WHERE text_id = 1")] == ["寺"]
 
 
-def test_delete_removes_row_and_rewrites_file(site):
+def test_delete_removes_fact_and_selection(site):
     annotate_text_1(site)
     assert post(site, "words/寒山寺/delete").status_code == 303
     assert json.loads(site.file.read_text(encoding="utf-8"))["words"] == []
-    assert post(site, "readings/乌/delete").status_code == 303  # back to the default reading, origin auto
-    assert json.loads(site.file.read_text(encoding="utf-8"))["readings"] == [{"position": 2, "char": "乌", "pinyin": "wū", "origin": "auto"}]
+    assert json.loads((site.data / "lessons" / "1-1.json").read_text(encoding="utf-8"))["words"] == []
 
 
 def test_unknown_text_is_404(site):
-    assert site.client.post("/texts/999/words", data={"surface": "月"}).status_code == 404
+    assert site.client.post("/texts/999/words/new", data={"surface": "月"}).status_code == 404
     assert site.client.post("/texts/999/words/x/delete").status_code == 404
 
 
@@ -144,9 +146,9 @@ def test_build_rejects_bad_facts_files(site, tmp_path, text_id, data, message):
 
 
 def test_import_defaults_origin_and_keeps_character_facts(site, tmp_path):
-    write_facts(site, 1, characters=[{"char": "啼", "pinyin": "tí", "hsk_level": 7, "gloss": "鸟叫"}], words=[{"surface": "寒山寺", "gloss": "寺"}])
+    write_facts(site, 1, characters=[{"char": "啼", "hsk_level": 7, "gloss": "鸟叫"}], words=[{"surface": "寒山寺", "gloss": "寺"}])
     db.build(tmp_path / "a.sqlite", site.data)
     conn = db.connect(tmp_path / "a.sqlite", readonly=True)
-    assert tuple(conn.execute("SELECT pinyin, hsk_level, gloss, origin FROM text_character").fetchone()) == ("tí", 7, "鸟叫", "manual")
+    assert tuple(conn.execute("SELECT hsk_level, gloss, origin FROM text_character").fetchone()) == (7, "鸟叫", "manual")
     assert tuple(conn.execute("SELECT origin, pinyin FROM text_word").fetchone()) == ("manual", "hán shān sì")
     assert annotations.load(conn, 1)["characters"][0]["gloss"] == "鸟叫"

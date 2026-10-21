@@ -167,24 +167,27 @@
   "characters": [
     {
       "char": "啼",
-      "pinyin": null,
-      "hsk_level": null,
+      "hsk_level": 5,
       "gloss": "chirping",
       "origin": "manual"
     },
     {
       "char": "月",
-      "pinyin": null,
       "hsk_level": null,
       "gloss": "moon, month",
       "origin": "manual"
     },
     {
       "char": "枫",
-      "pinyin": null,
+      "hsk_level": 5,
+      "gloss": "maple",
+      "origin": "manual"
+    },
+    {
+      "char": "落",
       "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
+      "gloss": "falls",
+      "origin": "manual"
     }
   ],
   "words": [

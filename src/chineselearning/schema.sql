@@ -29,8 +29,7 @@ CREATE TABLE text_reading (       -- the reading of every Han position; char mus
 );
 CREATE TABLE text_character (     -- facts about a character the master lacks or this text uses unusually
   text_id INTEGER NOT NULL REFERENCES text(id) ON DELETE CASCADE,
-  char TEXT NOT NULL,
-  pinyin TEXT,
+  char TEXT NOT NULL,                -- its reading is its text_reading rows
   hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),
   gloss TEXT,
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),

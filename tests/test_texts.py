@@ -1,6 +1,6 @@
 import pytest
 
-from chineselearning.texts import TextFileError, load_texts, parse_text
+from chineselearning.texts import TextFileError, load_texts, parse_text, path_for, write_header
 
 GOOD = "id: 1\ntitle: 枫桥夜泊\nauthor: 张继\nperiod: 唐朝\ntags: 诗词\n\n月落乌啼霜满天，\n江枫渔火对愁眠。\n"
 
@@ -58,3 +58,17 @@ def test_load_texts_rejects_duplicate_id(tmp_path):
     (tmp_path / "b.md").write_text("id: 1\ntitle: b\ntags: t\n\n乙", encoding="utf-8")
     with pytest.raises(TextFileError, match="duplicate id 1"):
         load_texts(tmp_path)
+
+
+def test_write_header_preserves_body_and_other_keys(tmp_path):
+    path = tmp_path / "001-x.md"
+    path.write_text("id: 1\ntitle: 枫桥夜泊\nauthor: 张继\nnotes: 备注\ntags: 诗词\n\n月落乌啼，\n\n  江枫渔火。  \n", encoding="utf-8")
+    text = write_header(path, author="", period="唐朝", tags="诗词, 七绝")
+    assert (text.author, text.period, text.tags, text.notes) == (None, "唐朝", ["诗词", "七绝"], "备注")
+    assert path.read_text(encoding="utf-8") == "id: 1\ntitle: 枫桥夜泊\nnotes: 备注\ntags: 诗词, 七绝\nperiod: 唐朝\n\n月落乌啼，\n\n  江枫渔火。  \n"
+    assert path_for(tmp_path, 1) == path
+    with pytest.raises(TextFileError, match="missing header key 'tags'"):
+        write_header(path, tags="")
+    assert "tags: 诗词, 七绝" in path.read_text(encoding="utf-8")  # nothing written on failure
+    with pytest.raises(TextFileError, match="no text file with id 7"):
+        path_for(tmp_path, 7)

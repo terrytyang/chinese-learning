@@ -59,3 +59,14 @@ tr.editing td { background: #f5f5f5; }
 tr.lesson td.lesson-name { padding-left: 2.5rem; }
 a.original { font-size: 0.85rem; margin-left: 0.5rem; color: #777; }
 h1 small.lesson-name { font-size: 0.6em; color: #777; margin-left: 0.5rem; }
+/* admin rework */
+.body.ruby { line-height: 2.6; }
+.body.ruby rt { font-size: 0.5em; color: #555; }
+.pinyin-edit rt select, .pinyin-edit rt input { font-size: 0.75rem; }
+a.button { border: 1px solid #999; border-radius: 0.3rem; padding: 0.1rem 0.5rem; text-decoration: none; color: #222; }
+section { margin-bottom: 1.5rem; }
+h2 small, h3 small { font-size: 0.6em; color: #777; margin-left: 0.5rem; }
+.block { margin: 0 0 1rem 0; }
+.filters { margin: 0.25rem 0; }
+.filters select { margin-right: 0.25rem; }
+form.bulk table { margin-bottom: 0.5rem; }

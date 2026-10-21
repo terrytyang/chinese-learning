@@ -112,6 +112,15 @@ def list_texts(conn, tag=None, author=None, period=None) -> list[dict]:
     return [dict(r, tags=text_tags(conn, r["id"])) for r in rows]
 
 
+def update_text_info(conn, text_id, author, period, tags):
+    """Mirror a rewritten header: author, period and the tag set (new tag names are created)."""
+    conn.execute("UPDATE text SET author = ?, period = ? WHERE id = ?", (author, period, text_id))
+    conn.execute("DELETE FROM text_tag WHERE text_id = ?", (text_id,))
+    for tag in tags:
+        conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
+        conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (text_id, tag))
+
+
 def text_tags(conn, text_id) -> list[str]:
     return [r[0] for r in conn.execute("SELECT tag_name FROM text_tag WHERE text_id = ? ORDER BY rowid", (text_id,))]
 

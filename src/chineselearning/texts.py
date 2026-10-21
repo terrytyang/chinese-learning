@@ -93,3 +93,36 @@ def load_texts(directory: Path) -> list[Text]:
             raise TextFileError(f"{path}: duplicate id {text.id} (also in {seen[text.id]})")
         seen[text.id] = str(path)
     return texts
+
+
+def path_for(directory, text_id) -> Path:
+    """The file in `directory` whose header carries `text_id`."""
+    for path in sorted(Path(directory).glob("*.md")):
+        if read_text(path).id == text_id:
+            return path
+    raise TextFileError(f"no text file with id {text_id} in {directory}")
+
+
+def write_header(path, **updates) -> Text:
+    """Rewrite header values in place; the body and every other header line stay byte-for-byte.
+
+    A blank value removes an optional key. The result is validated like any text file before writing.
+    """
+    source = Path(path).read_text(encoding="utf-8")
+    head, sep, body = source.partition("\n\n")
+    if not sep:
+        raise TextFileError(f"{path}: no blank line separating header from body")
+    lines = head.split("\n")
+    for key, value in updates.items():
+        value = (value or "").strip()
+        index = next((i for i, line in enumerate(lines) if line.partition(":")[0].strip() == key), None)
+        if value and index is None:
+            lines.append(f"{key}: {value}")
+        elif value:
+            lines[index] = f"{key}: {value}"
+        elif index is not None:
+            del lines[index]
+    rewritten = "\n".join(lines) + sep + body
+    text = parse_text(rewritten, name=str(path))
+    Path(path).write_text(rewritten, encoding="utf-8")
+    return text

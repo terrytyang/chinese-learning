@@ -1,29 +1,40 @@
-{# Shared by the admin text page; imported "with context" so text.id, q, qa, hide_mastered, submitted and edit_values are visible. #}
-{# A submitted value is kept only in the form it came from (same kind, and same character for inline forms). #}
-{% macro keep(kind, field, char=none) -%}
-{%- if submitted.kind == kind and (char is none or submitted.char == char) %}{{ submitted[field] or "" }}{% endif -%}
+{# Shared by the admin text page and its sections; imported "with context" (base, q, qa, kept, filters, submitted, error). #}
+{# A submitted value is kept only in the form it came from. #}
+{% macro keep(form, field) -%}
+{%- if submitted.form == form %}{{ submitted[field] or "" }}{% endif -%}
 {%- endmacro %}
-{% macro level_select(current) -%}
-<select name="hsk_level">{% for n in range(1, 8) %}<option value="{{ n }}"{% if n | string == (current or 7) | string %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>
+{# The validation message, rendered inside the form it belongs to. #}
+{% macro err(form) -%}
+{%- if error and error.form == form %}<p class="error">{{ error.message }}</p>{% endif -%}
 {%- endmacro %}
-{% macro master(a) -%}
-<td>{{ a.pinyin or "" }}</td><td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("；") }}</td>
+{% macro level_select(current, blank=false, form=none) -%}
+{%- set chosen = (current if current else ("" if blank else 7)) | string -%}
+<select name="hsk_level"{% if form %} form="{{ form }}"{% endif %}>{% if blank %}<option value=""{% if not chosen %} selected{% endif %}>—</option>{% endif %}{% for n in range(1, 8) %}<option value="{{ n }}"{% if n | string == chosen %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>
+{%- endmacro %}
+{% macro state_select(current) -%}
+<select name="state">{% for s in ("unrecognized", "recognized", "mastered") %}<option value="{{ s }}"{% if s == (current or "unrecognized") %} selected{% endif %}>{{ s | state }}</option>{% endfor %}</select>
 {%- endmacro %}
 {# Learner state with three buttons; a repeated state is a no-op server-side. #}
 {% macro state_cell(kind, key, state) -%}
 <td class="state">{{ state | state }}
-  <form method="post" action="/texts/{{ text.id }}/progress{{ q }}"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="key" value="{{ key }}">
-  {% for s in ("unrecognized", "recognized", "mastered") %}<button name="state" value="{{ s }}"{% if s == state %} disabled{% endif %}>{{ s | state }}</button>{% endfor %}</form></td>
+  <form method="post" action="{{ base }}/progress{{ q }}"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="key" value="{{ key }}">
+  {% for s in ("unrecognized", "recognized", "mastered") %}<button name="state" value="{{ s }}"{% if s == state %} disabled{% endif %}>{{ s | state }}</button>{% endfor %}</form>{{ err("state:" ~ kind ~ ":" ~ key) }}</td>
 {%- endmacro %}
-{# Origin badge with 确认 (when the row has an origin), 编辑, 删除; `key` is the row's natural key as the routes encode it. #}
-{% macro actions(a, kind, key, badge=true) -%}
-{% if badge %}<td><span class="origin origin-{{ a.origin }}">{{ {"auto": "自动", "suggested": "建议", "manual": "手动"}[a.origin] }}</span>
-    {% if a.origin != "manual" %}<form method="post" action="/texts/{{ text.id }}/{{ kind }}/{{ key }}/confirm{{ q }}"><button>确认</button></form>{% endif %}</td>{% endif %}
-<td><a href="/texts/{{ text.id }}?edit={{ kind }}:{{ key }}{{ qa }}">编辑</a>
-    <form method="post" action="/texts/{{ text.id }}/{{ kind }}/{{ key }}/delete{{ q }}"><button>删除</button></form></td>
+{% macro badge(a) -%}
+<span class="origin origin-{{ a.origin }}">{{ {"auto": "自动", "suggested": "建议", "manual": "手动"}[a.origin] }}</span>
 {%- endmacro %}
-{# One row replaced by its inline edit form; the caller supplies the fields. #}
-{% macro edit_row(kind, key, span) -%}
-<tr class="editing"><td colspan="{{ span }}"><form method="post" action="/texts/{{ text.id }}/{{ kind }}/{{ key }}/update{{ q }}">
-  {{ caller() }} <button>保存</button> <a href="/texts/{{ text.id }}{{ q }}">取消</a></form></td></tr>
+{% macro master(a) -%}
+<td>{{ a.pinyin or "" }}</td><td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("；") }}</td>
+{%- endmacro %}
+{# One row replaced by its inline edit form posting to `action`; the caller supplies the fields. #}
+{% macro edit_row(action, span, form) -%}
+<tr class="editing"><td colspan="{{ span }}"><form method="post" action="{{ base }}/{{ action }}{{ q }}">{{ err(form) }}
+  {{ caller() }} <button>保存</button> <a href="{{ base }}{{ q }}">取消</a></form></td></tr>
+{%- endmacro %}
+{# Level-range and state filter for a candidate list; a GET that keeps the lesson and the other list's filters. #}
+{% macro filter_form(prefix, anchor) -%}
+<form method="get" action="{{ base }}#{{ anchor }}" class="filters">{% for k, val in kept.items() if not k.startswith(prefix) %}<input type="hidden" name="{{ k }}" value="{{ val }}">{% endfor %}
+  级 {% for bound in ("min", "max") %}<select name="{{ prefix }}{{ bound }}"><option value="">全部</option>{% for n in range(1, 8) %}<option value="{{ n }}"{% if filters[prefix ~ bound] == n | string %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>{% if bound == "min" %} 到 {% endif %}{% endfor %}
+  状态 <select name="{{ prefix }}state"><option value="">全部</option>{% for s in ("unrecognized", "recognized", "mastered") %}<option value="{{ s }}"{% if filters[prefix ~ "state"] == s %} selected{% endif %}>{{ s | state }}</option>{% endfor %}</select>
+  <button>筛选</button></form>
 {%- endmacro %}

@@ -27,7 +27,7 @@ def export(conn, text_id) -> dict:
     return {
         "text_id": text_id,
         "readings": rows("SELECT position, char, pinyin, origin FROM text_reading WHERE text_id = ? ORDER BY position"),
-        "characters": rows("SELECT char, pinyin, hsk_level, gloss, origin FROM text_character WHERE text_id = ? ORDER BY char"),
+        "characters": rows("SELECT char, hsk_level, gloss, origin FROM text_character WHERE text_id = ? ORDER BY char"),
         "words": [unlinked_level(r) for r in rows("SELECT surface, pinyin, hsk_level, gloss, origin, word_id FROM text_word WHERE text_id = ? ORDER BY surface")],
     }
 
@@ -61,7 +61,7 @@ def import_all(conn, data_dir):
             for r in data.get("readings", []):
                 annotations.set_reading(conn, text_id, r["position"], r["char"], r["pinyin"], r.get("origin", "manual"))
             for c in data.get("characters", []):
-                annotations.add_character(conn, text_id, c["char"], c.get("gloss"), c.get("pinyin"), c.get("hsk_level"), c.get("origin", "manual"))
+                annotations.add_character(conn, text_id, c["char"], c.get("gloss"), c.get("hsk_level"), c.get("origin", "manual"))
             for w in data.get("words", []):
                 annotations.add_word(conn, text_id, w["surface"], w.get("gloss"), w.get("pinyin"), w.get("origin", "manual"), w.get("hsk_level"))
         except AnnotationError as e:

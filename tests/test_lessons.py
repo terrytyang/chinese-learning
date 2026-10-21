@@ -53,12 +53,12 @@ def lesson_file(site, text_id=1, lesson_id=1):
 
 def fill_lesson(site):
     r = post(site, "lessons", name="课")
-    assert (r.status_code, r.headers["location"]) == (303, "/texts/1?lesson=1")
-    assert post(site, "characters", char="愁").status_code == 303
-    assert post(site, "words", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7").status_code == 303
-    assert post(site, "words/寒山寺/select").status_code == 303
-    assert post(site, "expansions", char="月", surface="月亮", hsk_level="3").status_code == 303
-    assert post(site, "expansions", char="乌", surface="乌鸦", gloss="黑色的鸟", hsk_level="7").status_code == 303
+    assert (r.status_code, r.headers["location"]) == (303, "/texts/1?lesson=1#lesson")
+    assert post(site, "characters/add", chars=["愁"]).status_code == 303
+    assert post(site, "words/new", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7").status_code == 303
+    assert post(site, "expansions", char="月", surface="月亮").status_code == 303
+    assert post(site, "expansions", char="乌", surface="乌鸦").status_code == 200  # not a master word: second form
+    assert post(site, "expansions", char="乌", surface="乌鸦", step="2", gloss="黑色的鸟", hsk_level="7").status_code == 303
     assert post(site, "notes", anchor="月落乌啼", note="首句写景").status_code == 303
 
 
@@ -66,7 +66,7 @@ def test_lesson_round_trip_file_and_rebuild(site, tmp_path):
     fill_lesson(site)
     assert lesson_file(site).read_text(encoding="utf-8") == EXPECTED_FILE
     page = site.client.get("/texts/1").text
-    assert "<h2>课程：课</h2>" in page and '<td class="char">愁</td>' in page and "已选" in page and '<td class="word">乌鸦</td>' in page
+    assert '<tr id="char-愁">' in page and '<tr id="word-寒山寺">' in page and '<tr id="expansion-乌-乌鸦">' in page and '<tr id="note-1">' in page
     counts = db.build(tmp_path / "again.sqlite", site.data)
     assert (counts["lesson"], counts["lesson_character"], counts["lesson_word"], counts["lesson_expansion"], counts["lesson_note"]) == (1, 1, 1, 2, 1)
     conn = db.connect(tmp_path / "again.sqlite", readonly=True)
@@ -82,16 +82,16 @@ def test_create_rename_delete(site):
     assert post(site, "lessons", name="一级字").status_code == 303
     r = post(site, "lessons", name="一级字")
     assert r.status_code == 422 and "已有名为「一级字」的课程" in r.text
-    assert post(site, "lessons", name="二级字").headers["location"] == "/texts/1?lesson=2"
+    assert post(site, "lessons", name="二级字").headers["location"] == "/texts/1?lesson=2#lesson"
     assert sorted(p.name for p in (site.data / "lessons").iterdir()) == ["1-1.json", "1-2.json"]
     assert post(site, "lessons/1/rename", name="重名").status_code == 303
     assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["name"] == "重名"
     assert post(site, "lessons/1/rename", name="二级字").status_code == 422
-    assert post(site, "characters", char="月").status_code == 303  # into lesson 1, the default
+    assert post(site, "characters/add", chars=["月"]).status_code == 303  # into lesson 1, the default
     r = post(site, "lessons/1/delete")
     assert r.status_code == 422 and "课程不是空的" in r.text
-    assert post(site, "characters/月/delete").status_code == 303
-    assert post(site, "lessons/1/delete").headers["location"] == "/texts/1"
+    assert post(site, "characters/月/remove").status_code == 303
+    assert post(site, "lessons/1/delete").headers["location"] == "/texts/1#lesson"
     assert [p.name for p in (site.data / "lessons").iterdir()] == ["1-2.json"]
     assert [x["id"] for x in lessons.for_text(db.connect(site.db), 1)] == [2]
     assert post(site, "lessons/1/delete").status_code == 422
@@ -100,39 +100,41 @@ def test_create_rename_delete(site):
 def test_lesson_selection_and_links(site):
     assert post(site, "lessons", name="甲").status_code == 303 and post(site, "lessons", name="乙").status_code == 303
     page = site.client.get("/texts/1", params={"lesson": 2}).text
-    assert '<a href="/texts/1?lesson=2" class="current">乙</a>' in page and "<h2>课程：乙</h2>" in page
-    assert 'action="/texts/1/characters?lesson=2"' in page and 'action="/texts/1/lessons/2/rename?lesson=2"' in page
-    r = site.client.post("/texts/1/characters?lesson=2", data={"char": "月", "gloss": "月亮"})
-    assert (r.status_code, r.headers["location"]) == (303, "/texts/1?lesson=2")
+    assert '<a href="/texts/1?lesson=2" class="current">乙</a>' in page and "<h2>学习字 <small>乙</small></h2>" in page
+    assert 'action="/texts/1/characters/add?lesson=2"' in page and 'action="/texts/1/lessons/2/rename?lesson=2"' in page
+    r = site.client.post("/texts/1/characters/add?lesson=2", data={"chars": ["月"]})
+    assert (r.status_code, r.headers["location"]) == (303, "/texts/1?lesson=2#characters")
+    assert site.client.post("/texts/1/characters/月/facts?lesson=2", data={"gloss": "月亮"}).status_code == 303
     assert json.loads(lesson_file(site, 1, 2).read_text(encoding="utf-8"))["characters"] == ["月"]
     assert json.loads(lesson_file(site, 1, 1).read_text(encoding="utf-8"))["characters"] == []
     facts = json.loads(site.file.read_text(encoding="utf-8"))
-    assert facts["characters"] == [{"char": "月", "pinyin": None, "hsk_level": None, "gloss": "月亮", "origin": "manual"}]
-    assert '<td class="char">月</td><td></td><td>月亮</td>' in site.client.get("/texts/1", params={"lesson": 2}).text
+    assert facts["characters"] == [{"char": "月", "hsk_level": None, "gloss": "月亮", "origin": "manual"}]
+    assert 'value="月亮"' in site.client.get("/texts/1", params={"lesson": 2}).text.split('id="char-月"')[1].split("</tr>")[0]
     assert '<a href="/texts/1?lesson=1">甲</a> <a href="/texts/1?lesson=2">乙</a>' in site.client.get("/texts").text
-    assert "?edit=characters:月&amp;lesson=2" in site.client.get("/texts/1", params={"lesson": 2, "hide_mastered": 1}).text
-    assert 'action="/texts/1/progress?lesson=2&amp;hide_mastered=1"' in site.client.get("/texts/1", params={"lesson": 2, "hide_mastered": 1}).text
+    page = site.client.get("/texts/1", params={"lesson": 2, "cmin": "3"}).text
+    assert 'action="/texts/1/progress?lesson=2&amp;cmin=3"' in page and '<input type="hidden" name="lesson" value="2">' in page
 
 
 def test_without_a_lesson_lesson_forms_are_refused(site):
     assert "还没有课程" in site.client.get("/texts/1").text
-    r = post(site, "characters", char="月")
+    r = post(site, "characters/add", chars=["月"])
     assert r.status_code == 422 and "请先新建课程" in r.text
     assert post(site, "notes", note="x").status_code == 422
-    assert post(site, "words", surface="寒山寺", gloss="寺").status_code == 303  # facts need no lesson
+    assert post(site, "words/new", surface="寒山寺", gloss="寺").status_code == 422
+    assert post(site, "readings", p0="yuè").status_code == 303  # readings are facts: no lesson needed
 
 
 def test_select_requires_a_text_word_and_unselect(site):
     assert post(site, "lessons", name="课").status_code == 303
-    r = post(site, "words/寒山寺/select")
+    r = post(site, "words/add", words=["寒山寺"])
     assert r.status_code == 422 and "还不是课文的词" in r.text
-    assert post(site, "words", surface="寒山寺", gloss="寺").status_code == 303
-    assert post(site, "words/寒山寺/select").status_code == 303 and post(site, "words/寒山寺/select").status_code == 303
+    assert post(site, "words/new", surface="寒山寺", gloss="寺").status_code == 303
+    assert post(site, "words/add", words=["寒山寺"]).status_code == 303
     assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["words"] == ["寒山寺"]
-    assert 'action="/texts/1/words/寒山寺/unselect"' in site.client.get("/texts/1").text
-    assert post(site, "words/寒山寺/unselect").status_code == 303
+    assert 'action="/texts/1/words/寒山寺/remove"' in site.client.get("/texts/1").text
+    assert post(site, "words/寒山寺/remove").status_code == 303
     assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["words"] == []
-    assert 'action="/texts/1/words/寒山寺/select"' in site.client.get("/texts/1").text
+    assert 'name="words" value="寒山寺"' in site.client.get("/texts/1").text
 
 
 def write_lesson(site, filename, **data):

@@ -1,0 +1,47 @@
+{% from "macros.html" import keep, err, level_select, state_cell, badge, master, edit_row, filter_form with context %}
+<section id="words">
+  <h2>词 <small>{{ lesson.name }}</small></h2>
+  {% if lesson_words %}
+  <table>
+    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th>状态</th><th></th></tr></thead>
+    <tbody>
+    {% for a in lesson_words %}
+      {% if editing == ("words", a.surface) %}{% set v = edit_values or a %}
+      {% call edit_row("words/" ~ a.surface ~ "/facts", 7, "word-facts:" ~ a.surface) %}<span class="word">{{ a.surface }}</span> 拼音 <input name="pinyin" size="12" value="{{ v.pinyin or "" }}">
+        {% if not a.word_id %}级 {{ level_select(v.hsk_level) }}{% endif %} 释义 <input name="gloss" size="20" value="{{ v.gloss or "" }}">{% endcall %}
+      {% else %}
+      <tr id="word-{{ a.surface }}"><td class="word">{{ a.surface }}</td>{{ master(a) }}{{ state_cell("word", a.surface, a.state) }}
+          <td><a href="{{ base }}?edit=words:{{ a.surface }}{{ qa }}#word-{{ a.surface }}">编辑</a>
+              <form method="post" action="{{ base }}/words/{{ a.surface }}/remove{{ q }}"><button>移出</button></form></td></tr>
+      {% endif %}
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="empty">暂无</p>{% endif %}
+
+  <h3>候选词</h3>
+  {{ filter_form("w", "words") }}{{ err("words-add") }}
+  {% if candidate_words %}
+  <form method="post" action="{{ base }}/words/add{{ q }}" class="bulk">
+    <table>
+      <thead><tr><th></th><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th>状态</th><th>来源</th><th></th></tr></thead>
+      <tbody>
+      {% for a in candidate_words %}
+        <tr><td><input type="checkbox" name="words" value="{{ a.surface }}"></td><td class="word">{{ a.surface }}</td>{{ master(a) }}<td>{{ a.state | state }}</td>
+            <td>{{ badge(a) }}</td><td><button formaction="{{ base }}/words/{{ a.surface }}/delete{{ q }}">删除</button></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <button>加入本课</button> <button name="all" value="1">全选加入本课</button>
+  </form>
+  {% else %}<p class="empty">没有候选词</p>{% endif %}
+
+  <h3>添加词</h3>
+  <form method="post" action="{{ base }}/words/new{{ q }}">{{ err("word-new") }}
+    <input name="surface" placeholder="词" size="8" value="{{ keep('word-new', 'surface') }}">
+    <input name="pinyin" placeholder="拼音" size="12" value="{{ keep('word-new', 'pinyin') }}">
+    级 {{ level_select(keep('word-new', 'hsk_level')) }}
+    <input name="gloss" placeholder="释义" size="20" value="{{ keep('word-new', 'gloss') }}">
+    <button>添加</button>
+  </form>
+</section>

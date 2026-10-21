@@ -46,7 +46,7 @@ def test_intake_text_5_words_and_lesson_words(site):
     assert counts["words"] == len(expected) > 0 and counts["characters"] > 0 and counts["lesson"] == 1
     assert sorted(w["surface"] for w in facts(site, 5)["words"]) == expected and lesson(site, 5, 1)["words"] == expected
     page = site.client.get("/texts/5").text
-    assert page.count("自动") == counts["words"] and "<h2>课程：桃花源记</h2>" in page and "已选" in page
+    assert page.count('<tr id="word-') == counts["words"] and "<h2>词 <small>桃花源记</small></h2>" in page
 
 
 def test_intake_refuses_rerun_and_force_leaves_lessons_and_manual_rows(site):
@@ -54,8 +54,8 @@ def test_intake_refuses_rerun_and_force_leaves_lessons_and_manual_rows(site):
     intake(conn, 1, site.data)
     with pytest.raises(AnnotationError, match="已有"):
         intake(conn, 1, site.data)
-    assert site.client.post("/texts/1/readings", data={"char": "乌", "pinyin": "wù"}).status_code == 303
-    assert site.client.post("/texts/1/characters/落/delete").status_code == 303
+    assert site.client.post("/texts/1/readings", data={"p2": "wù"}).status_code == 303
+    assert site.client.post("/texts/1/characters/落/remove").status_code == 303
     assert site.client.post("/texts/1/lessons", data={"name": "二"}).status_code == 303
     assert intake(connect(site), 1, site.data, force=True) == {"words": 0, "characters": 2, "readings": 25, "lesson": None}
     stored = {r["position"]: r for r in facts(site)["readings"]}
@@ -86,32 +86,31 @@ def test_resolver_uses_stored_rows_then_words_then_primary(site):
     assert conn.execute("SELECT pinyin FROM text_word WHERE surface = '行不'").fetchone()[0] == "hàng bù"
 
 
-def test_set_reading_everywhere_then_reset(site):
+def test_edit_mode_sets_one_position(site):
     conn = connect(site)
     intake(conn, 5, site.data)
     body = db.get_text(conn, 5)["body"]
     positions = [i for i, ch in enumerate(body) if ch == "舍"]
-    assert site.client.post("/texts/5/readings", data={"char": "舍", "pinyin": "shè"}).status_code == 303
+    assert len(positions) > 1
+    assert site.client.post("/texts/5/readings", data={f"p{positions[0]}": "shè"}).status_code == 303
     stored = {r["position"]: r for r in facts(site, 5)["readings"]}
-    assert all(stored[p]["pinyin"] == "shè" and stored[p]["origin"] == "manual" for p in positions) and len(positions) > 1
+    assert (stored[positions[0]]["pinyin"], stored[positions[0]]["origin"]) == ("shè", "manual")
+    assert all(stored[p]["pinyin"] == "shě" and stored[p]["origin"] == "auto" for p in positions[1:])
     page = site.client.get("/texts/5").text
-    assert '<span class="pinyin">shè</span> <small>指定</small>' in page and "<option selected>shè</option>" in page
-    assert 'action="/texts/5/readings/舍/delete"' in page
-    assert site.client.post("/texts/5/readings/舍/delete").status_code == 303
-    stored = {r["position"]: r for r in facts(site, 5)["readings"]}
-    assert all(stored[p]["pinyin"] == "shě" and stored[p]["origin"] == "auto" for p in positions)
-    assert '<span class="pinyin">shě</span> <small>默认</small>' in site.client.get("/texts/5").text
+    assert page.count("<ruby>舍<rt>shè</rt></ruby>") == 1 and page.count("<ruby>舍<rt>shě</rt></ruby>") == len(positions) - 1
 
 
 def test_invalid_reading_lists_allowed_readings(site):
-    r = site.client.post("/texts/5/readings", data={"char": "舍", "pinyin": "xx"})
-    assert r.status_code == 422 and "「舍」的读音只能是 shě、shè、shì" in r.text
+    position = db.get_text(connect(site), 5)["body"].index("舍")
+    r = site.client.post("/texts/5/readings", data={f"p{position}": "xx"})
+    assert r.status_code == 422 and "「舍」的读音只能是 shě、shè、shì" in r.text and f'name="p{position}"' in r.text
 
 
-def test_confirm_flips_origin_to_manual(site):
+def test_auto_false_positive_is_deleted_from_candidates(site):
     intake(connect(site), 5, site.data)
-    assert site.client.post("/texts/5/words/桃花/confirm").status_code == 303
-    assert next(w for w in facts(site, 5)["words"] if w["surface"] == "桃花")["origin"] == "manual"
+    assert site.client.post("/texts/5/words/无论/remove").status_code == 303
     page = site.client.get("/texts/5").text
-    assert 'action="/texts/5/words/桃花/confirm"' not in page and page.count("手动") == 1
+    assert 'name="words" value="无论"' in page and "自动" in page and 'formaction="/texts/5/words/无论/delete"' in page
+    assert site.client.post("/texts/5/words/无论/delete").status_code == 303
+    assert "无论" not in [w["surface"] for w in facts(site, 5)["words"]] and "无论" not in lesson(site, 5, 1)["words"]
     assert site.client.post("/texts/5/words/桃花/rename").status_code == 404

@@ -87,31 +87,12 @@ def set_reading(conn, text_id, position, char, pinyin, origin="manual"):
     conn.execute(sql, (text_id, position, char, pinyin, origin_of(origin)))
 
 
-def set_reading_everywhere(conn, text_id, char, pinyin, origin="manual"):
-    """The 字表 form: one reading for every position of `char`."""
-    body = body_of(conn, text_id)
-    char = char_in(body, char)
-    for position, ch in enumerate(body):
-        if ch == char:
-            set_reading(conn, text_id, position, char, pinyin, origin)
-
-
-def reset_reading(conn, text_id, char):
-    """Back to the default resolution for every position of `char` (origin auto); none at all when nothing resolves."""
-    char = char_in(body_of(conn, text_id), char)
-    for r in readings.resolve(conn, text_id, ignore_stored={char}):
-        if r["char"] == char:
-            conn.execute("DELETE FROM text_reading WHERE text_id = ? AND position = ?", (text_id, r["position"]))
-            if r["pinyin"]:
-                set_reading(conn, text_id, r["position"], char, r["pinyin"], "auto")
-
-
 # --- character facts and words (duplicates are no-ops) --------------------
 
-def add_character(conn, text_id, char, gloss=None, pinyin=None, hsk_level=None, origin="manual"):
+def add_character(conn, text_id, char, gloss=None, hsk_level=None, origin="manual"):
     char = char_in(body_of(conn, text_id), char)
-    sql = "INSERT OR IGNORE INTO text_character (text_id, char, pinyin, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?, ?)"
-    conn.execute(sql, (text_id, char, clean(pinyin), level_of(hsk_level), clean(gloss), origin_of(origin)))
+    sql = "INSERT OR IGNORE INTO text_character (text_id, char, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?)"
+    conn.execute(sql, (text_id, char, level_of(hsk_level), clean(gloss), origin_of(origin)))
 
 
 def add_word(conn, text_id, surface, gloss=None, pinyin=None, origin="manual", hsk_level=None):
@@ -128,6 +109,8 @@ def add_word(conn, text_id, surface, gloss=None, pinyin=None, origin="manual", h
 def remove(conn, text_id, kind, *key):
     table, where = TABLES[kind]
     conn.execute(f"DELETE FROM {table} WHERE text_id = ? AND {where}", (text_id, *key))
+    if kind == "words":  # a deleted fact leaves no dangling lesson selection
+        conn.execute("DELETE FROM lesson_word WHERE surface = ? AND lesson_id IN (SELECT id FROM lesson WHERE text_id = ?)", (key[0], text_id))
 
 
 def confirm(conn, text_id, kind, *key):
@@ -137,12 +120,16 @@ def confirm(conn, text_id, kind, *key):
 
 
 def update(conn, text_id, kind, key, fields):
-    """Edit one fact in place (validation as for add); origin becomes manual. A character gloss edit creates the fact if missing."""
+    """Edit one fact in place (validation as for add); origin becomes manual.
+
+    A character's gloss and level are upserted: the fact row appears when something is set and goes when both are blank.
+    """
     gloss = clean(fields.get("gloss"))
     if kind == "characters":
-        char = char_in(body_of(conn, text_id), key[0])
-        add_character(conn, text_id, char, gloss)
-        conn.execute("UPDATE text_character SET gloss = ?, origin = 'manual' WHERE text_id = ? AND char = ?", (gloss, text_id, char))
+        char, level = char_in(body_of(conn, text_id), key[0]), level_of(fields.get("hsk_level"))
+        conn.execute("DELETE FROM text_character WHERE text_id = ? AND char = ?", (text_id, char))
+        if gloss is not None or level is not None:
+            add_character(conn, text_id, char, gloss, level)
         return
     row = conn.execute("SELECT word_id FROM text_word WHERE text_id = ? AND surface = ?", (text_id, *key)).fetchone()
     if row is None:
@@ -171,6 +158,6 @@ def load(conn, text_id) -> dict:
         r["meanings"] = json.loads(r["meanings"]) if r["meanings"] else []
     return {
         "readings": rows("SELECT position, char, pinyin, origin FROM text_reading WHERE text_id = ? ORDER BY position"),
-        "characters": sorted(rows("SELECT char, pinyin, hsk_level, gloss, origin FROM text_character WHERE text_id = ?"), key=lambda r: position(r["char"])),
+        "characters": sorted(rows("SELECT char, hsk_level, gloss, origin FROM text_character WHERE text_id = ?"), key=lambda r: position(r["char"])),
         "words": sorted(words, key=lambda r: position(r["surface"])),
     }

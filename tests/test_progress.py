@@ -1,6 +1,7 @@
 """Learner progress: append-only state in its own database file, and the admin page's state column."""
 
 import re
+from urllib.parse import unquote
 
 import pytest
 
@@ -43,16 +44,21 @@ def test_build_leaves_progress_untouched(site):
     db.build(site.db, site.data)
     assert site.progress.read_bytes() == before
     assert progress.state_of(connect(site), "character", "月") == "mastered"
+    assert site.client.post("/texts/1/lessons", data={"name": "课"}).status_code == 303
+    assert site.client.post("/texts/1/characters/add", data={"chars": ["月"]}).status_code == 303
     assert "<td class=\"state\">掌握" in site.client.get("/texts/1").text
 
 
 def test_page_state_column_and_buttons(site):
+    from chineselearning.intake import intake
+
+    intake(connect(site), 1, site.data)
     page = site.client.get("/texts/1").text
     assert page.count('<td class="state">未识') == 28
     r = site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "recognized"})
-    assert (r.status_code, r.headers["location"]) == (303, "/texts/1")
+    assert (r.status_code, unquote(r.headers["location"])) == (303, "/texts/1#char-月")
     page = site.client.get("/texts/1").text
-    assert re.search(r'<td class="char">月</td>.*?<td class="state">认识', page, re.S)
+    assert re.search(r'<tr id="char-月">.*?<td class="state">认识', page, re.S)
     assert '<button name="state" value="recognized" disabled>认识</button>' in page
     assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "recognized"}).status_code == 303
     assert connect(site).execute("SELECT count(*) FROM progress.progress").fetchone()[0] == 1
@@ -60,20 +66,18 @@ def test_page_state_column_and_buttons(site):
     assert r.status_code == 422 and "状态只能是" in r.text
 
 
-def test_hide_mastered_omits_rows_and_adjusts_counts(site):
-    assert site.client.post("/texts/1/lessons", data={"name": "课"}).status_code == 303
-    assert site.client.post("/texts/1/words", data={"surface": "寒山寺", "gloss": "寺", "hsk_level": "7"}).status_code == 303
-    assert site.client.post("/texts/1/expansions", data={"char": "月", "surface": "月亮"}).status_code == 303
-    for kind, key in (("character", "月"), ("character", "落"), ("word", "寒山寺")):
-        assert site.client.post("/texts/1/progress", data={"kind": kind, "key": key, "state": "mastered"}).status_code == 303
+def test_candidate_filters_by_state_and_level(site):
+    from chineselearning.intake import intake
+
+    intake(connect(site), 1, site.data)
+    for ch in ("月", "落", "乌"):
+        assert site.client.post(f"/texts/1/characters/{ch}/remove").status_code == 303
+    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
+    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "落", "state": "recognized"}).status_code == 303
     page = site.client.get("/texts/1").text
-    assert "28 字，" in page and '<td class="char">月</td>' in page and '<td class="word">寒山寺</td>' in page
-    page = site.client.get("/texts/1", params={"hide_mastered": "1"}).text
-    assert "26 字（已掌握 2 个已隐藏），2 个不在字库，0 个词" in page
-    assert re.findall(r'<td class="char">(.)</td>', page).count("月") == 1  # only the 扩展 row, not the 字表
-    assert '<td class="char">落</td>' not in page and '<td class="word">寒山寺</td>' not in page
-    assert '<td class="word">月亮</td>' in page and '<input type="checkbox" name="hide_mastered" value="1" checked>' in page
-    assert 'action="/texts/1/progress?hide_mastered=1"' in page and 'action="/texts/1/words?hide_mastered=1"' in page
-    assert "?edit=expansions:月/月亮&amp;hide_mastered=1" in page  # autoescaped in the href
-    r = site.client.post("/texts/1/progress?hide_mastered=1", data={"kind": "character", "key": "乌", "state": "mastered"})
-    assert (r.status_code, r.headers["location"]) == (303, "/texts/1?hide_mastered=1")
+    assert re.findall(r'name="chars" value="(.)"', page) == ["月", "落", "乌"]
+    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cstate": "mastered"}).text) == ["月"]
+    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cstate": "unrecognized"}).text) == ["乌"]
+    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cmin": "4"}).text) == ["落", "乌"]
+    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cmin": "4", "cmax": "4"}).text) == ["落"]
+    assert '<option value="4" selected>4</option>' in site.client.get("/texts/1", params={"cmin": "4"}).text

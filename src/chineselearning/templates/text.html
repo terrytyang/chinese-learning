@@ -1,23 +1,29 @@
 {% extends "base.html" %}
-{% from "macros.html" import keep, level_select, master, state_cell, actions, edit_row with context %}
+{% from "macros.html" import keep, err with context %}
 {% block title %}{{ text.title }}{% endblock %}
+{% macro ruby(c) -%}
+{%- if not c.han %}{% if c.newline %}<br>{% else %}{{ c.char }}{% endif %}{% else %}<ruby>{{ c.char }}<rt>{{ c.pinyin or "" }}</rt></ruby>{% endif -%}
+{%- endmacro %}
+{% macro ruby_edit(c) -%}
+{%- if not c.han %}{{ ruby(c) }}{% else %}{% set cur = keep("pinyin", "p" ~ c.position) or c.pinyin or "" %}<ruby>{{ c.char }}<rt>
+  {%- if c.readings | length > 1 %}<select name="p{{ c.position }}">{% for p in c.readings %}<option{% if p == cur %} selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+  {%- elif not c.in_master %}<input name="p{{ c.position }}" size="5" value="{{ cur }}">
+  {%- else %}{{ cur }}{% endif %}</rt></ruby>{% endif -%}
+{%- endmacro %}
 {% block content %}
-{% set base = "/texts/" ~ text.id %}
-{% if error %}<p class="error">{{ error }}</p>{% endif %}
-<article class="text">
+<section id="info" class="info">
   <h1>{{ text.title }}</h1>
-  <dl class="meta">
-    <dt>作者</dt><dd>{{ text.author or "—" }}</dd>
-    <dt>年代</dt><dd>{{ text.period or "—" }}</dd>
-    <dt>类别</dt><dd>{{ text.tags | join("、") }}</dd>
-  </dl>
-  <div class="body">{{ text.body }}</div>
-  {% if text.notes %}<p class="notes">{{ text.notes }}</p>{% endif %}
-</article>
+  <form method="post" action="{{ base }}/info{{ q }}">{{ err("info") }}
+    作者 <input name="author" size="8" value="{{ keep('info', 'author') or text.author or '' }}">
+    年代 <input name="period" size="6" value="{{ keep('info', 'period') or text.period or '' }}">
+    类别 <input name="tags" size="12" value="{{ keep('info', 'tags') or text.tags | join(', ') }}">
+    <button>保存</button>
+  </form>
+</section>
 
-<section class="lessons">
-  <h2>课程</h2>
-  {% for l in lessons %}<a href="{{ base }}?lesson={{ l.id }}{% if hide_mastered %}&amp;hide_mastered=1{% endif %}"{% if lesson and l.id == lesson.id %} class="current"{% endif %}>{{ l.name }}</a> {% endfor %}
+<section id="lesson" class="lessons">
+  <h2>课程</h2>{{ err("lesson") }}
+  {% for l in lessons %}<a href="{{ base }}?lesson={{ l.id }}"{% if lesson and l.id == lesson.id %} class="current"{% endif %}>{{ l.name }}</a> {% endfor %}
   <form method="post" action="{{ base }}/lessons{{ q }}"><input name="name" placeholder="课程名" size="10" value="{{ keep('lesson', 'name') }}"> <button>新建</button></form>
   {% if lesson %}
   <form method="post" action="{{ base }}/lessons/{{ lesson.id }}/rename{{ q }}"><input name="name" size="10" value="{{ lesson.name }}"> <button>重命名</button></form>
@@ -25,154 +31,27 @@
   {% endif %}
 </section>
 
-<form method="get" action="{{ base }}" class="toggle">{% if lesson and lesson.id != lessons[0].id %}<input type="hidden" name="lesson" value="{{ lesson.id }}">{% endif %}<label><input type="checkbox" name="hide_mastered" value="1"{% if hide_mastered %} checked{% endif %}> 隐藏已掌握</label> <button>应用</button></form>
-<p class="counts">{{ characters | length }} 字{% if hide_mastered %}（已掌握 {{ hidden }} 个已隐藏）{% endif %}，{{ missing }} 个不在字库，{{ facts.words | length }} 个词</p>
+<section id="reading">
+  <h2>原文</h2>
+  {% if editing == ("pinyin",) %}
+  <form method="post" action="{{ base }}/readings{{ q }}" class="pinyin-edit">{{ err("pinyin") }}
+    <div class="body ruby">{% for c in chars %}{{ ruby_edit(c) }}{% endfor %}</div>
+    <button>保存</button> <a href="{{ base }}{{ q }}#reading">取消</a>
+  </form>
+  {% else %}
+  <div class="body ruby">{% for c in chars %}{{ ruby(c) }}{% endfor %}</div>
+  <a href="{{ base }}?edit=pinyin{{ qa }}#reading" class="button">编辑拼音</a>
+  {% endif %}
+  <p class="counts">{{ counts.unique }} 字，{{ counts.missing }} 个不在字库，{{ counts.words }} 个词</p>
+</section>
 
 {% if lesson %}
-<section class="lesson">
-  <h2>课程：{{ lesson.name }}</h2>
-  <h3>学习字</h3>
-  {% if content.characters %}
-  <table>
-    <thead><tr><th>字</th><th>拼音</th><th>释义</th><th>状态</th><th></th></tr></thead>
-    <tbody>
-    {% for a in content.characters %}
-      {% if editing == ("characters", a.char) %}{% set v = edit_values or a %}
-      {% call edit_row("characters", a.char, 5) %}<span class="char">{{ a.char }}</span> 释义 <input name="gloss" size="20" value="{{ v.gloss or "" }}">{% endcall %}
-      {% else %}
-      <tr><td class="char">{{ a.char }}</td><td>{{ a.pinyin or "" }}</td><td>{{ a.gloss or "" }}</td>{{ state_cell("character", a.char, a.state) }}{{ actions(a, "characters", a.char, badge=false) }}</tr>
-      {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<p class="empty">暂无</p>{% endif %}
-
-  <h3>扩展</h3>
-  {% if content.expansions %}
-  <table>
-    <thead><tr><th>字</th><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th>状态</th><th>来源</th><th></th></tr></thead>
-    <tbody>
-    {% for a in content.expansions %}
-      {% if editing == ("expansions", a.char ~ "/" ~ a.surface) %}{% set v = edit_values or a %}
-      {% call edit_row("expansions", a.char ~ "/" ~ a.surface, 9) %}<span class="char">{{ a.char }}</span> 词 <input name="surface" size="6" value="{{ v.surface or "" }}">
-        {% if not a.word_id %}级 {{ level_select(v.hsk_level) }}{% endif %} 释义 <input name="gloss" size="20" value="{{ v.gloss or "" }}">{% endcall %}
-      {% else %}
-      <tr><td class="char">{{ a.char }}</td><td class="word">{{ a.surface }}</td>{{ master(a) }}{{ state_cell("word", a.surface, a.state) }}{{ actions(a, "expansions", a.char ~ "/" ~ a.surface) }}</tr>
-      {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<p class="empty">暂无</p>{% endif %}
-
-  <h3>注</h3>
-  {% if content.notes %}
-  <table>
-    <thead><tr><th>锚</th><th>注</th><th>来源</th><th></th></tr></thead>
-    <tbody>
-    {% for a in content.notes %}
-      {% if editing == ("notes", a.id | string) %}{% set v = edit_values or a %}
-      {% call edit_row("notes", a.id, 4) %}锚 <input name="anchor" size="10" value="{{ v.anchor or "" }}"> 注 <input name="note" size="40" value="{{ v.note or "" }}">{% endcall %}
-      {% else %}
-      <tr><td>{{ a.anchor or "" }}</td><td>{{ a.note }}</td>{{ actions(a, "notes", a.id) }}</tr>
-      {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<p class="empty">暂无</p>{% endif %}
-</section>
+{% include "admin_characters.html" %}
+{% include "admin_words.html" %}
+{% include "admin_expansions.html" %}
+{% include "admin_notes.html" %}
 {% else %}
+{% if error %}<p class="error">{{ error.message }}</p>{% endif %}
 <p class="empty">还没有课程；新建一个，或运行 intake。</p>
 {% endif %}
-
-<section class="annotations">
-  <h2>词</h2>
-  {% if facts.words %}
-  <table>
-    <thead><tr><th>词</th><th>拼音</th><th>级</th><th>释义</th><th>词典释义</th><th>状态</th><th>课程</th><th>来源</th><th></th></tr></thead>
-    <tbody>
-    {% for a in facts.words %}
-      {% if editing == ("words", a.surface) %}{% set v = edit_values or a %}
-      {% call edit_row("words", a.surface, 9) %}<span class="word">{{ a.surface }}</span> 拼音 <input name="pinyin" size="12" value="{{ v.pinyin or "" }}">
-        {% if not a.word_id %}级 {{ level_select(v.hsk_level) }}{% endif %} 释义 <input name="gloss" size="20" value="{{ v.gloss or "" }}">{% endcall %}
-      {% else %}
-      <tr><td class="word">{{ a.surface }}</td>{{ master(a) }}{{ state_cell("word", a.surface, a.state) }}
-          <td class="selection">{% if lesson %}{% if a.selected %}已选 <form method="post" action="{{ base }}/words/{{ a.surface }}/unselect{{ q }}"><button>移除</button></form>{% else %}<form method="post" action="{{ base }}/words/{{ a.surface }}/select{{ q }}"><button>加入</button></form>{% endif %}{% endif %}</td>
-          {{ actions(a, "words", a.surface) }}</tr>
-      {% endif %}
-    {% endfor %}
-    </tbody>
-  </table>
-  {% else %}<p class="empty">暂无</p>{% endif %}
-</section>
-
-<section>
-  <h2>字表</h2>
-  <table class="characters">
-    <thead><tr><th>字</th><th>拼音</th><th>释义</th><th>级</th><th>版本</th><th>状态</th><th></th><th></th></tr></thead>
-    <tbody>
-    {% for c in characters %}
-      {% if c.found %}
-      <tr><td class="char">{{ c.char }}</td>
-      {% else %}
-      <tr class="missing"><td class="char">{{ c.char }}</td>
-      {% endif %}
-        <td class="reading">
-          {% for r in c.resolved %}<span class="pinyin">{{ r.pinyin or "—" }}</span> <small>{{ r.source | source }}</small>{% if not loop.last %}；{% endif %}{% else %}<span class="pinyin">—</span> <small>无</small>{% endfor %}
-          {% if c.readings and c.readings | length > 1 %}
-          <form method="post" action="{{ base }}/readings{{ q }}">
-            <input type="hidden" name="char" value="{{ c.char }}">
-            <select name="pinyin">{% for p in c.readings %}<option{% if p == c.current %} selected{% endif %}>{{ p }}</option>{% endfor %}</select>
-            <button>设定</button>
-          </form>
-          {% elif not c.found %}
-          <form method="post" action="{{ base }}/readings{{ q }}">
-            <input type="hidden" name="char" value="{{ c.char }}">
-            <input name="pinyin" placeholder="拼音" size="6" value="{{ keep('reading', 'pinyin', c.char) or c.current or '' }}">
-            <button>设定</button>
-          </form>
-          {% endif %}
-          {% if c.override %}<form method="post" action="{{ base }}/readings/{{ c.char }}/delete{{ q }}"><button>清除</button></form>{% endif %}
-        </td>
-        <td class="gloss">{{ c.gloss or "" }}</td>
-        {% if c.found %}
-        <td>{{ c.hsk_level | hsk }}</td><td>{{ "新" if c.hsk_edition == "latest" else "旧" }}</td>{{ state_cell("character", c.char, c.state) }}<td></td>
-        {% else %}
-        <td></td><td></td>{{ state_cell("character", c.char, c.state) }}<td class="marker">不在字库</td>
-        {% endif %}
-        <td class="actions">
-          <form method="post" action="{{ base }}/characters{{ q }}">
-            <input type="hidden" name="char" value="{{ c.char }}">
-            <input name="gloss" placeholder="释义" size="10" value="{{ keep('character', 'gloss', c.char) }}">
-            <button>加入学习</button>
-          </form>
-          <form method="post" action="{{ base }}/expansions{{ q }}">
-            <input type="hidden" name="char" value="{{ c.char }}">
-            <input name="surface" placeholder="词" size="5" value="{{ keep('expansion', 'surface', c.char) }}">
-            {{ level_select(keep('expansion', 'hsk_level', c.char)) }}
-            <input name="gloss" placeholder="释义" size="10" value="{{ keep('expansion', 'gloss', c.char) }}">
-            <button>扩展</button>
-          </form>
-        </td>
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
-</section>
-
-<section>
-  <h3>添加词</h3>
-  <form method="post" action="{{ base }}/words{{ q }}">
-    <input name="surface" placeholder="词" size="8" value="{{ keep('word', 'surface') }}">
-    <input name="pinyin" placeholder="拼音" size="12" value="{{ keep('word', 'pinyin') }}">
-    级 {{ level_select(keep('word', 'hsk_level')) }}
-    <input name="gloss" placeholder="释义" size="20" value="{{ keep('word', 'gloss') }}">
-    <button>添加</button>
-  </form>
-  <h3>添加注</h3>
-  <form method="post" action="{{ base }}/notes{{ q }}">
-    <input name="anchor" placeholder="锚（正文片段）" size="10" value="{{ keep('note', 'anchor') }}">
-    <input name="note" placeholder="注" size="40" value="{{ keep('note', 'note') }}">
-    <button>添加</button>
-  </form>
-</section>
 {% endblock %}
