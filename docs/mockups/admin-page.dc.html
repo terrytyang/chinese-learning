@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Text admin — 枫桥夜泊</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#f6f5f2;color:#1f1f1d;font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.zh{font-family:"Noto Serif SC","Songti SC",serif}
+table{border-collapse:collapse;width:100%}
+th{text-align:left;font-weight:500;color:#6b6b66;font-size:12px;padding:6px 10px;border-bottom:1px solid #e3e1dc}
+td{padding:7px 10px;border-bottom:1px solid #eceae5;vertical-align:middle}
+button{font:inherit;cursor:pointer;border:1px solid #cfccc5;background:#fff;color:#1f1f1d;border-radius:6px;padding:4px 10px;min-height:28px}
+button:hover{background:#f0eee9}
+button.primary{background:#1f1f1d;color:#fff;border-color:#1f1f1d}
+button.primary:hover{background:#3a3a37}
+button.on{background:#e8f0fe;border-color:#1d4ed8;color:#1d4ed8}
+button.tab{border:none;background:transparent;border-bottom:2px solid transparent;border-radius:0;padding:10px 14px;color:#6b6b66}
+button.tab.on{color:#1f1f1d;border-bottom-color:#1f1f1d}
+input,select{font:inherit;border:1px solid #cfccc5;border-radius:6px;padding:4px 8px;min-height:28px;background:#fff}
+ruby{ruby-position:over}
+rt{font-size:10px;color:#6b6b66;font-family:Inter,system-ui,sans-serif;text-align:center}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid #cfccc5;color:#6b6b66}
+.pill.auto{background:#fff;}
+.pill.suggested{background:#fff7e6;border-color:#f0c36a;color:#8a5a00}
+.pill.manual{background:#e8f0fe;border-color:#9fbaf5;color:#1d4ed8}
+.lvl{display:inline-block;min-width:22px;text-align:center;font-size:11px;border-radius:4px;padding:1px 4px;background:#eceae5;color:#444}
+.lvl.l0{background:#fde2e2;color:#9b1c1c}
+.st{font-size:12px;color:#6b6b66}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid #cfccc5;border-radius:999px;padding:2px 6px 2px 10px}
+.chip button{border:none;padding:0 4px;min-height:0;line-height:1;color:#6b6b66}
+.card{background:#fff;border:1px solid #e3e1dc;border-radius:10px;padding:16px 18px}
+.muted{color:#6b6b66}
+.editcell{display:inline-flex;flex-direction:column;align-items:center;gap:2px;margin:0 1px}
+.editcell select,.editcell input{min-height:22px;padding:0 4px;font-size:11px;width:68px}
+.sec{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#6b6b66;margin:18px 0 8px}
+</style>
+</helmet>
+
+<div style="max-width: 1180px; margin: 0 auto; padding: 24px 24px 64px; display: flex; flex-direction: column; gap: 20px">
+
+  <!-- ===== Shell: header ===== -->
+  <div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px">
+    <div style="display: flex; align-items: baseline; gap: 14px">
+      <a href="#texts" style="font-size: 13px; color: #6b6b66">← Texts</a>
+      <h1 class="zh" style="margin: 0; font-size: 28px; font-weight: 600">枫桥夜泊</h1>
+      <span class="muted">张继 · 唐朝</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px">
+      <label for="lesson" class="muted">Lesson</label>
+      <select id="lesson" value="{{lesson}}" onChange="{{pickLesson}}">
+        <option value="6">Learn 枫桥夜泊</option>
+        <option value="7">HSK 1–3 characters</option>
+      </select>
+      <button>New lesson</button>
+      <button>Rename</button>
+      <a href="#learn" style="margin-left: 8px; font-size: 13px">Open student view ↗</a>
+    </div>
+  </div>
+
+  <!-- ===== Shell: tags ===== -->
+  <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+    <span class="muted" style="width: 52px">Tags</span>
+    <sc-for list="{{tags}}" as="tag" hint-placeholder-count="1">
+      <span class="chip"><span class="zh">{{tag.name}}</span><button aria-label="Remove tag" onClick="{{tag.remove}}">×</button></span>
+    </sc-for>
+    <input aria-label="Add tag" placeholder="add tag" style="width: 110px" value="{{tagDraft}}" onChange="{{editTagDraft}}">
+    <button onClick="{{addTag}}">Add</button>
+  </div>
+
+  <!-- ===== Shell: text block ===== -->
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 10px">
+      <div style="display: flex; gap: 14px; align-items: center">
+        <span class="sec" style="margin: 0">Text</span>
+        <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+          <span class="muted">Editing readings — polyphones and unknown characters are editable; the rest is fixed.</span>
+        </sc-if>
+        <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+          <span class="muted">{{readingSummary}}</span>
+        </sc-if>
+      </div>
+      <div style="display: flex; gap: 8px">
+        <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+          <button onClick="{{startEdit}}">Edit pinyin</button>
+        </sc-if>
+        <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+          <button onClick="{{cancelEdit}}">Cancel</button>
+          <button class="primary" onClick="{{saveEdit}}">Save readings</button>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{notEditing}}" hint-placeholder-val="{{true}}">
+      <div class="zh" style="font-size: 26px; line-height: 2.4; letter-spacing: 2px">
+        <sc-for list="{{lines}}" as="line" hint-placeholder-count="2">
+          <div><sc-for list="{{line.cells}}" as="c" hint-placeholder-count="14"><ruby>{{c.char}}<rt>{{c.pinyin}}</rt></ruby></sc-for></div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{editing}}" hint-placeholder-val="{{false}}">
+      <div class="zh" style="font-size: 26px; line-height: 1.2; letter-spacing: 2px">
+        <sc-for list="{{editLines}}" as="line" hint-placeholder-count="2">
+          <div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 2px; margin: 8px 0"><sc-for list="{{line.cells}}" as="c" hint-placeholder-count="14">
+            <span class="editcell">
+              <sc-if value="{{c.isSelect}}" hint-placeholder-val="{{false}}"><select aria-label="Reading" value="{{c.pinyin}}" onChange="{{c.pick}}"><sc-for list="{{c.options}}" as="o" hint-placeholder-count="2"><option value="{{o.v}}">{{o.v}}</option></sc-for></select></sc-if>
+              <sc-if value="{{c.isInput}}" hint-placeholder-val="{{false}}"><input aria-label="Reading" placeholder="pinyin" value="{{c.pinyin}}" onChange="{{c.type}}"></sc-if>
+              <sc-if value="{{c.isFixed}}" hint-placeholder-val="{{true}}"><span style="font-size: 11px; color: #6b6b66; font-family: Inter, sans-serif; height: 22px; display: inline-flex; align-items: center">{{c.pinyin}}</span></sc-if>
+              <span>{{c.char}}</span>
+            </span>
+          </sc-for></div>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <!-- ===== Tabs ===== -->
+  <div class="card" style="padding-top: 6px">
+    <div style="display: flex; gap: 4px; border-bottom: 1px solid #e3e1dc; margin: 0 -18px; padding: 0 12px; flex-wrap: wrap">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+        <button class="tab {{t.cls}}" onClick="{{t.pick}}">{{t.label}} <span class="muted">{{t.count}}</span></button>
+      </sc-for>
+    </div>
+
+    <!-- ----- Characters ----- -->
+    <sc-if value="{{tabCharacters}}" hint-placeholder-val="{{true}}">
+      <div class="sec">In this lesson · {{lessonCharCount}} <span class="muted" style="text-transform: none; letter-spacing: 0">— characters the student works on in this lesson; adding one marks it exposed if it was unconfirmed. Pinyin comes from the text above</span></div>
+      <table>
+        <thead><tr><th style="width: 48px">Char</th><th style="width: 90px">Pinyin</th><th style="width: 60px">Level</th><th>Gloss</th><th style="width: 330px">State</th><th style="width: 150px"></th></tr></thead>
+        <tbody>
+          <sc-for list="{{lessonChars}}" as="c" hint-placeholder-count="6">
+            <tr>
+              <td class="zh" style="font-size: 22px">{{c.char}}</td>
+              <td>{{c.pinyin}}</td>
+              <td><span class="lvl {{c.lvlCls}}">{{c.levelLabel}}</span></td>
+              <td>
+                <sc-if value="{{c.inMaster}}" hint-placeholder-val="{{true}}"><span>{{c.gloss}}</span></sc-if>
+                <sc-if value="{{c.missing}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; gap: 6px; align-items: center"><input aria-label="Gloss" placeholder="gloss — not in HSK, please fill" value="{{c.gloss}}" style="width: 200px"><select aria-label="Level" value="{{c.levelStr}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select><button>Save</button></span></sc-if>
+              </td>
+              <td><span style="display: inline-flex; gap: 4px"><button class="{{c.s0}}" onClick="{{c.set0}}">unconfirmed</button><button class="{{c.s1}}" onClick="{{c.set1}}">exposed</button><button class="{{c.s2}}" onClick="{{c.set2}}">recognized</button><button class="{{c.s3}}" onClick="{{c.set3}}">mastered</button></span></td>
+              <td><button onClick="{{c.remove}}">Remove from lesson</button></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+
+      <div class="sec" style="margin-top: 26px">Not in this lesson · {{candidateCount}} <span class="muted" style="text-transform: none; letter-spacing: 0">— the rest of the text's characters; filter, tick, add</span></div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 8px">
+        <label class="muted">Level <select value="{{fMin}}" onChange="{{setFMin}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select> to <select value="{{fMax}}" onChange="{{setFMax}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select></label>
+        <label class="muted">State <select value="{{fState}}" onChange="{{setFState}}" aria-label="State filter"><option value="any">any</option><option value="unconfirmed">unconfirmed</option><option value="exposed">exposed</option><option value="recognized">recognized</option><option value="mastered">mastered</option></select></label>
+        <label class="muted"><input type="checkbox" checked="{{fMissing}}" onChange="{{toggleFMissing}}"> include characters not in HSK</label>
+        <span style="flex: 1"></span>
+        <button onClick="{{selectAll}}">Select all shown</button>
+        <button class="primary" onClick="{{addSelected}}">Add {{selectedCount}} to lesson</button>
+      </div>
+      <table>
+        <thead><tr><th style="width: 32px"></th><th style="width: 48px">Char</th><th style="width: 90px">Pinyin</th><th style="width: 60px">Level</th><th>Gloss</th><th style="width: 120px">State</th></tr></thead>
+        <tbody>
+          <sc-for list="{{candidates}}" as="c" hint-placeholder-count="6">
+            <tr>
+              <td><input type="checkbox" aria-label="Select" checked="{{c.checked}}" onChange="{{c.toggle}}"></td>
+              <td class="zh" style="font-size: 22px">{{c.char}}</td>
+              <td>{{c.pinyin}}</td>
+              <td><span class="lvl {{c.lvlCls}}">{{c.levelLabel}}</span></td>
+              <td>{{c.gloss}}</td>
+              <td class="st">{{c.state}}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </sc-if>
+
+    <!-- ----- Identified words ----- -->
+    <sc-if value="{{tabIdentified}}" hint-placeholder-val="{{false}}">
+      <div class="sec">Words in text <span class="muted" style="text-transform: none; letter-spacing: 0">— every HSK word the import scan found as an exact run of characters, plus words you add; this list is the text's word list, shared by all its lessons. Tick to include in this lesson; Delete drops a false positive from the text's list.</span></div>
+      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 6px 0 8px">
+        <label class="muted">Show <select value="{{idFilter}}" onChange="{{setIdFilter}}"><option value="all">all</option><option value="unreviewed">not yet reviewed (auto / suggested)</option><option value="included">in this lesson</option><option value="excluded">not in this lesson</option></select></label>
+        <label class="muted">Level <select value="{{idMin}}" onChange="{{setIdMin}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select> to <select value="{{idMax}}" onChange="{{setIdMax}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select></label>
+        <span style="flex: 1"></span>
+        <span class="muted">{{idShown}} shown</span>
+        <button onClick="{{includeShown}}">Add all shown to lesson</button>
+        <button onClick="{{confirmShown}}">Mark all shown as reviewed</button>
+      </div>
+      <table>
+        <thead><tr><th style="width: 32px">In</th><th style="width: 110px">Word</th><th style="width: 120px">Pinyin</th><th style="width: 60px">Level</th><th>Gloss</th><th style="width: 90px">Origin</th><th style="width: 330px">State</th><th style="width: 130px"></th></tr></thead>
+        <tbody>
+          <sc-for list="{{identified}}" as="w" hint-placeholder-count="2">
+            <tr>
+              <td><input type="checkbox" aria-label="Include in lesson" checked="{{w.included}}" onChange="{{w.toggle}}"></td>
+              <td class="zh" style="font-size: 20px">{{w.surface}}</td>
+              <td>{{w.pinyin}}</td>
+              <td><span class="lvl {{w.lvlCls}}">{{w.levelLabel}}</span></td>
+              <td>
+                <sc-if value="{{w.notEditing}}" hint-placeholder-val="{{true}}"><span>{{w.gloss}}</span></sc-if>
+                <sc-if value="{{w.isEditing}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; gap: 6px"><input aria-label="Pinyin" value="{{w.draftPinyin}}" style="width: 110px" onChange="{{w.editPinyin}}"><input aria-label="Gloss" value="{{w.draftGloss}}" style="width: 220px" onChange="{{w.editGloss}}"><button class="primary" onClick="{{w.save}}">Save</button><button onClick="{{w.cancel}}">Cancel</button></span></sc-if>
+              </td>
+              <td><span class="pill {{w.origin}}">{{w.origin}}</span></td>
+              <td><span style="display: inline-flex; gap: 4px"><button class="{{w.s0}}" onClick="{{w.set0}}">unconfirmed</button><button class="{{w.s1}}" onClick="{{w.set1}}">exposed</button><button class="{{w.s2}}" onClick="{{w.set2}}">recognized</button><button class="{{w.s3}}" onClick="{{w.set3}}">mastered</button></span></td>
+              <td><span style="display: inline-flex; gap: 4px"><button onClick="{{w.edit}}">Edit</button><button onClick="{{w.remove}}">Delete</button></span></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+      <div class="sec" style="margin-top: 26px">Add a word that appears in the text <span class="muted" style="text-transform: none; letter-spacing: 0">— one the scan missed, such as a name or a classical phrase</span></div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+        <input class="zh" placeholder="word" style="width: 120px" value="{{idDraft}}" onChange="{{editIdDraft}}">
+        <button class="primary" onClick="{{lookupId}}">Look up</button>
+        <span class="muted">{{idHint}}</span>
+      </div>
+      <sc-if value="{{idNeedsDetails}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding: 10px 12px; background: #fff7e6; border-radius: 8px">
+          <span>Not an HSK word.</span>
+          <input placeholder="pinyin" style="width: 120px" value="{{idPinyin}}">
+          <input placeholder="gloss" style="width: 220px" value="{{idGloss}}" onChange="{{editIdGloss}}">
+          <select aria-label="Level" value="7"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select>
+          <select aria-label="State" value="exposed"><option value="unconfirmed">unconfirmed</option><option value="exposed">exposed</option><option value="recognized">recognized</option><option value="mastered">mastered</option></select>
+          <button class="primary" onClick="{{addIdLocal}}">Add</button>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ----- Expansions ----- -->
+    <sc-if value="{{tabExpansions}}" hint-placeholder-val="{{false}}">
+      <div class="sec">Expansions <span class="muted" style="text-transform: none; letter-spacing: 0">— one character of this lesson, taught through a modern word that contains it (月 → 月亮). Any number per character. These belong to the lesson.</span></div>
+      <sc-for list="{{expansionBlocks}}" as="b" hint-placeholder-count="3">
+        <div style="display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid #eceae5; align-items: start">
+          <div class="zh" style="font-size: 28px; line-height: 1">{{b.char}}<div style="font-size: 11px; color: #6b6b66; font-family: Inter, sans-serif; margin-top: 4px">{{b.pinyin}}</div></div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <sc-for list="{{b.items}}" as="e" hint-placeholder-count="1">
+              <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap">
+                <span class="zh" style="font-size: 18px; min-width: 60px">{{e.surface}}</span>
+                <span class="muted" style="min-width: 90px">{{e.pinyin}}</span>
+                <span class="lvl {{e.lvlCls}}">{{e.levelLabel}}</span>
+                <span style="min-width: 160px">{{e.gloss}}</span>
+                <span class="pill {{e.origin}}">{{e.origin}}</span>
+                <span style="display: inline-flex; gap: 4px"><button class="{{e.s0}}" onClick="{{e.set0}}">unconfirmed</button><button class="{{e.s1}}" onClick="{{e.set1}}">exposed</button><button class="{{e.s2}}" onClick="{{e.set2}}">recognized</button><button class="{{e.s3}}" onClick="{{e.set3}}">mastered</button></span>
+                <sc-if value="{{e.notEditing}}" hint-placeholder-val="{{true}}"><button onClick="{{e.edit}}">Edit</button><button onClick="{{e.remove}}">Delete</button></sc-if>
+                <sc-if value="{{e.isEditing}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; gap: 6px"><input aria-label="Pinyin" value="{{e.draftPinyin}}" style="width: 110px" onChange="{{e.editPinyin}}"><input aria-label="Gloss" value="{{e.draftGloss}}" style="width: 200px" onChange="{{e.editGloss}}"><button class="primary" onClick="{{e.save}}">Save</button><button onClick="{{e.cancel}}">Cancel</button></span></sc-if>
+              </div>
+            </sc-for>
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+              <input class="zh" placeholder="expand {{b.char}} into…" style="width: 140px" value="{{b.draft}}" onChange="{{b.edit}}">
+              <button onClick="{{b.lookup}}">Look up &amp; add</button>
+              <span class="muted">{{b.hint}}</span>
+            </div>
+            <sc-if value="{{b.needsDetails}}" hint-placeholder-val="{{false}}">
+              <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: #fff7e6; border-radius: 8px">
+                <span><span class="zh">{{b.draft}}</span> is not an HSK word.</span>
+                <input placeholder="pinyin" style="width: 120px" value="{{b.draftPinyin}}">
+                <input placeholder="gloss" style="width: 220px" value="{{b.draftGloss}}" onChange="{{b.editGloss}}">
+                <select aria-label="Level" value="7"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select>
+                <select aria-label="State" value="exposed"><option value="unconfirmed">unconfirmed</option><option value="exposed">exposed</option><option value="recognized">recognized</option><option value="mastered">mastered</option></select>
+                <button class="primary" onClick="{{b.addLocal}}">Add</button>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+    </sc-if>
+
+    <!-- ----- Relevant words ----- -->
+    <sc-if value="{{tabRelevant}}" hint-placeholder-val="{{false}}">
+      <div class="sec">Related words <span class="muted" style="text-transform: none; letter-spacing: 0">— a word that does not appear in the text as written but is closely tied to a passage of it (夜半 → 半夜, 姑苏 → 苏州), or to the text as a whole (the author). Anchor is the passage, if any. These belong to the lesson.</span></div>
+      <table>
+        <thead><tr><th style="width: 130px">Anchor</th><th style="width: 110px">Word</th><th style="width: 120px">Pinyin</th><th style="width: 60px">Level</th><th>Gloss</th><th style="width: 90px">Origin</th><th style="width: 330px">State</th><th style="width: 130px"></th></tr></thead>
+        <tbody>
+          <sc-for list="{{relevant}}" as="w" hint-placeholder-count="2">
+            <tr>
+              <td class="zh">{{w.anchor}}</td>
+              <td class="zh" style="font-size: 20px">{{w.surface}}</td>
+              <td>{{w.pinyin}}</td>
+              <td><span class="lvl {{w.lvlCls}}">{{w.levelLabel}}</span></td>
+              <td>
+                <sc-if value="{{w.notEditing}}" hint-placeholder-val="{{true}}"><span>{{w.gloss}}</span></sc-if>
+                <sc-if value="{{w.isEditing}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; gap: 6px"><input aria-label="Pinyin" value="{{w.draftPinyin}}" style="width: 110px" onChange="{{w.editPinyin}}"><input aria-label="Gloss" value="{{w.draftGloss}}" style="width: 220px" onChange="{{w.editGloss}}"><button class="primary" onClick="{{w.save}}">Save</button><button onClick="{{w.cancel}}">Cancel</button></span></sc-if>
+              </td>
+              <td><span class="pill {{w.origin}}">{{w.origin}}</span></td>
+              <td><span style="display: inline-flex; gap: 4px"><button class="{{w.s0}}" onClick="{{w.set0}}">unconfirmed</button><button class="{{w.s1}}" onClick="{{w.set1}}">exposed</button><button class="{{w.s2}}" onClick="{{w.set2}}">recognized</button><button class="{{w.s3}}" onClick="{{w.set3}}">mastered</button></span></td>
+              <td><span style="display: inline-flex; gap: 4px"><button onClick="{{w.edit}}">Edit</button><button onClick="{{w.remove}}">Delete</button></span></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+      <div class="sec" style="margin-top: 26px">Add a related word</div>
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+        <input class="zh" placeholder="passage it relates to (optional)" style="width: 220px" value="{{relAnchor}}" onChange="{{editRelAnchor}}">
+        <input class="zh" placeholder="word" style="width: 120px" value="{{relDraft}}" onChange="{{editRelDraft}}">
+        <button class="primary" onClick="{{lookupRel}}">Look up &amp; add</button>
+        <span class="muted">{{relHint}}</span>
+      </div>
+      <sc-if value="{{relNeedsDetails}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding: 10px 12px; background: #fff7e6; border-radius: 8px">
+          <span>Not an HSK word.</span>
+          <input placeholder="pinyin" style="width: 120px">
+          <input placeholder="gloss" style="width: 220px" value="{{relGloss}}" onChange="{{editRelGloss}}">
+          <select aria-label="Level" value="7"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select>
+          <select aria-label="State" value="exposed"><option value="unconfirmed">unconfirmed</option><option value="exposed">exposed</option><option value="recognized">recognized</option><option value="mastered">mastered</option></select>
+          <button class="primary" onClick="{{addRelLocal}}">Add</button>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- ----- Notes ----- -->
+    <sc-if value="{{tabNotes}}" hint-placeholder-val="{{false}}">
+      <div class="sec">Notes</div>
+      <table>
+        <thead><tr><th style="width: 160px">Anchor</th><th>Note</th><th style="width: 90px">Origin</th><th style="width: 70px"></th></tr></thead>
+        <tbody>
+          <sc-for list="{{notes}}" as="n" hint-placeholder-count="1">
+            <tr><td class="zh">{{n.anchor}}</td><td>{{n.note}}</td><td><span class="pill {{n.origin}}">{{n.origin}}</span></td><td><button onClick="{{n.remove}}">Delete</button></td></tr>
+          </sc-for>
+        </tbody>
+      </table>
+      <div class="sec" style="margin-top: 26px">Add a note <span class="muted" style="text-transform: none; letter-spacing: 0">— commentary for this lesson, optionally anchored on a passage</span></div>
+      <div style="display: flex; gap: 8px; align-items: flex-start; flex-wrap: wrap">
+        <input class="zh" placeholder="anchor (optional)" style="width: 180px" value="{{noteAnchor}}" onChange="{{editNoteAnchor}}">
+        <input placeholder="note" style="width: 520px" value="{{noteDraft}}" onChange="{{editNoteDraft}}">
+        <button class="primary" onClick="{{addNote}}">Add</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1500}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const C = (ch, py, lv, gl, st, rd, og) => ({ char: ch, pinyin: py, level: lv, gloss: gl, state: st || 'unconfirmed', readings: rd || [py], origin: og || 'master' });
+    const chars = [
+      C('月','yuè',1,'moon, month','recognized',['yuè','rù']), C('落','luò',4,'fall, drop, set (sun)','unconfirmed',['luò','là','lào','luō']),
+      C('乌','wū',7,'crow, black','recognized',['wū','wù']), C('啼','tí',0,'cry, crow (of birds)','unconfirmed',[],'auto'),
+      C('霜','shuāng',7,'frost'), C('满','mǎn',3,'full, fill'), C('天','tiān',1,'sky, heaven, day'),
+      C('江','jiāng',4,'river'), C('枫','fēng',0,'','unconfirmed',[],'auto'), C('渔','yú',7,'fishing, fisherman'),
+      C('火','huǒ',1,'fire','unconfirmed',['huǒ','huō']), C('对','duì',1,'facing, toward, correct'),
+      C('愁','chóu',6,'sorrow, worry','unconfirmed',['chóu','qiǎo','jiū']), C('眠','mián',5,'sleep','unconfirmed',['mián','miǎn','mǐn']),
+      C('姑','gū',4,'aunt, (姑苏) Gusu'), C('苏','sū',7,'(苏州) Suzhou, revive'), C('城','chéng',3,'city, wall'),
+      C('外','wài',1,'outside'), C('寒','hán',4,'cold'), C('山','shān',3,'mountain'), C('寺','sì',7,'temple','unconfirmed',['sì','shì']),
+      C('夜','yè',4,'night'), C('半','bàn',1,'half','unconfirmed',['bàn','pàn']), C('钟','zhōng',1,'bell, clock'),
+      C('声','shēng',3,'sound, voice','unconfirmed',['shēng','qìng']), C('到','dào',1,'arrive, reach'),
+      C('客','kè',1,'guest, traveller','unconfirmed',['kè','qià']), C('船','chuán',3,'boat')
+    ];
+    const lines = ['月落乌啼霜满天，江枫渔火对愁眠。', '姑苏城外寒山寺，夜半钟声到客船。'];
+    const master = { '月亮':['yuè liang',3,'moon'], '乌云':['wū yún',6,'dark cloud'], '落后':['luò hòu',3,'fall behind, backward'], '苏州':['Sū zhōu',4,'Suzhou'], '客人':['kè rén',3,'guest'], '天空':['tiān kōng',2,'sky'], '火车':['huǒ chē',1,'train'], '外面':['wài miàn',1,'outside'] };
+    const lessonChars = ['落','乌','啼','霜','江','枫','渔','愁','眠','姑','苏','寒','寺'];
+    chars.forEach(c => { if (lessonChars.includes(c.char) && c.state === 'unconfirmed') c.state = 'exposed'; });
+    this.state = {
+      lesson: '6', tab: 'characters', tags: ['诗词'], tagDraft: '',
+      chars, lines, master, lessonChars,
+      editing: false, draftReadings: {},
+      fMin: '1', fMax: '7', fState: 'learning', fMissing: true, checked: {},
+      identified: [
+        { surface: '寒山寺', pinyin: 'hán shān sì', level: 7, gloss: 'Hanshan Temple, outside Suzhou', origin: 'manual', state: 'unconfirmed', included: true },
+        { surface: '钟声', pinyin: 'zhōng shēng', level: 7, gloss: 'sound of a bell', origin: 'suggested', state: 'unconfirmed', included: false },
+        { surface: '客船', pinyin: 'kè chuán', level: 7, gloss: 'passenger boat', origin: 'auto', state: 'unconfirmed', included: false },
+        { surface: '姑苏', pinyin: 'Gū sū', level: 7, gloss: 'Gusu, old name of Suzhou', origin: 'auto', state: 'unconfirmed', included: true }
+      ],
+      idDraft: '', idHint: '', idNeedsDetails: false, idPinyin: '', idGloss: '', idFilter: 'unreviewed', idMin: '1', idMax: '7', editing_: null, draft: {},
+      expansions: [
+        { char: '月', surface: '月亮', pinyin: 'yuè liang', level: 3, gloss: 'moon', origin: 'manual', state: 'recognized' },
+        { char: '月', surface: '月光', pinyin: 'yuè guāng', level: 7, gloss: 'moonlight', origin: 'manual', state: 'unconfirmed' },
+        { char: '乌', surface: '乌鸦', pinyin: 'wū yā', level: 7, gloss: 'crow', origin: 'suggested', state: 'unconfirmed' }
+      ],
+      expDraft: {}, expHint: {}, expNeeds: {}, expGloss: {},
+      relevant: [
+        { anchor: '姑苏', surface: '苏州', pinyin: 'Sū zhōu', level: 4, gloss: 'Suzhou', origin: 'manual', state: 'unconfirmed' },
+        { anchor: '', surface: '张继', pinyin: 'Zhāng Jì', level: 7, gloss: 'the poet (Tang dynasty)', origin: 'manual', state: 'unconfirmed' }
+      ],
+      relAnchor: '', relDraft: '', relHint: '', relNeedsDetails: false, relGloss: '',
+      notes: [ { anchor: '月落乌啼', note: 'Four characters, four images: moon setting, crows calling, frost filling the sky. Ask her to picture each before reading on.', origin: 'manual' } ],
+      noteAnchor: '', noteDraft: ''
+    };
+  }
+
+  lvl(l) { return { cls: l === 0 ? 'l0' : 'l' + l, label: l === 0 ? 'n/a' : (l === 7 ? '7–9' : String(l)) }; }
+  stateBtns(cur, set) { return { s0: cur === 'unconfirmed' ? 'on' : '', s1: cur === 'exposed' ? 'on' : '', s2: cur === 'recognized' ? 'on' : '', s3: cur === 'mastered' ? 'on' : '', set0: () => set('unconfirmed'), set1: () => set('exposed'), set2: () => set('recognized'), set3: () => set('mastered') }; }
+  setCharState(ch, st) { this.setState({ chars: this.state.chars.map(c => c.char === ch ? { ...c, state: st } : c) }); }
+  setIn(key, i, st) { this.setState({ [key]: this.state[key].map((w, j) => j === i ? { ...w, state: st } : w) }); }
+  pyAt(ch) { const c = this.state.chars.find(x => x.char === ch); return c ? c.pinyin : ''; }
+
+  cells(line, draft) {
+    return [...line].map((ch, i) => {
+      const c = this.state.chars.find(x => x.char === ch);
+      if (!c) return { char: ch, pinyin: '', isFixed: true, isSelect: false, isInput: false };
+      const key = line + ':' + i;
+      const pinyin = draft && key in draft ? draft[key] : c.pinyin;
+      const isInput = c.level === 0, isSelect = !isInput && c.readings.length > 1;
+      return {
+        char: ch, pinyin, isInput, isSelect, isFixed: !isInput && !isSelect,
+        options: c.readings.map(v => ({ v })),
+        pick: (e) => this.setState({ draftReadings: { ...this.state.draftReadings, [key]: e.target.value } }),
+        type: (e) => this.setState({ draftReadings: { ...this.state.draftReadings, [key]: e.target.value } })
+      };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const byChar = Object.fromEntries(s.chars.map(c => [c.char, c]));
+    const inLesson = new Set(s.lessonChars);
+    const lessonChars = s.lessonChars.map(ch => byChar[ch]).map(c => ({
+      char: c.char, pinyin: c.pinyin || '—', gloss: c.gloss, levelStr: String(c.level || 7),
+      lvlCls: this.lvl(c.level).cls, levelLabel: this.lvl(c.level).label, inMaster: c.level !== 0, missing: c.level === 0,
+      ...this.stateBtns(c.state, st => this.setCharState(c.char, st)),
+      remove: () => this.setState({ lessonChars: s.lessonChars.filter(x => x !== c.char) })
+    }));
+    const lo = Number(s.fMin), hi = Number(s.fMax);
+    const candidates = s.chars.filter(c => !inLesson.has(c.char))
+      .filter(c => (c.level === 0 ? s.fMissing : (c.level >= lo && c.level <= hi)) && (s.fState === 'any' || (s.fState === 'learning' ? (c.state === 'unconfirmed' || c.state === 'exposed') : c.state === s.fState)))
+      .map(c => ({
+        char: c.char, pinyin: c.pinyin || '—', gloss: c.gloss, state: c.state, checked: !!s.checked[c.char],
+        lvlCls: this.lvl(c.level).cls, levelLabel: this.lvl(c.level).label,
+        toggle: () => this.setState({ checked: { ...s.checked, [c.char]: !s.checked[c.char] } })
+      }));
+    const selected = candidates.filter(c => c.checked).map(c => c.char);
+    const editKey = (key, i) => key + ':' + i;
+    const wordRow = (key) => (w, i) => {
+      const ek = editKey(key, i), isEditing = s.editing_ === ek, d = s.draft;
+      return {
+        ...w, anchor: w.anchor || '—', lvlCls: this.lvl(w.level).cls, levelLabel: this.lvl(w.level).label,
+        isEditing, notEditing: !isEditing, draftPinyin: isEditing ? d.pinyin : w.pinyin, draftGloss: isEditing ? d.gloss : w.gloss,
+        ...this.stateBtns(w.state, st => this.setIn(key, i, st)),
+        toggle: () => this.setState({ [key]: s[key].map((x, j) => j === i ? { ...x, included: !x.included } : x) }),
+        remove: () => this.setState({ [key]: s[key].filter((x, j) => j !== i) }),
+        edit: () => this.setState({ editing_: ek, draft: { pinyin: w.pinyin, gloss: w.gloss } }),
+        editPinyin: (e) => this.setState({ draft: { ...s.draft, pinyin: e.target.value } }),
+        editGloss: (e) => this.setState({ draft: { ...s.draft, gloss: e.target.value } }),
+        save: () => this.setState({ editing_: null, [key]: s[key].map((x, j) => j === i ? { ...x, pinyin: s.draft.pinyin, gloss: s.draft.gloss, origin: 'manual' } : x) }),
+        cancel: () => this.setState({ editing_: null })
+      };
+    };
+    const idLo = Number(s.idMin), idHi = Number(s.idMax);
+    const idRows = s.identified.map(wordRow('identified')).filter(w =>
+      w.level >= idLo && w.level <= idHi &&
+      (s.idFilter === 'all' || (s.idFilter === 'unreviewed' && w.origin !== 'manual') || (s.idFilter === 'included' && w.included) || (s.idFilter === 'excluded' && !w.included)));
+    const shownSurfaces = new Set(idRows.map(w => w.surface));
+    const lookup = (word, onFound, onMissing) => {
+      const m = s.master[word];
+      if (!word) return;
+      if (m) onFound({ surface: word, pinyin: m[0], level: m[1], gloss: m[2], origin: 'manual', state: 'unconfirmed' }); else onMissing();
+    };
+    const expansionBlocks = s.lessonChars.concat(['月']).filter((v, i, a) => a.indexOf(v) === i).map(ch => ({
+      char: ch, pinyin: this.pyAt(ch) || '—', draft: s.expDraft[ch] || '', hint: s.expHint[ch] || '', needsDetails: !!s.expNeeds[ch],
+      draftPinyin: [...(s.expDraft[ch] || '')].map(x => this.pyAt(x) || '?').join(' '), draftGloss: s.expGloss[ch] || '',
+      items: s.expansions.map((e, i) => ({ e, i })).filter(x => x.e.char === ch).map(({ e, i }) => wordRow('expansions')(e, i)),
+      edit: (ev) => this.setState({ expDraft: { ...s.expDraft, [ch]: ev.target.value }, expNeeds: { ...s.expNeeds, [ch]: false }, expHint: { ...s.expHint, [ch]: '' } }),
+      editGloss: (ev) => this.setState({ expGloss: { ...s.expGloss, [ch]: ev.target.value } }),
+      lookup: () => lookup(s.expDraft[ch] || '',
+        (w) => this.setState({ expansions: [...s.expansions, { ...w, char: ch }], expDraft: { ...s.expDraft, [ch]: '' }, expHint: { ...s.expHint, [ch]: 'Added as HSK word (level ' + this.lvl(w.level).label + ').' } }),
+        () => this.setState({ expNeeds: { ...s.expNeeds, [ch]: true }, expHint: { ...s.expHint, [ch]: '' } })),
+      addLocal: () => this.setState({
+        expansions: [...s.expansions, { char: ch, surface: s.expDraft[ch], pinyin: [...(s.expDraft[ch] || '')].map(x => this.pyAt(x) || '?').join(' '), level: 7, gloss: s.expGloss[ch] || '', origin: 'manual', state: 'unconfirmed' }],
+        expDraft: { ...s.expDraft, [ch]: '' }, expNeeds: { ...s.expNeeds, [ch]: false }, expGloss: { ...s.expGloss, [ch]: '' }, expHint: { ...s.expHint, [ch]: 'Added as a local word.' }
+      })
+    }));
+    const tabDefs = [['characters', 'Characters', s.lessonChars.length], ['identified', 'Words in text', s.identified.filter(w => w.included).length + '/' + s.identified.length], ['expansions', 'Expansions', s.expansions.length], ['relevant', 'Related words', s.relevant.length], ['notes', 'Notes', s.notes.length]];
+    const readingsSet = Object.keys(s.draftReadings).length;
+    return {
+      lesson: s.lesson, pickLesson: (e) => this.setState({ lesson: e.target.value }),
+      tags: s.tags.map((name, i) => ({ name, remove: () => this.setState({ tags: s.tags.filter((x, j) => j !== i) }) })),
+      tagDraft: s.tagDraft, editTagDraft: (e) => this.setState({ tagDraft: e.target.value }),
+      addTag: () => s.tagDraft && this.setState({ tags: [...s.tags, s.tagDraft], tagDraft: '' }),
+      editing: s.editing, notEditing: !s.editing,
+      readingSummary: '28 characters · 2 not in HSK (啼, 枫) — readings prefilled at import, ' + s.chars.filter(c => c.level === 0 && !c.gloss).length + ' still without a gloss',
+      startEdit: () => this.setState({ editing: true, draftReadings: {} }),
+      cancelEdit: () => this.setState({ editing: false, draftReadings: {} }),
+      saveEdit: () => {
+        const chars = s.chars.map(c => {
+          const hit = Object.entries(s.draftReadings).find(([k]) => { const [line, i] = k.split(':'); return line[Number(i)] === c.char; });
+          return hit ? { ...c, pinyin: hit[1] } : c;
+        });
+        this.setState({ editing: false, chars, draftReadings: {} });
+      },
+      lines: s.lines.map(l => ({ cells: this.cells(l, null) })),
+      editLines: s.lines.map(l => ({ cells: this.cells(l, s.draftReadings) })),
+      tabs: tabDefs.map(([id, label, count]) => ({ label, count, cls: s.tab === id ? 'on' : '', pick: () => this.setState({ tab: id }) })),
+      tabCharacters: s.tab === 'characters', tabIdentified: s.tab === 'identified', tabExpansions: s.tab === 'expansions', tabRelevant: s.tab === 'relevant', tabNotes: s.tab === 'notes',
+      lessonChars, lessonCharCount: lessonChars.length, candidates, candidateCount: candidates.length, selectedCount: selected.length,
+      fMin: s.fMin, fMax: s.fMax, fState: s.fState, fMissing: s.fMissing,
+      setFMin: (e) => this.setState({ fMin: e.target.value }), setFMax: (e) => this.setState({ fMax: e.target.value }),
+      setFState: (e) => this.setState({ fState: e.target.value }), toggleFMissing: () => this.setState({ fMissing: !s.fMissing }),
+      selectAll: () => this.setState({ checked: Object.fromEntries(candidates.map(c => [c.char, true])) }),
+      addSelected: () => this.setState({ lessonChars: [...s.lessonChars, ...selected], checked: {}, chars: s.chars.map(c => selected.includes(c.char) && c.state === 'unconfirmed' ? { ...c, state: 'exposed' } : c) }),
+      identified: idRows, idShown: idRows.length, idFilter: s.idFilter, idMin: s.idMin, idMax: s.idMax,
+      setIdFilter: (e) => this.setState({ idFilter: e.target.value }), setIdMin: (e) => this.setState({ idMin: e.target.value }), setIdMax: (e) => this.setState({ idMax: e.target.value }),
+      includeShown: () => this.setState({ identified: s.identified.map(w => shownSurfaces.has(w.surface) ? { ...w, included: true } : w) }),
+      confirmShown: () => this.setState({ identified: s.identified.map(w => shownSurfaces.has(w.surface) ? { ...w, origin: 'manual' } : w) }),
+      idDraft: s.idDraft, idHint: s.idHint, idNeedsDetails: s.idNeedsDetails, idGloss: s.idGloss,
+      idPinyin: [...s.idDraft].map(x => this.pyAt(x) || '?').join(' '),
+      editIdDraft: (e) => this.setState({ idDraft: e.target.value, idNeedsDetails: false, idHint: '' }),
+      editIdGloss: (e) => this.setState({ idGloss: e.target.value }),
+      lookupId: () => {
+        const text = s.lines.join('');
+        if (s.idDraft && !text.includes(s.idDraft)) { this.setState({ idHint: '“' + s.idDraft + '” does not appear in the text — use Relevant words instead.' }); return; }
+        lookup(s.idDraft, (w) => this.setState({ identified: [...s.identified, { ...w, included: true }], idDraft: '', idHint: 'Added as HSK word.' }), () => this.setState({ idNeedsDetails: true, idHint: '' }));
+      },
+      addIdLocal: () => this.setState({ identified: [...s.identified, { surface: s.idDraft, pinyin: [...s.idDraft].map(x => this.pyAt(x) || '?').join(' '), level: 7, gloss: s.idGloss, origin: 'manual', state: 'unconfirmed', included: true }], idDraft: '', idGloss: '', idNeedsDetails: false, idHint: 'Added as a local word.' }),
+      expansionBlocks,
+      relevant: s.relevant.map(wordRow('relevant')),
+      relAnchor: s.relAnchor, relDraft: s.relDraft, relHint: s.relHint, relNeedsDetails: s.relNeedsDetails, relGloss: s.relGloss,
+      editRelAnchor: (e) => this.setState({ relAnchor: e.target.value }), editRelDraft: (e) => this.setState({ relDraft: e.target.value, relNeedsDetails: false, relHint: '' }),
+      editRelGloss: (e) => this.setState({ relGloss: e.target.value }),
+      lookupRel: () => lookup(s.relDraft, (w) => this.setState({ relevant: [...s.relevant, { ...w, anchor: s.relAnchor }], relDraft: '', relAnchor: '', relHint: 'Added as HSK word.' }), () => this.setState({ relNeedsDetails: true, relHint: '' })),
+      addRelLocal: () => this.setState({ relevant: [...s.relevant, { anchor: s.relAnchor, surface: s.relDraft, pinyin: [...s.relDraft].map(x => this.pyAt(x) || '?').join(' '), level: 7, gloss: s.relGloss, origin: 'manual', state: 'unconfirmed' }], relDraft: '', relAnchor: '', relGloss: '', relNeedsDetails: false, relHint: 'Added as a local word.' }),
+      notes: s.notes.map((n, i) => ({ ...n, anchor: n.anchor || '—', remove: () => this.setState({ notes: s.notes.filter((x, j) => j !== i) }) })),
+      noteAnchor: s.noteAnchor, noteDraft: s.noteDraft,
+      editNoteAnchor: (e) => this.setState({ noteAnchor: e.target.value }), editNoteDraft: (e) => this.setState({ noteDraft: e.target.value }),
+      addNote: () => s.noteDraft && this.setState({ notes: [...s.notes, { anchor: s.noteAnchor, note: s.noteDraft, origin: 'manual' }], noteAnchor: '', noteDraft: '' })
+    };
+  }
+}
+</script>
+</body>
+</html>

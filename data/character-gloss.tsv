@@ -1,4 +1,4 @@
-# char<TAB>gloss. Rules: docs/prompts/character-gloss.md. Loaded by `chineselearning build` into character.gloss.
+# char<TAB>gloss. Rules: docs/prompts/character-gloss.md. Baked into data/hsk.sql by tools/derive_hsk.py.
 一	one, a, whole, as soon as
 七	seven
 三	three
@@ -245,5 +245,2791 @@
 飞	fly
 饭	cooked rice, meal, food
 饺	(饺子) dumpling
-高	high, tall, loud, advanced
+高	high, tall, loud, advanced, surname Gao
 鸡	chicken
+万	ten thousand, countless
+丈	(丈夫) husband, elder man, unit of length (3.3 m)
+为	wèi: for, because of · wéi: do, act as, be, become
+乐	lè: happy, joy · yuè: music
+交	hand over, exchange, make friends, intersect
+介	(介绍) introduce, lie between
+从	from, follow, obey
+但	but, only
+位	position, seat, measure word for people (polite)
+体	body, form, style
+准	accurate, standard, allow
+别	leave, other, don't
+动	move, stir, act
+右	right (side)
+告	tell, announce, accuse
+周	week, circle, all around, Zhou dynasty, surname Zhou
+咖	(咖啡) coffee
+啊	sentence-final particle, ah, oh
+啡	(咖啡) coffee
+因	cause, reason, because
+地	dì: earth, ground, place · de: adverb-forming particle
+场	place, field, scene, measure word for events, games
+坏	bad, broken, spoiled
+备	prepare, ready, equip
+夫	(丈夫) husband, man
+头	head, top, end, noun suffix
+妻	wife
+始	begin, start
+姓	family name, surname
+完	finish, complete, whole
+室	room, chamber
+就	then, right away, just, only, approach
+左	left (side)
+己	self, oneself
+已	already, stop
+希	(希望) hope, rare, scarce
+帮	help, assist, gang
+往	toward, go, past
+忘	forget
+快	fast, quick, soon, happy
+思	think, consider, long for
+情	feeling, emotion, situation
+意	meaning, idea, intention, wish
+慢	slow
+懂	understand
+所	place, that which, measure word for buildings
+拿	take, hold, seize
+教	jiāo: teach · jiào: teaching, religion, make, cause
+旁	side, beside, other
+旅	travel, trip, troops
+晴	clear, sunny
+最	most, -est
+望	gaze at, hope, expect, full moon
+楼	storied building, floor
+次	time (occurrence), next, order, second-rate
+步	step, pace, walk
+每	every, each
+比	compare, than, ratio
+泳	(游泳) swim
+洗	wash, bathe
+游	swim, roam, travel, tour
+然	so, like that, yes, but, adverb suffix
+爷	grandfather, old gentleman, master
+球	ball, sphere, globe
+画	draw, paint, picture, stroke
+疼	hurt, ache, love dearly
+眼	eye, hole, crux
+着	zhe: ongoing-action particle · zháo: touch, catch, hit the mark · zhuó: wear, apply · zhāo: move, trick
+睛	(眼睛) eyeball
+票	ticket, ballot, banknote
+离	leave, apart from, away from
+站	stand, station, stop
+笑	laugh, smile, laugh at
+笔	pen, brush, stroke, measure word for sums of money
+等	wait, rank, grade, equal, and so on
+篮	basket
+累	lèi: tired, weary · lěi: accumulate, implicate, repeated
+红	red, popular, bonus
+绍	(介绍) introduce, carry on
+经	pass through, undergo, classic, scripture
+绿	green
+网	net, network
+考	test, examine, investigate
+肉	meat, flesh
+自	self, from, since, naturally
+舒	(舒服) comfortable, stretch out, relax
+舞	dance, brandish
+色	color, look, appearance
+花	flower, spend, fancy
+药	medicine, drug
+虽	although, even though
+表	show, express, surface, form, table, watch, cousin
+裤	trousers, pants
+让	let, allow, yield, make, by (passive)
+记	record, note, remember
+诉	(告诉) tell, accuse, sue, complain
+词	word, phrase, lyric poem
+试	try, test, exam
+走	walk, go, leave
+足	foot, enough, sufficient
+跑	run, run away, run around
+跟	with, follow, heel
+路	road, route, journey, kind
+跳	jump, leap, skip, beat (pulse)
+踢	kick
+身	body, oneself, life
+过	cross, pass, go over, spend (time), experienced-action particle
+运	move, transport, luck, fortune
+近	near, close, recent
+进	enter, advance, go forward
+远	far, distant, remote
+送	send, deliver, give, see off
+酒	wine, liquor, alcohol
+铁	iron, hard, firm
+错	wrong, mistake, miss, interlock
+长	cháng: long, length · zhǎng: grow, chief, elder
+门	door, gate, category, measure word for subjects, courses
+阴	cloudy, shady, yin, dark, secret
+颜	(颜色) color, face
+馆	hall, public building, restaurant, embassy
+鱼	fish
+鸟	bird
+黑	black, dark, secret, illegal
+且	and, moreover, for the time being
+世	world, generation, era, lifetime
+业	line of business, occupation, studies
+丢	lose, throw away, put aside
+主	owner, master, host, main, lord
+久	long time, long-lasting
+乎	classical question or exclamation particle, in, at
+于	in, at, to, from, than, by
+伞	umbrella, parasol
+信	letter, trust, believe, faith
+借	borrow, lend, make use of
+假	jiǎ: fake, false, if, suppose · jià: vacation, leave
+健	healthy, strong, robust
+像	resemble, be like, image, portrait
+全	all, whole, complete, entire
+共	together, share, total, common
+其	his, her, its, their, that
+典	classic, canon, ceremony, standard
+养	raise, bring up, keep, nourish, support
+冒	emit, give off, brave, risk
+冬	winter
+冰	ice, icy, chill
+决	decide, determine, definitely
+净	clean, net (amount), only, completely
+凉	liáng: cool, cold · liàng: let cool
+刚	just now, barely, hard, firm
+初	beginning, first, initial, elementary
+刮	blow (of wind), scrape, shave
+刷	brush, scrub, paint
+刻	carve, engrave, quarter hour, moment
+力	power, strength, force
+办	do, handle, manage, set up
+加	add, plus, increase, apply
+务	(任务) affairs, business, must
+助	help, assist, aid
+努	(努力) exert, strive
+勺	spoon, ladle
+化	change, transform, melt, -ize
+北	north
+区	area, district, region, distinguish
+单	single, only, list, bill, sheet
+南	south
+卡	kǎ: card, truck, calorie · qiǎ: get stuck, block, clip
+卫	guard, protect, defend
+历	experience, go through, calendar, history
+参	cān: take part in, join, consult · shēn: ginseng
+又	again, also, both... and, and yet
+双	pair, double, two, both
+发	fā: send out, issue, develop, become · fà: hair
+叔	(叔叔) uncle, father's younger brother
+受	receive, accept, suffer, bear
+变	change, become, transform
+句	sentence, measure word for sentences, lines
+史	history, chronicle
+合	close, join, fit, combine, together
+向	toward, direction, face, turn to
+员	member, personnel, person doing a job
+咱	we, us (including the listener)
+响	sound, ring, loud, echo
+哭	cry, weep
+啤	(啤酒) beer
+嘴	mouth, beak, spout
+园	garden, park
+图	picture, diagram, map, plan
+坚	firm, strong, resolute
+城	city, town, city wall
+境	border, area, situation, circumstances
+声	sound, voice, tone, reputation
+处	chù: place, spot, office · chǔ: dwell, be in, handle, deal with
+复	return, repeat, again, reply, complex
+夏	summer, Xia dynasty
+奇	strange, unusual, wonderful, surprising
+如	as, like, if, such as
+姨	(阿姨) aunt, mother's sister
+婚	marry, marriage, wedding
+季	season, quarter
+安	peaceful, safe, calm, install, settle
+定	fix, set, decide, settle, certainly
+实	real, true, solid, honest, fruit
+害	harm, injure, cause trouble, afraid (害怕)
+容	hold, contain, allow, appearance, face
+宾	guest, visitor
+封	seal, envelope, measure word for letters, confer
+尝	taste, try, ever, once
+层	layer, floor, story, measure word for layers
+居	live, reside, dwell, occupy
+屋	house, room
+展	unfold, spread out, exhibit, extend
+山	mountain, hill
+差	chà: differ, lack, poor, wrong · chā: difference · chāi: send on errand, errand
+带	belt, band, bring, carry, lead, zone
+干	gān: dry, in vain, have to do with · gàn: do, work, trunk, capable
+平	flat, level, even, calm, equal
+应	yīng: should, ought to · yìng: answer, respond, cope with
+康	(健康) healthy, well-being
+张	open, spread, sheet, measure word for flat things, surname Zhang
+当	dāng: serve as, be, when, ought · dàng: proper, suitable, treat as, pawn
+心	heart, mind, center
+必	must, certainly, surely
+怕	fear, be afraid, perhaps
+急	urgent, anxious, hurried, rapid
+怪	strange, odd, blame, monster
+总	total, general, always, sum up
+惯	used to, accustomed, spoil (a child)
+感	feel, sense, move, emotion
+愿	wish, hope, willing, vow
+戏	play, drama, show, trick, tease
+成	become, accomplish, succeed, complete
+或	or, perhaps, maybe
+才	only then, just now, talent, ability
+扫	sǎo: sweep, clear away · sào: broom
+把	hold, grasp, handle, object marker, measure word
+护	protect, guard, shield
+报	report, announce, newspaper, repay
+担	dān: carry, shoulder, undertake · dàn: load, picul
+拍	pat, clap, slap, take (a photo), beat
+择	choose, select
+持	hold, grasp, maintain, persevere
+挺	straight, stick out, quite, very, endure
+换	exchange, change, switch
+据	according to, evidence, occupy, depend on
+接	receive, connect, catch, meet, answer (phone)
+提	carry, lift, raise, mention, bring up
+搬	move, carry, relocate
+收	receive, collect, gather, put away
+放	put, place, release, let go, set free
+故	reason, cause, old, former, deliberately, so
+数	shù: number, figure, several · shǔ: count · shuò: repeatedly
+料	material, stuff, expect, anticipate
+斤	catty, half a kilogram, unit of weight
+方	square, direction, side, method, place
+旧	old, former, worn
+易	easy, change, exchange
+春	spring (season), youth, love
+更	gèng: more, even more, further · gēng: change, replace, night watch
+末	end, tip, last, powder
+朵	measure word for flowers and clouds, earlobe
+李	plum, surname Li
+束	bundle, bunch, bind, restrain, measure word for bunches
+板	board, plank, plate, stiff
+极	extremely, utmost, pole
+查	check, investigate, look up, examine
+树	tree, plant, set up
+根	root, base, measure word for long thin things
+梯	ladder, stairs, steps
+检	check, examine, inspect
+楚	(清楚) clear, distinct, ancient state of Chu
+概	(大概) general, approximate, outline
+段	section, paragraph, segment, measure word for sections, periods
+毛	hair, fur, feather, wool, dime (tenth of a yuan)
+求	seek, request, beg, demand
+汽	(汽车) steam, vapor
+沙	sand, gravel, hoarse
+河	river
+泉	spring (water source), fountain
+法	law, method, way, France
+注	pour, concentrate, note, annotate, pay attention
+活	live, alive, lively, work, flexible
+海	sea, ocean, great many
+清	clear, pure, clean, quiet, settle up, Qing dynasty
+渴	thirsty, yearn
+满	full, fill, satisfied, completely
+演	perform, act, play, develop, evolve
+澡	(洗澡) bathe, wash
+灯	lamp, light, lantern
+炼	refine, smelt, temper, train
+烧	burn, cook, roast, fever
+照	shine, illuminate, photograph, according to, look after
+熊	bear
+爬	crawl, climb
+片	slice, thin piece, film, measure word for slices, pieces
+牙	tooth, ivory
+物	thing, object, matter, creature
+特	special, especially, particular
+环	ring, loop, link, surround
+理	reason, logic, manage, texture, pay attention to
+瓜	melon, gourd, squash
+瓶	bottle, vase, jar, measure word for bottles
+甜	sweet
+用	use, employ, need, usefulness
+界	boundary, border, realm, world
+留	stay, remain, keep, leave behind
+瘦	thin, lean, tight, lose weight
+盘	plate, tray, dish, coil, measure word for dishes
+目	eye, item, catalogue, aim
+直	straight, upright, frank, continuously, vertical
+相	xiāng: mutual, each other · xiàng: appearance, look at, photo
+短	short, brief, lack, shortcoming
+矮	short (in height), low
+矿	mine, ore, mineral
+码	number, code, yard, stack
+碗	bowl, measure word for bowls
+礼	gift, rite, ceremony, courtesy, etiquette
+秋	autumn, fall, harvest
+种	zhǒng: kind, type, seed, measure word for kinds · zhòng: plant, grow
+空	kōng: empty, sky, air, in vain · kòng: free time, vacant, space
+突	sudden, abrupt, dash forward, protrude
+答	answer, reply, respond
+筷	(筷子) chopsticks
+简	simple, brief, letter (literary)
+算	calculate, count, regard as, plan
+箱	box, chest, trunk, case
+糕	(蛋糕) cake, pastry
+糖	sugar, candy, sweets
+级	level, grade, rank, step
+纸	paper
+练	practice, train, drill
+终	end, finish, finally, whole (终日)
+结	jié: knot, tie, bind, conclude · jiē: bear fruit
+绩	(成绩) achievement, result, merit
+羊	sheep, goat
+羽	feather, plume, wing
+者	one who, -er, -ist, person involved
+而	and, but, yet, and then
+耳	ear, merely (classical)
+聊	chat, depend on, slightly, boring (无聊)
+聪	(聪明) clever, intelligent, keen of hearing
+育	raise, educate, give birth
+胖	fat, plump
+脏	zāng: dirty, filthy · zàng: internal organ
+脚	foot, leg, base
+脸	face, cheek, reputation
+腿	leg, thigh
+般	sort, kind, manner, like, as
+船	boat, ship, vessel
+节	festival, joint, section, save, measure word for sections, classes
+草	grass, straw, draft, careless
+蓝	blue, indigo
+蕉	(香蕉) banana, plantain
+行	xíng: walk, go, OK, all right · háng: row, line, firm, profession
+街	street
+衫	(衬衫) shirt, gown, robe
+衬	(衬衫) lining, inner garment, set off, contrast
+被	passive marker (by), quilt, suffer
+裙	skirt, dress
+角	jiǎo: corner, angle, horn, dime · jué: role, part, compete
+解	jiě: untie, loosen, solve, explain, understand · jiè: escort under guard
+言	word, speech, say, speak
+议	discuss, comment, suggest, opinion
+讲	speak, say, explain, tell, stress
+该	should, ought to, that, the said
+调	diào: transfer, move, tune, tone, investigate · tiáo: adjust, blend, mix, mediate
+赛	compete, match, race, contest
+越	exceed, cross over, the more... the more, Vietnam
+趣	interest, fun, delight, taste
+轻	light (weight), gentle, easy, slight
+较	compare, relatively, comparatively, rather
+辆	measure word for vehicles
+迎	welcome, greet, meet, face
+迟	late, slow, delayed
+适	suitable, fit, comfortable, go to
+选	choose, select, elect
+遇	meet, encounter, treat, chance
+遍	all over, everywhere, measure word for times through
+邮	mail, post, postal
+邻	neighbor, neighboring, adjacent
+重	zhòng: heavy, important, serious · chóng: repeat, again, layer
+铅	(铅笔) lead (metal), pencil lead
+银	silver, money, bank (银行)
+锻	(锻炼) forge, temper, train
+闻	hear, smell, news, famous
+阳	sun, sunlight, yang (positive principle), open
+阿	prefix for names and kin terms, transliteration syllable
+附	attach, add, be near, append
+除	remove, get rid of, except, besides, divide
+难	nán: difficult, hard, bad · nàn: disaster, calamity, blame
+需	need, require, necessity
+静	quiet, still, calm
+鞋	shoe
+音	sound, tone, pronunciation, news
+页	page, leaf, sheet
+须	must, have to, beard, whiskers
+顾	look after, attend to, look back, customer (顾客)
+风	wind, style, custom, scene
+饮	drink, swallow, beverage
+饱	full (after eating), satisfied, fully
+饿	hungry, starve
+香	fragrant, delicious, incense, popular
+马	horse, surname Ma
+骑	ride (horse, bike), straddle
+鲜	xiān: fresh, delicious, bright · xiǎn: rare, few
+黄	yellow, fall through, fail, surname Huang
+与	yǔ: and, with, give · yù: take part in
+专	special, expert, focused on one thing
+严	strict, stern, severe, tight
+丰	abundant, plentiful
+丽	beautiful, elegant
+举	lift, raise, hold up, cite
+之	literary possessive particle, him, her, it, go to
+乒	(乒乓) ping-pong
+乓	(乒乓) ping-pong
+乘	ride, take (a vehicle), make use of, multiply
+乡	countryside, home village, township
+乱	disorder, chaos, messy, random
+争	strive for, compete, argue
+云	cloud, (literary) say
+互	mutual, each other
+亚	(亚洲) Asia, second-rank, sub-
+产	give birth, produce, product, property
+京	capital city, (北京) Beijing
+亲	parent, relative, close, intimate, kiss
+仅	only, merely, barely
+仍	still, yet, remain
+仔	(仔细) careful, young animal, youngster
+付	pay, hand over
+价	price, value
+任	appoint, take on, duty, let, any
+份	measure word for portions, copies, sets
+众	crowd, many, the masses
+优	excellent, superior, favorable
+伙	partner, group, (家伙) fellow
+伤	injure, wound, hurt
+估	estimate, guess
+低	low, lower (one's head), droop
+何	what, which, how, why, surname He
+使	make, cause, use, envoy
+例	example, precedent, rule
+供	gōng: supply, provide · gòng: offer in worship, confess
+保	protect, keep, guarantee
+俩	two (people), both
+修	repair, build, cultivate, study
+倍	times, -fold, double
+倒	dǎo: fall over, collapse, swap · dào: invert, pour out, but, actually
+值	value, be worth, on duty
+停	stop, halt, park
+偶	by chance, even number, mate, idol
+傅	(师傅) master, tutor
+傲	proud, arrogant, unyielding
+允	allow, permit, consent
+兄	elder brother
+光	light, bright, bare, only, used up
+克	overcome, restrain, gram
+免	exempt, avoid, spare, excuse
+入	enter, join, income
+具	tool, possess, (具体) concrete
+内	inside, inner, within
+农	farming, farmer
+况	(情况) situation, condition, moreover
+减	subtract, reduce, decrease
+刀	knife, blade
+切	qiē: cut, slice · qiè: close to, eager, definitely
+划	huá: row, paddle, scratch, worthwhile · huà: plan, draw a line, assign, stroke
+列	line up, arrange, row, column, list
+则	rule, standard, then, but, measure word for items
+判	judge, decide, sentence, distinguish
+利	benefit, profit, sharp, favorable
+剧	drama, play, severe, acute
+剩	be left over, remain, surplus
+功	merit, achievement, skill, effort
+励	encourage, strive
+勇	brave, courageous
+匙	(钥匙) key, spoon
+博	broad, wide, learned, win
+印	print, seal, stamp, mark
+危	danger, precarious
+即	namely, that is, at once, even if
+却	but, yet, however, step back
+厂	factory, plant, yard
+厅	hall, living room, office
+厉	severe, stern, (厉害) formidable
+压	press, push down, pressure, suppress
+厌	dislike, be tired of, detest
+厕	(厕所) toilet
+厚	thick, deep, kind, generous
+原	original, former, raw, cause, plain
+厨	kitchen, cook
+及	and, reach, up to, in time for
+反	opposite, reverse, oppose, anti-, return
+取	take, get, fetch, choose
+另	other, another, separately
+台	platform, stage, measure word for machines, Taiwan
+叶	leaf, page
+各	each, every, various
+否	no, not, deny, whether or not
+吸	breathe in, suck, absorb, attract
+吹	blow, play (wind instrument), boast
+味	taste, flavor, smell
+呼	breathe out, call, shout
+命	life, fate, order, command
+咳	cough
+咸	salty, (literary) all
+品	article, product, grade, quality, taste
+喊	shout, yell, call out
+嗯	grunt of agreement or thought, uh-huh, hmm
+嗽	(咳嗽) cough
+困	sleepy, trapped, difficult, surround
+围	surround, encircle, around
+土	earth, soil, dust, local
+圾	(垃圾) garbage
+址	site, location, address
+垃	(垃圾) garbage
+基	foundation, base, basic
+堂	hall, paternal cousin, measure word for classes
+堵	block up, stuffy, measure word for walls
+塑	mold, sculpt, plastic
+填	fill in, fill up, stuff
+增	increase, add, augment
+夜	night
+够	enough, sufficient, reach
+失	lose, miss, fail, mistake
+奋	strive, exert, rouse up
+奖	prize, award, reward, praise
+套	set, cover, sheath, wrap over
+姑	father's sister, aunt, girl, (姑娘) young woman
+娘	mother, young woman, girl
+存	exist, store, keep, deposit
+孙	grandchild, descendant, surname Sun
+寄	send by mail, entrust, depend on
+密	dense, close, secret, intimate
+富	rich, wealthy, abundant
+寒	cold, wintry, poor
+察	examine, observe, inspect
+导	guide, lead, direct, conduct
+将	jiāng: will, shall, take (object marker) · jiàng: general, commander
+尊	respect, honor, revered
+尔	(literary) you, that, so
+尤	especially, particularly, fault
+尽	jìn: use up, exhaust, to the utmost, finish · jǐn: as much as possible, furthest
+巧	skillful, clever, by coincidence
+巴	(嘴巴) mouth, cling to, long for, (巴士) bus
+巾	towel, kerchief, cloth
+帅	handsome, cool, commander
+帽	hat, cap
+幅	width, measure word for pictures, cloth
+并	and, moreover, (not) at all, combine, side by side
+幸	lucky, fortunate, favor
+幽	quiet, secluded, dark, (幽默) humor
+广	wide, broad, extensive, numerous
+庆	celebrate, congratulate
+序	order, sequence, preface
+底	bottom, base, end (of period), background
+度	degree, extent, measure, spend time
+座	seat, base, stand, measure word for buildings, mountains
+庭	courtyard, hall, (家庭) family, court
+建	build, establish, found, suggest
+弃	abandon, discard, give up
+弄	do, handle, play with, make, get
+式	style, type, form, pattern, formula
+引	draw, pull, lead, attract, cite
+弹	tán: pluck, play (strings), spring, bounce · dàn: bullet, bomb, pellet
+强	qiáng: strong, powerful, better · qiǎng: force, compel · jiàng: stubborn
+彩	color, colorful, variety, prize
+待	dài: wait, treat, deal with, about to · dāi: stay
+律	law, rule, regulation, discipline
+微	tiny, slight, micro-, subtle
+忆	remember, recall, memory
+志	will, aspiration, ambition, record
+忽	suddenly, neglect, ignore
+怀	bosom, cherish, harbor (feelings), miss, pregnant
+态	attitude, manner, state, form
+性	nature, character, -ness, gender, sex
+恐	fear, dread, afraid, (恐怕) probably
+恼	annoyed, angry, vexed
+悉	know, learn of, all
+悔	regret, repent
+惊	startle, surprise, alarm, frighten
+惜	cherish, pity, regret, begrudge
+愉	(愉快) happy, pleasant
+慕	admire, long for, yearn
+懒	lazy, idle
+戚	relative (by marriage), sorrow
+戴	wear (hat, glasses), put on, support
+户	household, family, door, account
+扔	throw, toss, throw away
+扬	raise, lift, spread, praise
+扰	disturb, bother, trouble
+批	batch, lot, criticize, approve, comment
+技	skill, technique, ability
+折	zhé: break, snap, fold, discount, suffer loss · shé: snap, lose money · zhē: turn over, pour back and forth
+抬	lift, raise, carry (together)
+抱	hold in arms, hug, embrace, cherish
+拉	pull, drag, draw, play (bowed instrument)
+拒	refuse, reject, resist
+招	beckon, recruit, attract, provoke, move (in a game)
+拾	pick up, collect, tidy up, ten
+挂	hang, hang up, register, worry about
+指	finger, point at, refer to, indicate
+按	press, push, according to, restrain
+授	give, confer, teach, instruct
+掉	fall, drop, lose, turn, suffix meaning off or away
+排	row, line, arrange, line up, exclude
+推	push, shove, put off, decline, promote
+摄	take in, absorb, (摄影) photograph
+播	broadcast, sow, spread
+操	handle, operate, exercise, drill, conduct
+擦	wipe, rub, scrape, apply (lotion), brush past
+支	support, branch, pay out, measure word for pens, sticks
+改	change, alter, correct, revise
+效	effect, result, imitate, (效果) effect
+敢	dare, bold
+散	sàn: scatter, disperse, break up · sǎn: loose, scattered, leisurely
+敲	knock, tap, strike, rap
+整	whole, entire, neat, tidy, in order
+断	break, snap, cut off, judge, decide
+族	clan, ethnic group, nationality, family
+无	not have, without, no, -less
+既	already, since, both... (and)
+晨	early morning, dawn
+普	general, universal, widespread
+景	scenery, view, scene, situation
+暂	temporary, for the time being
+暑	summer heat, hot
+暖	warm
+术	skill, art, technique, method
+杂	mixed, miscellaneous, assorted
+材	material, timber, talent
+村	village
+松	pine, loose, relax
+林	forest, woods, grove, surname Lin
+染	dye, catch (a disease), contaminate
+柿	persimmon
+标	mark, sign, label, standard
+格	square, frame, pattern, standard, (性格) character
+案	case (legal), record, file, table
+桥	bridge
+桶	bucket, pail, barrel
+梦	dream
+棒	stick, club, great, excellent
+森	forest, dense trees
+棵	measure word for trees, plants
+植	plant, grow, set up
+歉	(道歉) apologize, regret, deficient
+止	stop, halt, until, only
+此	this, these, here
+死	die, dead, death, rigid, extremely
+母	mother, female, origin
+毕	finish, complete, (毕业) graduate
+氏	clan, family name, (used after surname)
+民	people, citizens, folk
+永	forever, eternal, perpetual
+汁	juice, liquid
+汗	sweat, perspiration
+江	river, (长江) Yangtze
+污	dirty, filthy, pollute
+汤	soup, broth, hot water
+油	oil, fat, grease, oily
+泼	splash, spill, spirited
+洋	ocean, vast, foreign, Western
+洲	continent, islet
+流	flow, stream, circulate, spread, drift
+济	help, aid, relieve, cross (a river)
+浪	wave, unrestrained, waste
+消	vanish, eliminate, consume, (消息) news
+深	deep, profound, dark (color)
+温	warm, lukewarm, temperature, review, gentle
+漫	overflow, free, unrestrained, all over
+激	arouse, stir up, excite, sharp, (激动) excited
+烟	smoke, cigarette, tobacco, mist
+烤	roast, bake, grill, toast
+烦	annoyed, vexed, bother, trouble
+熟	ripe, cooked, familiar, skilled
+父	father
+牌	brand, card, tile, plaque, sign
+猜	guess
+琴	stringed instrument, zither, (钢琴) piano
+甚	very, extremely, (甚至) even
+由	from, by, because of, follow, reason
+申	state, apply, (申请) apply for
+疑	doubt, suspect, question
+痛	pain, ache, sorrow, deeply, thoroughly
+登	climb, ascend, mount, publish, register
+皮	skin, leather, peel, naughty
+盐	salt
+盒	box, case
+省	shěng: save, economize, omit, province · xǐng: reflect on, examine, visit (elders)
+研	study, research, grind
+破	broken, worn out, break, damage, lousy
+础	(基础) foundation, base
+硕	large, great, (硕士) master's degree
+确	indeed, certain, true, sure
+示	show, indicate, display, notify
+社	society, organization, agency
+祝	wish (sb well), pray for, bless
+禁	jìn: forbid, prohibit, ban · jīn: endure, bear, withstand
+福	good fortune, happiness, blessing
+秀	elegant, excellent, outstanding, show
+科	branch of study, subject, section, department
+秒	second (of time)
+积	accumulate, store up, amass, product (math)
+程	journey, route, procedure, course, (过程) process
+稍	slightly, somewhat, a little
+究	investigate, examine, (究竟) after all
+窗	window
+竞	compete, contend, vie
+竟	unexpectedly, actually, in the end
+章	chapter, section, seal, badge, rules
+童	child, boy
+符	symbol, tally, match, (符合) accord with
+笨	stupid, clumsy, slow-witted
+签	sign (name), label, tag, bamboo lot stick
+管	manage, be in charge of, pipe, tube, care about
+篇	piece of writing, essay, measure word for articles
+籍	registry, record, membership, native place, books
+粗	coarse, rough, thick, careless, rude
+精	refined, essence, exquisite, (精神) spirit, skilled
+紧	tight, tense, urgent, close, strict
+约	appointment, invite, agreement, approximately, restrain
+纪	record, discipline, era, age
+组	group, team, organize, form, set
+细	thin, fine, slender, detailed, careful
+绝	cut off, extinct, absolutely, by no means, superb
+继	continue, follow, inherit, succeed
+续	continue, go on, add, renew
+缺	lack, short of, missing, vacancy, defect
+美	beautiful, good, pleasing, (美国) America
+羞	shy, ashamed, shame, embarrass
+羡	envy, admire
+翻	turn over, flip, overturn, translate, rummage
+耐	endure, bear, withstand, patient
+职	job, post, duty, profession
+联	join, link, unite, (联系) contact, couplet
+聘	hire, engage, betroth
+聚	gather, assemble, collect
+肚	belly, stomach, abdomen
+肤	skin, superficial
+肯	be willing, agree, consent
+背	bèi: back (of body), turn one's back, recite · bēi: carry on the back, shoulder (burden)
+胳	(胳膊) arm
+脱	take off (clothes), shed, escape, get away from
+脾	(脾气) temper, spleen
+膊	(胳膊) arm
+膏	paste, ointment, cream, fat
+至	arrive, reach, to, until, most, extremely
+航	sail, navigate, fly, voyage
+艺	art, skill, craft
+苦	bitter, hardship, suffer, painstakingly
+获	obtain, win, catch, reap
+萄	(葡萄) grape
+落	luò: fall, drop, set (of sun), decline, lag behind · là: leave out, leave behind
+著	write (a book), famous, well-known, written work
+葡	(葡萄) grape
+虎	tiger, brave, fierce
+虑	consider, think over, worry, (考虑) consider
+血	blood
+袜	sock, stocking
+装	dress, clothing, pretend, install, pack, load
+观	guān: look at, view, sight, concept · guàn: Taoist temple
+规	rule, regulation, standard, plan
+警	warn, alert, police
+计	count, calculate, plan, scheme, meter
+订	book, order, subscribe, draw up, bind
+讨	(讨论) discuss, ask for, demand, provoke
+许	allow, permit, promise, perhaps, somewhat
+论	discuss, debate, theory, opinion, by (the unit)
+证	prove, proof, certificate, evidence
+评	comment, judge, evaluate, review
+译	translate, interpret
+诚	sincere, honest, true
+详	detailed, thorough, know fully
+误	mistake, error, miss, delay, harm
+谅	forgive, excuse, understand
+谈	talk, chat, discuss, converse
+谊	(友谊) friendship
+象	elephant, image, appearance, resemble
+貌	appearance, looks, countenance
+负	bear, carry on back, owe, lose (a contest), negative
+责	responsibility, duty, blame, demand
+败	be defeated, lose, fail, spoil, wither
+账	account, bill, debt
+货	goods, merchandise, commodity, money
+质	quality, nature, substance, matter, question
+购	buy, purchase
+费	fee, expense, cost, spend, waste
+贺	congratulate, send gifts
+资	money, capital, resources, qualifications, (资料) materials
+赚	earn, make a profit, gain
+赢	win, beat, gain
+赶	catch up, rush, hurry, drive away, by (a time)
+趟	measure word for trips, times, rows
+距	distance, be apart, be away from
+躺	lie down, recline
+转	zhuǎn: turn, change, transfer, forward · zhuàn: revolve, rotate, stroll
+输	lose (a contest), transport, enter (data)
+辛	hard, laborious, bitter, pungent, (辛苦) toilsome
+辣	spicy, hot, pungent, sting, ruthless
+达	reach, arrive, attain, express, through
+连	connect, link, in succession, even (including), company (military)
+迷	lost, confused, fan, enthusiast, fascinate, bewilder
+递	hand over, pass, deliver, in sequence
+通	go through, connect, communicate, understand, general, expert
+逛	stroll, wander, visit (shops)
+速	fast, quick, speed
+邀	invite, request, intercept
+郊	suburbs, outskirts
+部	part, section, department, measure word for films, machines
+酸	sour, acid, sore, aching, sad
+醒	wake up, be awake, sober up, realize
+释	explain, interpret, release, let go
+量	liàng: amount, quantity, capacity, measure word · liáng: measure, weigh
+金	gold, metal, money, golden
+针	needle, pin, injection, stitch
+钢	steel
+钥	(钥匙) key
+键	key (keyboard), button, bond, linchpin
+镜	mirror, lens, glasses
+闹	noisy, make a fuss, stir up trouble, bustling
+阅	read, review, inspect, experience
+队	team, group, squad, line (queue)
+际	boundary, border, occasion, between, (实际) actual
+降	jiàng: fall, drop, descend, lower, reduce · xiáng: surrender, subdue, tame
+险	danger, risk, narrow pass, nearly
+陪	accompany, keep company, assist
+随	follow, go along with, comply, as one pleases
+青	green, blue, black, young, youth
+项	item, clause, nape, measure word for items, tasks
+顺	along, follow, obey, smooth, favorable, in order
+顿	pause, suddenly, measure word for meals, scoldings
+预	in advance, beforehand, prepare, take part
+频	frequently, repeatedly, frequency
+食	eat, food, meal
+餐	meal, eat, measure word for meals
+饼	flat cake, pancake, biscuit, cookie
+馒	(馒头) steamed bun
+首	head, first, chief, measure word for poems, songs
+骄	proud, arrogant, (骄傲) pride
+验	examine, test, check, verify, experience
+麻	numb, hemp, sesame, rough, (麻烦) trouble
+默	silent, quiet, write from memory, tacit
+鼓	drum, beat, rouse, bulge, encourage
+鼻	nose
+龄	age, years, length of time
+丑	ugly, shameful, clown, 2nd earthly branch
+临	face, approach, be about to, arrive
+义	righteousness, justice, meaning
+乏	lack, tired, weary
+乙	second (of the ten heavenly stems), B
+亏	lose money, deficit, luckily, thanks to
+享	enjoy
+亿	hundred million
+代	generation, era, replace, act on behalf of
+令	command, order, cause
+仿	imitate, copy, resemble
+企	(企业) enterprise, hope for, stand on tiptoe
+伍	five, squad, company, ranks
+伟	great, mighty
+传	chuán: pass on, spread, transmit · zhuàn: biography, commentary
+伴	companion, partner, accompany
+伸	stretch, extend
+似	resemble, seem, like, as if
+余	surplus, remaining, more than, I (literary)
+佛	Buddha, Buddhism
+佳	fine, good, beautiful
+依	depend on, comply with, according to
+促	urge, hurry, press, close
+俗	custom, common, vulgar
+倡	advocate, initiate, lead
+傍	beside, near, close to
+催	urge, press, hasten
+傻	foolish, silly
+充	fill, full, serve as, pose as
+兔	rabbit
+册	book, volume, measure word for books
+军	army, military
+冠	guān: hat, crown · guàn: champion, first place, put on a hat
+冲	chōng: rush, charge, dash, flush · chòng: toward, facing, strong, pungent
+冻	freeze, jelly
+凭	rely on, based on, proof, evidence
+创	chuàng: create, start, found · chuāng: wound, injury
+删	delete
+制	system, make, control, restrict
+刺	thorn, stab, prick, sting
+剪	scissors, cut
+副	deputy, vice-, secondary, measure word for pairs, sets
+劝	advise, urge, persuade
+劳	labor, toil, trouble
+势	power, force, momentum, tendency
+勤	diligent, hardworking, frequent
+匹	measure word for horses, bolts of cloth, match
+升	rise, ascend, promote, liter
+华	splendid, flourishing, Chinese
+协	cooperate, join, assist
+占	zhàn: occupy, take up, seize · zhān: divine, foretell
+卧	lie down, crouch
+卷	juǎn: roll up, roll · juàn: volume, scroll, exam paper
+厘	thousandth part, li (unit), (厘米) centi-
+厢	side room, wing, carriage compartment
+厦	big building, mansion
+县	county
+叉	fork, cross, X mark
+古	ancient, old
+召	summon, call together
+吨	ton
+含	hold in the mouth, contain, bear
+吵	quarrel, noisy, disturb
+呀	ah, oh, particle of surprise or emphasis
+咨	consult, inquire
+咬	bite
+哈	ha, laughter
+哎	hey, oh, exclamation of surprise
+哦	oh, I see, exclamation of surprise
+哲	wise, philosophy
+唉	alas, sigh, yes (in reply)
+售	sell
+唯	only, alone, yes
+善	good, kind, good at, improve
+喻	metaphor, analogy, explain
+嘉	fine, excellent, praise
+器	vessel, utensil, instrument, organ, talent
+团	group, ball, lump, regiment, gather
+固	solid, firm, originally, certainly
+圆	round, circle, yuan (currency)
+均	equal, even, all, average
+型	type, model, mold
+域	region, domain, territory
+培	cultivate, train, bank up with earth
+堆	pile, heap, stack
+墙	wall
+夕	evening, dusk, night
+奈	(无奈) helpless, bear, how
+妇	woman, wife, married woman
+姥	(姥姥) maternal grandmother
+姿	posture, bearing, appearance
+威	power, might, awe-inspiring
+娱	amusement, entertainment
+婆	old woman, grandmother, mother-in-law
+媒	matchmaker, go-between, medium, media
+守	guard, defend, keep, observe (rules)
+宝	treasure, precious, jewel
+宠	pamper, spoil, favor, dote on
+宣	declare, announce, proclaim
+宽	wide, broad, lenient, relaxed
+宿	sù: stay overnight, lodge, long-standing · xiǔ: measure word for nights · xiù: constellation
+寓	residence, lodge, imply
+寻	seek, search, look for
+尺	ruler, Chinese foot (unit)
+尾	tail, end
+局	bureau, office, situation, measure word for games
+届	measure word for sessions, events, graduating classes
+屏	píng: screen, shield · bǐng: hold (one's breath), get rid of
+属	belong to, category, genus, family member
+巨	huge, enormous
+币	currency, coin, money
+布	cloth, spread, announce, arrange
+席	seat, mat, banquet
+幕	curtain, screen, act (of a play)
+幼	young, infant, immature
+库	warehouse, storehouse, library (of data)
+府	government office, mansion, prefecture
+延	prolong, extend, delay
+弯	bend, curve, bent
+弱	weak, feeble, young
+录	record, copy, write down
+形	form, shape, appear
+彻	thorough, penetrate
+彼	that, those, the other
+征	levy, recruit, expedition, sign, symptom
+忍	endure, bear, tolerate
+念	read aloud, study, think of, miss
+怨	resent, blame, grudge
+恋	love, long for, be attached to
+恢	(恢复) restore, vast
+恭	respectful, reverent
+悄	quiet, silent, secretly
+悠	long, remote, leisurely
+惠	favor, kindness, benefit
+慎	careful, cautious
+慧	intelligent, wise
+慰	comfort, console
+憾	regret, sorry
+战	war, battle, fight
+扇	shàn: fan, measure word for doors, windows · shān: to fan, slap
+扣	fasten, button, buckle, deduct, detain
+执	hold, grasp, carry out, persist
+扩	expand, enlarge
+扮	dress up as, play the role of
+扶	support with the hand, help up
+承	bear, undertake, receive, inherit
+抓	grab, seize, scratch, arrest
+投	throw, cast, join, invest
+抢	snatch, grab, rob, rush for
+押	pawn, mortgage, detain, escort
+抽	draw out, pull, smoke, whip
+拆	tear open, take apart, demolish
+拖	drag, pull, delay, mop
+拥	embrace, hug, crowd, support
+拨	push aside, dial, allocate, pluck
+括	include, enclose, (括号) bracket
+拼	piece together, spell, go all out
+挑	tiāo: pick, choose, carry on a pole · tiǎo: raise, poke, stir up, provoke
+挡	block, keep off, gear
+挣	zhèng: struggle free, earn (money) · zhēng: (挣扎) struggle
+挤	squeeze, crowd, press
+挥	wave, brandish, wipe away, command
+捐	donate, contribute, give up
+损	damage, lose, harm, decrease
+捡	pick up
+掌	palm, sole, paw, be in charge of
+控	control, accuse, charge
+措	arrange, handle, (措施) measure, step
+描	trace, copy, sketch, depict
+插	insert, stick in, interpose
+握	grasp, hold, shake (hands)
+搜	search
+搞	do, make, get hold of, carry on
+摇	shake, rock, wave, row
+摔	fall, throw down, drop and break
+摘	pick, pluck, take off, select
+摸	touch, feel, grope
+撞	bump into, collide, run into
+擅	good at, do without authority
+政	government, politics, administration
+敌	enemy, oppose, match
+敏	quick, nimble, sensitive
+救	save, rescue, help
+敬	respect, honor, offer politely
+斗	dòu: fight, struggle, contend · dǒu: dipper, peck (dry measure)
+斜	slanting, inclined, oblique
+施	carry out, apply, bestow
+旦	dawn, morning, day
+昆	elder brother, descendants, (昆虫) insect
+映	reflect, mirror, shine, project (a film)
+显	show, reveal, obvious
+晒	shine on, dry in the sun, bask, sunbathe
+智	wisdom, wise, intelligence
+暗	dark, dim, secret, hidden
+暴	violent, sudden, cruel, expose
+曲	qū: bent, crooked, wrong · qǔ: song, tune
+曾	céng: once, formerly, ever · zēng: great- (grandparent, grandchild)
+替	replace, substitute, for, on behalf of
+朝	cháo: dynasty, court, toward, facing · zhāo: morning
+木	tree, wood, wooden, numb
+未	not yet, not, 8th earthly branch
+权	power, right, authority
+构	construct, form, (结构) structure
+析	analyze, divide, split
+架	frame, rack, shelf, measure word for planes, machines
+某	a certain, some
+柜	cabinet, cupboard, counter
+桃	peach
+桔	jú: (桔子) tangerine · jié: (桔梗) balloon flower
+档	file, records, grade, gear
+梨	pear
+模	mó: model, pattern, imitate · mú: mold, (模样) appearance
+橘	tangerine, mandarin orange
+橡	oak, rubber tree, rubber
+欠	owe, lack, yawn
+欣	glad, joyful, admire
+欧	Europe, ohm
+款	sum of money, funds, clause, style
+武	military, martial, force
+殊	different, special, extremely
+汇	gather, converge, remit, collection
+池	pool, pond, moat
+沉	sink, heavy, deep, calm
+沟	ditch, gutter, gully, groove
+治	govern, rule, manage, treat (illness), cure
+沿	along, follow, edge, border
+泛	float, general, extensive, flood
+泪	tear, tears
+洒	sprinkle, spray, spill
+洞	hole, cave
+派	send, dispatch, faction, school (of thought)
+浅	shallow, light (color), simple
+浆	thick liquid, pulp, syrup, starch
+浇	pour, water (plants), irrigate
+测	measure, survey, predict
+浏	(浏览) browse, glance over
+浓	thick, dense, strong (flavor)
+润	moist, smooth, moisten, profit
+涨	zhǎng: rise (of water, prices) · zhàng: swell, bloat
+淡	bland, weak, light (color), indifferent
+渐	gradually
+湖	lake
+湿	wet, damp, humid
+源	source, spring, origin
+滑	slippery, slide, smooth, cunning
+滚	roll, boil, get lost
+漏	leak, drip, leave out, divulge
+漠	desert, indifferent, aloof
+灰	ash, dust, gray, discouraged
+灵	spirit, soul, quick, clever, effective
+炒	stir-fry, fry, speculate, hype
+炸	zhà: explode, blow up · zhá: deep-fry
+烈	fierce, intense, ardent, martyred
+煮	boil, cook
+熬	boil, stew, simmer, endure
+燃	burn, ignite
+版	edition, version, printing plate, page (of a newspaper)
+状	form, shape, condition, written account
+犹	still, as if, just like, (犹豫) hesitate
+狂	mad, crazy, wild, violent
+独	alone, only, single, independent
+猪	pig
+献	offer, present, dedicate, donate
+猴	monkey
+率	lǜ: rate, ratio · shuài: lead, command, rash, frank
+玉	jade
+玫	(玫瑰) rose
+玻	(玻璃) glass
+珍	precious, treasure, rare
+瑰	(玫瑰) rose, extraordinary
+璃	(玻璃) glass
+甲	first (of the ten heavenly stems), A, armor, shell, nail
+番	foreign, measure word for times, turns, kinds
+疗	treat, cure, heal
+疯	mad, crazy, insane
+疾	disease, illness, fast, hate
+盆	basin, tub, pot
+益	benefit, advantage, increasingly
+盖	lid, cover, build (a house)
+盾	shield
+眠	sleep, hibernate
+矛	spear, lance
+石	stone, rock
+硬	hard, stiff, firm, stubborn
+碌	(忙碌) busy, mediocre
+碎	break into pieces, shatter, broken, fragmentary
+碰	touch, bump, meet, run into
+神	god, spirit, soul, expression, magical
+祸	disaster, misfortune, calamity
+私	private, personal, selfish, secret
+秘	secret, mysterious
+称	chēng: call, name, say, weigh · chèn: fit, suit, match
+移	move, shift, change
+税	tax, duty
+稳	steady, stable, sure
+穷	poor, exhausted, extreme
+窄	narrow, tight
+立	stand, set up, establish, immediately
+竹	bamboo
+筑	build, construct
+类	kind, type, category, similar
+粮	grain, food, provisions
+糊	paste, muddled, scorched
+糟	bad, messy, rotten, dregs
+素	plain, white, vegetarian, element, usually
+索	rope, cable, search, demand
+紫	purple, violet
+繁	numerous, complicated, flourishing
+纷	numerous, confused, disorderly
+线	thread, line, wire, route
+织	weave, knit
+绕	wind, coil, go around, detour
+络	net, web, wrap around, (联络) contact
+统	unite, unify, govern, all, (系统) system
+绪	(情绪) mood, thread, beginning of a thread
+维	maintain, preserve, tie, dimension
+综	comprehensive, sum up, (综合) synthesize
+缓	slow, delay, relaxed, recover
+缩	shrink, contract, draw back, abbreviate
+罚	punish, penalize, fine
+置	place, put, set up, buy
+群	group, crowd, flock, measure word for groups
+翅	wing, fin
+肃	solemn, respectful, eliminate
+肌	muscle, flesh
+肥	fat, fertile, loose, fertilizer
+胁	threaten, coerce, flank, ribs
+胃	stomach
+胆	gallbladder, courage, guts
+胜	win, victory, surpass, beautiful (scenery)
+胡	recklessly, nonsense, beard, northern tribes, surname Hu
+腐	rot, decay, rotten, (豆腐) tofu
+腰	waist, lower back
+膀	bǎng: upper arm, shoulder, wing · pāng: swollen · páng: (膀胱) bladder
+臭	chòu: stinking, smelly, disgusting · xiù: smell, odor
+致	send, convey, cause, lead to, fine
+舍	shě: give up, abandon · shè: house, lodging, dorm
+良	good, fine, very
+艰	difficult, hard
+范	model, pattern, limit, (范围) scope
+茄	qié: (茄子) eggplant · jiā: (雪茄) cigar
+荐	recommend
+荣	glory, honor, flourish
+营	camp, barracks, manage, operate, seek
+蔬	vegetable
+薄	báo: thin, weak, light · bó: slight, meager, despise
+藏	cáng: hide, conceal, store · zàng: storehouse, Tibet, Buddhist scriptures
+虚	empty, void, false, weak, modest
+虫	insect, worm, bug
+蛇	snake
+蝴	(蝴蝶) butterfly
+蝶	butterfly
+衡	weigh, measure, balance
+补	mend, patch, make up for, supplement, nourish
+袋	bag, sack, pocket, pouch
+裁	cut out (cloth), reduce, judge, decide
+裹	wrap, bind, bundle
+览	look at, view, read
+触	touch, contact, strike
+训	teach, train, lecture, instruction
+设	set up, establish, design, suppose
+访	visit, call on, inquire
+诊	examine (a patient), diagnose
+诗	poem, poetry
+询	inquire, ask, consult
+谨	careful, cautious, sincerely
+豆	bean, pea
+豫	(犹豫) hesitate, at ease, pleased
+贝	shell, shellfish, money (ancient)
+贡	tribute, contribute
+贴	stick, paste, close to, subsidize, allowance
+赏	reward, bestow, appreciate, admire
+赔	compensate, pay for, lose money
+赞	praise, support, assist
+赠	give as a gift, present, bestow
+趋	hasten toward, tend toward, trend
+践	tread, trample, carry out, (实践) practice
+蹈	step, tread, (舞蹈) dance
+躲	hide, dodge, avoid
+软	soft, flexible, weak, gentle
+载	zài: carry, load, transport · zǎi: year, record, publish
+辑	edit, compile, collect
+辞	resign, take leave, decline, words, diction
+迅	fast, rapid, swift
+返	return, go back
+违	violate, disobey, go against
+述	narrate, state, relate
+迹	trace, track, mark, remains
+追	chase, pursue, trace, recall
+退	retreat, withdraw, return (goods), decline
+逐	chase, expel, pursue, one by one
+途	way, road, route, journey
+造	make, build, create, fabricate
+逻	(逻辑) logic, patrol
+遗	lose, leave behind, bequeath, omit
+遵	obey, comply with, follow
+避	avoid, evade, shun, flee
+郎	young man, gentleman, husband, (新郎) bridegroom
+配	match, pair, mix, deserve, distribute
+醉	drunk, intoxicated, infatuated
+采	pick, gather, collect, adopt, spirit
+铃	bell
+销	sell, market, cancel, melt, spend
+锁	lock, lock up, chain
+锅	pot, pan, wok
+闭	close, shut, stop up
+闲	idle, leisure, unoccupied
+防	defend, guard against, prevent, dike
+阵	battle formation, measure word for spells, bursts
+阶	steps, stairs, rank, stage
+阻	block, hinder, obstruct
+陆	land, continent, (大陆) mainland
+陌	path between fields, (陌生) unfamiliar, strange
+限	limit, bound, restrict
+隔	separate, partition, at a distance of, interval
+集	gather, collect, collection, episode, market
+雾	fog, mist
+震	shake, quake, shock
+靠	lean on, rely on, near, depend on
+革	leather, hide, change, remove
+领	neck, collar, lead, receive, claim
+颗	measure word for small round things
+饰	decorate, adorn, ornament, play (a role)
+驶	drive, sail, speed
+驾	drive, pilot, harness, carriage
+骂	scold, curse, abuse
+骗	cheat, deceive, swindle
+魅	charm, (魅力) attraction, demon
+鸭	duck
+鼠	rat, mouse
+齐	neat, even, complete, together, level with
+齿	tooth, teeth, gear cog
+龙	dragon, imperial
+丧	sàng: lose, be bereaved · sāng: mourning, funeral
+串	string together, skewer; measure word for strings, bunches
+予	yǔ: give, grant · yú: I, me
+井	well
+亡	die, perish; flee; lose
+仓	granary, warehouse, storehouse
+仗	(打仗) battle, war; rely on
+仪	ceremony, rite; instrument, apparatus; bearing
+仰	look up, face upward; admire; rely on
+伶	(伶俐) clever, quick; actor
+佩	wear at the waist; admire
+侧	side; lean, incline
+俐	(伶俐) clever, quick-witted
+俱	all, together, complete
+倾	lean, tilt; pour out
+偷	steal; stealthily
+偿	repay, compensate
+储	store, save up; heir
+兵	soldier, troops; weapons
+兼	double, both at once; hold concurrently
+凌	insult, bully; rise above; ice
+凡	ordinary, common; every, all
+击	strike, hit, attack
+刊	publication; print, publish
+券	ticket, voucher, bond
+刹	chà: (刹那) instant · shā: brake, stop
+剑	sword
+割	cut, sever, cede
+劣	inferior, bad
+劲	jìn: strength, energy, vigor · jìng: strong, sturdy
+勉	strive, exert oneself; encourage; reluctantly
+匀	even, uniform; spare, share out
+匆	hurried, hasty
+叙	narrate, tell; chat
+吉	lucky, auspicious
+吊	hang, suspend; condole
+吐	tǔ: spit, say · tù: vomit
+吓	xià: frighten, scare · hè: threaten, intimidate
+吞	swallow, gulp; annex
+启	open; start; enlighten
+呆	dull, blank, foolish; stay
+呈	present, submit; take on (a shape, color)
+咋	how, what, why (colloquial)
+哇	wa: sentence-final exclamation particle · wā: wow; sound of a child crying
+哟	oh, exclamation of surprise; sentence-final particle
+啥	what (colloquial)
+啦	sentence-final particle, exclamation (了 plus 啊)
+喷	spray, spurt, spout
+嗓	(嗓子) throat, voice
+嗨	hi, hey; sigh of regret
+嘛	particle: obviously, you know; pause for emphasis
+嘲	ridicule, mock
+嘿	hey; (嘿嘿) chuckle
+噪	noisy, clamor
+圈	quān: circle, ring, loop · juàn: pen, enclosure · juān: pen up
+坛	altar, platform; (论坛) forum; earthen jar
+坡	slope, hillside
+垂	hang down, droop; near, approaching
+埋	bury, hide; (埋怨) complain
+塔	tower, pagoda
+塞	sāi: stuff, stop up, cork · sài: frontier pass · sè: (堵塞) block, obstruct
+壁	wall; cliff
+壤	soil, earth
+壮	strong, robust; strengthen
+壶	pot, kettle
+央	center, middle; beg, request
+夸	praise; boast, exaggerate
+夹	jiā: press between, clip, carry under the arm; folder · jiá: double-layered, lined
+夺	seize, snatch; strive for
+奉	offer respectfully; receive, serve; esteem
+奏	play music; present to the emperor; achieve
+奔	bēn: run fast, rush, flee · bèn: head for, go toward
+妆	makeup, adorn oneself
+妙	wonderful, clever, subtle
+妨	hinder, obstruct, harm
+委	entrust, appoint; (委员) committee member; wronged
+姻	marriage, in-laws
+娃	baby, child, doll
+娶	take a wife, marry (a woman)
+婴	baby, infant
+媳	daughter-in-law; wife
+嫁	marry (of a woman); marry off; shift blame
+嫌	dislike, mind; suspicion
+孕	pregnant; breed, nurture
+孤	orphan; lonely, solitary
+宅	residence, house
+宏	grand, great, vast
+官	official, government; organ (of the body)
+审	examine, try in court; careful
+宫	palace, temple
+宴	banquet, feast; entertain
+寂	silent, still, lonely
+寞	(寂寞) lonely, quiet
+寸	inch (Chinese unit); tiny
+寿	long life, lifespan; birthday
+射	shoot, fire; emit, radiate
+尖	pointed, sharp; tip; shrill
+尘	dust, dirt; the mortal world
+尚	still, yet; esteem, value; (和尚) monk
+尬	(尴尬) awkward, embarrassed
+尴	(尴尬) awkward, embarrassed
+屈	bend; submit, yield; wronged, injustice
+履	shoe; tread; carry out, fulfill
+岗	post, position; hillock
+岛	island
+岸	shore, bank, coast
+峰	peak, summit
+崇	esteem, revere; lofty
+崭	(崭新) brand-new; towering
+州	prefecture, state, region
+巩	(巩固) consolidate, strengthen
+帆	sail
+帝	emperor; god
+幻	illusion, fantasy; magical, changing
+庄	village, manor; (庄严) solemn, serious
+庞	huge; (脸庞) face
+廊	corridor, veranda, porch
+异	different, strange, unusual; other
+弥	fill, cover; more and more
+归	return, go back to; belong to
+径	path, trail; diameter; directly
+徒	follower, apprentice; on foot; merely, in vain
+循	follow, abide by
+德	virtue, morality; kindness
+忧	worry, grieve; anxiety
+怒	anger, rage, furious
+怜	pity, sympathize; love tenderly
+恨	hate, resent; regret
+恰	just, exactly; appropriate
+恶	è: evil, wicked, fierce · ě: (恶心) nauseated, disgusted · wù: loathe, hate
+患	suffer from (illness); trouble, disaster; worry
+悲	sad, sorrowful; grief
+惑	confuse, delude; doubt, puzzlement
+惧	fear, dread
+惩	punish, discipline
+愁	worry, be anxious; sorrow
+愤	indignant, angry; resent
+戒	guard against; give up, quit; warn; ring
+截	cut off, intercept; section, length
+扎	zhā: prick, stick into; station troops · zā: tie, bind, bundle · zhá: (挣扎) struggle
+扑	pounce on, throw oneself at; flap; dab
+托	hold up, support; entrust; rely on
+扭	twist, turn, wrench, sprain
+抄	copy, transcribe; plagiarize; search and seize
+抑	restrain, repress; or
+抗	resist, fight against, defy
+抛	throw, toss, fling; abandon
+披	drape over the shoulders; open, spread out
+抵	resist, withstand; offset, compensate; arrive
+拐	turn (a corner); kidnap, swindle; cane, crutch
+拔	pull out, uproot; select; stand out
+拜	pay respects, worship, bow; (拜访) visit
+拟	draft, draw up; plan, intend; imitate
+拦	block, bar, stop
+挖	dig, excavate, scoop out
+挫	(挫折) setback, frustrate; subdue
+捉	catch, capture, grasp
+捕	catch, arrest, capture
+捧	hold up in both hands; flatter, praise
+捷	quick, nimble; victory
+掏	fish out, take out (from a pocket); scoop
+探	explore, probe, scout; visit; stretch forward
+援	aid, assist; cite; pull
+搭	put up, build; take (a vehicle); join, pair up
+携	carry, take along; lead by the hand
+摆	place, arrange; sway, swing; display
+摩	rub, scrape; (摩托) motor
+撑	prop up, support; hold out; open (an umbrella)
+撒	sā: let go, release, cast · sǎ: scatter, sprinkle, spill
+撤	withdraw, remove, retreat
+攻	attack; study, specialize in
+旋	xuán: revolve, spin, circle; return · xuàn: whirling; turn on a lathe
+旗	flag, banner
+旬	ten-day period; ten years of age
+旱	drought, dry; dry land
+昂	hold high, raise; high-spirited; (昂贵) expensive
+晕	yūn: dizzy, faint · yùn: halo; (晕车) motion sickness
+晰	(清晰) clear, distinct
+晾	dry in the air, hang out to dry
+朗	bright, clear; loud and clear
+朴	(朴素) simple, plain
+杀	kill, slaughter; reduce, weaken
+杰	outstanding person, hero; outstanding
+枕	pillow; rest the head on
+枝	branch, twig; measure word for sticks, pencils, flowers
+枪	gun, rifle; spear
+枯	withered, dried up
+柔	soft, gentle, pliable
+柴	firewood
+栋	ridgepole; measure word for buildings
+栏	railing, fence; column (of text)
+株	plant, tree trunk; measure word for trees, plants
+核	pit, kernel, nucleus, nuclear; check, verify
+梁	beam, bridge; ridge
+梅	plum, plum blossom
+械	tool, instrument; weapon
+棉	cotton
+棋	chess, board game
+棍	stick, rod, club; scoundrel
+棕	palm tree; brown
+椎	zhuī: vertebra, spine · chuí: hammer, mallet
+椒	pepper, chili
+榜	list of names, honor roll; (榜样) model, example
+横	héng: horizontal, across, crosswise · hèng: harsh, unreasonable; unexpected
+欲	desire, wish; about to
+欺	deceive, cheat; bully
+歇	rest, take a break; stop
+歪	crooked, askew; devious
+残	incomplete, damaged; disabled; cruel; remnant
+殖	breed, propagate; (殖民) colonize
+毒	poison, toxic; drugs; malicious, cruel
+毫	fine hair; tiny bit; milli-
+氛	(气氛) atmosphere, mood
+氢	hydrogen
+氧	oxygen
+汰	(淘汰) eliminate, weed out
+沃	fertile, rich; irrigate
+泡	bubble, foam, blister; soak, steep; dawdle
+泥	mud, clay; mashed paste
+洁	clean, pure
+洪	flood; vast, big
+浮	float, drift; superficial, flighty
+浴	bathe, bath
+涉	wade across; involve, concern
+涌	gush, surge, well up
+液	liquid, fluid, juice
+涵	contain, include; (涵养) self-restraint, culture
+淋	lín: drench, pour, drip · lìn: filter, strain
+淘	wash, rinse (rice, gold); weed out; naughty
+混	mix, mingle; muddled; muddle along, drift; pass for
+淹	flood, submerge, drown
+添	add, increase, replenish
+渠	ditch, canal, channel
+渡	cross (a river), ferry; pass through
+港	harbor, port; Hong Kong
+滴	drop, drip
+潜	hide, latent; dive, submerge; secretly
+潮	tide; damp, moist; trendy
+灭	extinguish, go out; destroy, wipe out
+灾	disaster, calamity
+炎	inflammation; blazing hot; flame
+烂	rotten, mushy; worn out; bright (color)
+烫	scald, burn; hot (to touch); iron, perm
+焦	burnt, scorched; anxious, worried; coke
+煤	coal
+燥	dry, parched
+爆	explode, burst; quick-fry
+牢	prison; firm, secure
+牵	lead by hand or rope; pull; involve
+犯	violate, offend; commit (a crime); criminal
+狠	ruthless, fierce; firm, resolute
+狮	lion
+狼	wolf
+王	wáng: king, monarch; grand · wàng: rule as king, surname Wang
+珠	pearl, bead; drop (of water)
+瓷	porcelain, china
+甭	no need to, don't
+田	field, farmland
+畅	smooth, unimpeded; free, carefree
+略	brief, sketchy; omit; slightly; strategy, plan
+疫	epidemic, plague
+疲	tired, weary, exhausted
+症	disease, illness, symptom
+痒	itch, tickle
+痕	mark, trace, scar
+皇	emperor, imperial; grand
+监	jiān: supervise, watch; prison · jiàn: (太监) eunuch; imperial office
+盛	shèng: flourishing, grand; abundant · chéng: hold, contain, ladle out
+盲	blind; unperceptive
+盼	hope for, long for; look
+眉	eyebrow; top margin
+睁	open (the eyes)
+督	supervise, oversee, urge
+瞧	look at, see
+瞬	blink; instant, moment
+矩	carpenter's square; rule, standard
+砍	chop, hack, cut down
+砖	brick
+碍	hinder, obstruct, be in the way
+碳	carbon
+祖	ancestor, grandparent; founder
+祥	auspicious, lucky
+秩	(秩序) order, orderliness; rank
+稻	rice plant, paddy
+稼	(庄稼) crops; sow grain
+稿	draft, manuscript
+竖	vertical, upright; erect, set up
+端	end, extremity; hold level with both hands; proper, upright
+笼	lóng: cage, basket; steamer · lǒng: envelop, cover; (笼统) general, sweeping
+筒	tube, cylinder, canister
+策	plan, strategy; whip, urge
+筛	sieve, sift, screen
+筹	plan, prepare; raise (funds); token, chip
+箭	arrow
+粉	powder, flour; starch noodles; pink; fan
+粒	grain, granule; measure word for small round things
+粘	zhān: stick, glue, paste · nián: sticky, glutinous
+粥	porridge, congee, gruel
+粽	glutinous rice dumpling wrapped in leaves
+纠	entangle; correct, rectify; gather
+纯	pure, unmixed; simple; skilled
+纳	accept, receive, take in; pay (tax)
+绒	fleece, velvet, down, fine hair
+绘	draw, paint, sketch
+编	weave, plait; compile, edit; make up (a story)
+罐	jar, pot, can, tin
+罕	rare, seldom
+罪	crime, guilt, sin; blame
+耗	consume, use up; waste; news
+耽	(耽误) delay, hold up; indulge
+肝	liver
+肠	intestine, gut; sausage
+股	share, stock; thigh; strand; measure word for strands, gusts, groups
+肩	shoulder; bear, take on
+肪	(脂肪) fat
+肺	lung
+肿	swell, swollen
+胞	(细胞) cell; (同胞) born of the same parents, compatriot
+胶	glue, gum; rubber; (胶卷) film
+胸	chest, breast; mind, heart
+脂	fat, grease; rouge
+脆	crisp, crunchy; brittle, fragile; clear (sound)
+脖	neck
+腔	cavity; tune, accent; (腔调) tone of voice
+腮	cheek; gills
+臂	arm
+臣	minister, official, subject (of a ruler)
+舅	mother's brother, maternal uncle
+舌	tongue
+艘	measure word for ships, boats
+艳	gorgeous, bright-colored; amorous
+英	(英雄) hero, outstanding; (英国) England, English; flower
+菊	chrysanthemum
+菌	jūn: bacteria, germ; fungus · jùn: mushroom
+葫	(葫芦) bottle gourd
+蓄	store up, save; grow (a beard); harbor
+薪	salary; firewood
+薯	potato, yam, tuber
+虹	rainbow
+蜂	bee, wasp; swarm
+蜜	honey; sweet
+融	melt, thaw; blend, merge; harmonious
+衰	decline, weaken, wane
+裕	abundant, plentiful; well-off
+覆	cover; overturn, capsize
+誉	reputation, fame; praise
+讯	news, information, message; interrogate
+讶	(惊讶) surprised, astonished
+诞	birth; (诞生) be born; absurd
+诸	various, all; (诸位) you all
+诺	promise; yes, assent
+谐	harmonious; humorous, joking
+谓	say, call; (所谓) so-called; meaning
+谦	modest, humble
+豪	bold, heroic; grand, lavish; rich and powerful
+财	wealth, money, property
+贫	poor, impoverished; lacking
+贯	pass through, run through; (一贯) consistent; string of coins
+贷	loan, lend, borrow; pardon
+贸	trade, commerce; rashly
+赋	endow, bestow; tax; classical poetic form; compose
+赖	rely on; deny, renege; blame falsely; bad
+趁	take advantage of, while (there is time)
+跃	leap, jump
+跌	fall, tumble; drop (in price)
+跪	kneel
+踌	(踌躇) hesitate; (踌躇满志) smug, self-satisfied
+踏	step on, tread; (踏实) steady, down-to-earth
+踩	step on, tread, trample; pedal
+踪	track, trace, footprint
+蹲	squat, crouch; stay put
+躇	(踌躇) hesitate, waver
+轨	track, rail; course, path
+轮	wheel; take turns; round, turn; steamship
+辅	assist, supplement; (辅导) tutor, coach
+辈	generation; (辈子) lifetime; group of people
+迈	stride, take a step; advanced in years
+迫	force, compel; pressing, urgent; approach
+逃	escape, flee, run away
+透	penetrate, pass through; thoroughly; reveal, leak
+逗	tease, amuse; funny; stay, linger; pause
+逼	force, compel; press for; close in on
+遥	far, distant, remote
+遭	meet with, suffer (misfortune); round, time
+酱	soybean paste, sauce, jam; marinated in soy
+酷	cool (loanword); cruel, ruthless; extremely
+醋	vinegar; jealousy
+野	wild, uncultivated; open country; rude, unruly
+鉴	mirror; examine, inspect; warning, lesson
+钓	fish with hook and line; angle for
+钻	zuān: drill, bore; get into; study deeply · zuàn: drill (tool); diamond
+铜	copper, bronze, brass
+铺	pū: spread, lay out, pave · pù: shop, store; plank bed
+链	chain
+镇	town; press down, suppress; calm; guard
+闪	flash, sparkle; dodge; sprain
+闯	rush, charge, break through; venture out
+阔	wide, broad; wealthy
+陷	sink into, fall into; trap, pitfall; frame someone
+隐	hide, conceal; hidden, secret
+障	barrier, obstacle; block, shield
+雄	male (animal); grand, powerful; hero
+雌	female (animal)
+雷	thunder; mine (explosive)
+露	lù: dew; reveal, show; outdoors · lòu: show, reveal (colloquial)
+顶	top, summit; carry on the head; push against; measure word for hats
+顽	stubborn, obstinate; naughty, playful
+颈	neck
+颖	(新颖) novel, original; clever
+额	forehead; quota, fixed amount; plaque
+飘	float in the air, flutter, drift
+饥	hungry; famine
+馈	(反馈) feedback; present a gift
+骤	sudden, abrupt; (步骤) step, procedure
+骨	bone; skeleton, framework; character, spirit
+鲨	shark
+麦	wheat, barley; (麦克风) microphone
+丁	fourth of the Heavenly Stems, adult male, small cube
+丐	(乞丐) beggar
+丘	hill, mound
+丙	third of the Heavenly Stems
+丛	cluster, thicket, collection
+丝	silk, thread, a trace
+丫	forked, (丫头) girl
+丸	ball, pill, pellet
+丹	cinnabar, red, pill
+乃	(literary) be, then, thus, your
+乌	crow, black, dark
+乔	tall, (乔装) disguise
+乖	well-behaved, obedient, clever
+乞	beg
+乳	milk, breast
+亦	also, too
+亩	mu, unit of land area
+亭	pavilion, kiosk
+仁	benevolence, humaneness, kernel
+仆	servant
+仇	enemy, hatred, feud
+仙	immortal, fairy, celestial
+仲	middle, second of three brothers
+伊	(literary) he, she, that
+伏	crouch, lie hidden, submit, hottest days
+伐	cut down, attack
+伦	(伦理) human relations, order, peer
+伪	false, fake, counterfeit
+伯	father's elder brother, eldest, count
+伺	cì: (伺候) wait upon, serve · sì: spy on, watch for
+佐	assist, aid
+佑	bless, protect
+佣	yōng: hire, servant · yòng: (佣金) commission
+侃	(侃侃) talk frankly, chat
+侈	extravagant, luxurious
+侍	serve, attend upon, attendant
+侠	chivalrous hero, knight-errant
+侣	companion, partner
+侦	investigate, detect, scout
+侨	live abroad, emigrant
+侮	insult, bully
+侵	invade, encroach
+俄	(俄罗斯) Russia, (literary) suddenly
+俊	handsome, talented
+俏	pretty, smart, in demand
+俘	capture, prisoner of war
+俭	frugal, thrifty
+俯	bow down, look down
+倔	jué: (倔强) stubborn · juè: gruff, surly
+倘	if, supposing
+倚	lean on, rely on
+倦	tired, weary
+债	debt
+偏	lean, slanted, partial, contrary to expectation
+僚	colleague, official
+僧	Buddhist monk
+僵	stiff, rigid, deadlocked
+僻	remote, out-of-the-way, eccentric
+儒	Confucian, scholar
+兆	omen, sign, million, trillion
+兑	exchange, cash in, add water
+党	political party, faction
+兜	pocket, bag, wrap up, go around
+兢	(兢兢) cautious, careful
+兰	orchid
+兹	(literary) this, now, here
+兽	beast, animal
+冈	ridge, hill
+冗	superfluous, redundant, busy
+冤	injustice, wrong, grievance, enmity
+冶	smelt metal, (冶炼) refine
+凄	bleak, miserable, dreary
+凑	gather, pool, move close, make do
+凝	congeal, concentrate, fix gaze
+凤	phoenix (male)
+凯	triumph, victory
+凰	phoenix (female)
+凳	stool, bench
+凶	fierce, ominous, evil, violent
+凸	protruding, convex
+凹	sunken, concave, hollow
+函	letter, case, box
+凿	chisel, bore, (确凿) certain
+刁	sly, tricky
+刑	punishment, penalty, torture
+刨	páo: dig, excavate · bào: plane (tool), shave off
+剂	dose, preparation, agent
+剃	shave
+削	pare, peel, cut down, reduce
+剔	pick out, scrape off, weed out
+剖	cut open, dissect, analyze
+剥	peel, strip, shell
+劈	split, chop, cleave
+劫	rob, plunder, calamity
+勃	sudden, vigorous, thriving
+勋	merit, meritorious deed
+勒	lēi: strap tight, tighten · lè: rein in, force, carve
+勘	investigate, survey, collate
+募	recruit, raise funds
+勾	hook, tick, cross out, entice, collude
+勿	do not
+匠	craftsman, artisan
+匪	bandit, (literary) not
+匿	hide, conceal
+卉	plants, flowers
+卑	low, humble, inferior
+卒	soldier, finish, die
+卓	outstanding, eminent, lofty
+卜	bǔ: divine, foretell · bo: (萝卜) radish
+卤	brine, stew in soy sauce, halogen
+卦	trigram, divination
+卵	egg, ovum, spawn
+卸	unload, remove, shed
+厄	adversity, misfortune
+叛	rebel, betray
+叠	fold, pile up, repeat
+叨	dāo: (唠叨) nag, chatter · tāo: (叨扰) receive favor
+叭	(喇叭) horn, trumpet, bang
+叮	sting, bite, (叮嘱) urge repeatedly
+叹	sigh, exclaim, admire
+叼	hold in the mouth
+吁	xū: sigh · yù: (呼吁) appeal, plead
+吏	official, clerk
+君	ruler, lord, gentleman, you (polite)
+吝	stingy, grudge
+吟	chant, recite, moan
+吩	(吩咐) instruct, tell
+吭	kēng: utter a sound · háng: throat
+吻	kiss, lips, muzzle
+吼	roar, howl, shout
+呐	(呐喊) shout, cry out
+呕	vomit
+呛	choke, irritate the nose
+呜	(呜呜) sound of sobbing, toot
+呵	breathe out, scold, ah, (呵呵) laughing sound
+呻	(呻吟) groan, moan
+咀	(咀嚼) chew
+咏	chant, sing of, recite poem
+咐	(吩咐) instruct, tell
+咙	(喉咙) throat
+咧	grin, grimace
+咽	yàn: swallow · yān: throat, pharynx · yè: choke with sobs
+哀	sorrow, grief, mourn, pity
+哄	hǒng: coax, humor, fool · hōng: roar of laughter, uproar · hòng: tumult, commotion
+哆	(哆嗦) tremble, shiver
+哑	mute, hoarse, dud
+哗	huá: clamor, uproar · huā: sound of gushing, rustling
+哨	whistle, sentry post
+哺	feed, nurse, suckle
+哼	hum, snort, groan, humph
+唆	instigate, incite
+唇	lip
+唐	Tang dynasty, (唐突) abrupt
+唠	chatter, nag
+唤	call, summon
+唬	bluff, scare, fool
+唾	saliva, spit, despise
+啃	gnaw, nibble
+啬	stingy, miserly
+啰	luō: (啰嗦) long-winded · luo: sentence-final particle
+啸	whistle, howl, roar
+喇	(喇叭) horn, trumpet, (喇嘛) lama
+喉	throat, larynx
+喘	pant, gasp, asthma
+喧	noisy, clamor
+嗅	smell, sniff
+嗜	be fond of, addicted to
+嗦	(哆嗦) tremble, (啰嗦) long-winded
+嘈	noisy, clamorous
+嘱	enjoin, instruct, urge
+嚏	sneeze
+嚷	shout, yell, make a fuss
+嚼	chew, munch
+囊	bag, sack, pocket
+囚	prisoner, imprison
+囱	(烟囱) chimney
+圣	holy, sage, saint
+坑	pit, hole, trap, cheat
+坝	dam, dike, embankment
+坟	grave, tomb
+坠	fall, drop, weigh down, pendant
+坦	flat, level, frank, calm
+坪	level ground, terrace
+垄	ridge in a field, monopolize
+垒	rampart, fortress, pile up
+垦	reclaim land, cultivate
+垫	pad, cushion, pay for someone
+垮	collapse, fall apart
+堕	fall, sink, degenerate
+堡	fort, fortress, castle
+堤	dike, embankment
+堪	bear, endure, worthy of, can
+塌	collapse, cave in, droop
+塘	pond, pool, embankment
+墅	(别墅) villa
+墓	grave, tomb
+墟	ruins, wasteland, (literary) market
+墨	ink, black, learning
+壳	shell, husk, crust
+夷	ancient barbarian tribes, foreign, level, raze
+契	deed, contract, agreement, bond
+奠	establish, lay a foundation, make offerings to the dead
+奢	extravagant, luxurious, excessive
+奥	profound, mysterious, (奥运) Olympic
+奴	slave, enslave
+奸	wicked, treacherous, traitor, rape
+妄	rash, reckless, absurd, presumptuous
+妒	jealous, envy
+妖	demon, evil spirit, bewitching
+妥	proper, appropriate, settled
+姆	(保姆) nanny, governess
+姜	ginger
+娇	delicate, charming, pampered
+娥	beautiful woman, (嫦娥) moon goddess
+婉	gentle, tactful, graceful
+婪	(贪婪) greedy, avaricious
+婿	son-in-law, husband
+媚	charming, flatter, fawn
+媲	(媲美) compare favorably, match
+嫂	elder brother's wife, sister-in-law
+嫉	jealous, envy
+嫦	(嫦娥) moon goddess
+嫩	tender, delicate, light (color), inexperienced
+嬉	play, frolic
+孔	hole, opening, Confucius
+孝	filial piety, mourning
+孪	(孪生) twin
+孵	hatch, incubate
+宁	níng: peaceful, calm · nìng: would rather
+宇	universe, space, eaves, house
+宗	ancestor, clan, sect, purpose
+宙	(宇宙) universe, time
+宪	constitution, statute
+宰	slaughter, butcher, rule, govern
+宵	night, evening
+寝	sleep, bedroom
+寡	few, widowed, (寡妇) widow
+寥	few, scarce, deserted, lonely
+寨	stockade, fortified village, camp
+寺	temple, monastery, mosque
+尸	corpse
+尼	(尼姑) Buddhist nun, used in transliteration
+尿	urine, urinate
+屁	fart, buttocks, worthless
+屉	drawer, steamer tray
+屑	crumbs, scraps, trivial, worth doing
+屠	slaughter, butcher, massacre
+屡	repeatedly, time and again
+屯	tún: station troops, store up, village · zhūn: hardship
+屹	(屹立) stand towering, firmly
+屿	small island, islet
+岂	how could, surely not (rhetorical)
+岔	fork in road, branch off, diverge
+岩	rock, cliff, crag
+岭	mountain ridge, range
+岳	high mountain, wife's parents
+峙	stand erect, tower, confront
+峡	gorge, strait
+峭	steep, precipitous, severe
+峻	high and steep, stern, harsh
+崖	cliff, precipice
+崛	(崛起) rise abruptly, tower
+崩	collapse, crumble, burst
+嵌	inlay, embed, set in
+巅	summit, peak
+川	river, plain, Sichuan
+巡	patrol, make rounds, inspect
+巢	nest, den, lair
+巫	wizard, witch, shaman
+巷	lane, alley
+帐	tent, canopy, account, debt
+帕	handkerchief, kerchief
+帖	tiē: submissive, settled · tiě: invitation card, note, post · tiè: calligraphy model
+帘	curtain, screen
+帜	flag, banner
+幢	measure word for buildings
+庇	shelter, protect, shield
+庙	temple, shrine
+废	abolish, discard, waste, disabled
+庸	mediocre, common, (literary) need
+廉	honest, incorruptible, cheap
+廓	outline, contour, broad, expand
+廷	imperial court, palace
+弈	play chess, go
+弊	fraud, malpractice, disadvantage
+弓	bow (weapon), bend, arch
+弘	great, enlarge, promote
+弛	relax, slacken, loosen
+弦	bowstring, string of instrument, chord
+弧	arc, bow
+彬	(彬彬) refined, well-bred
+彰	evident, manifest, make clear
+役	service, labor, servant, battle
+徊	(徘徊) pace back and forth, linger
+徐	slowly, gently, surname Xu
+徘	(徘徊) pace back and forth, hesitate
+徙	move, migrate
+御	drive (a carriage), imperial, defend
+徽	emblem, badge, insignia
+忌	avoid, abstain from, jealous, taboo
+忠	loyal, faithful
+怖	terror, fear
+怠	idle, slack, neglect
+怡	joyful, content, pleasant
+怯	timid, cowardly, nervous
+恍	suddenly realize, (恍惚) trance, as if
+恒	constant, permanent, perseverance
+恕	forgive, pardon, excuse me
+恤	pity, relieve, compensate
+恩	kindness, favor, grace
+恳	earnest, sincere, beg
+悟	realize, understand, awaken
+悦	pleased, delighted, please
+悬	hang, suspend, unresolved, far apart
+悼	mourn, grieve
+惋	(惋惜) regret, feel sorry
+惕	(警惕) alert, watchful
+惦	think of, keep in mind, miss
+惨	miserable, tragic, cruel, badly
+惫	(疲惫) exhausted, weary
+惭	ashamed
+惮	fear, dread, shrink from
+惰	lazy, inert
+惹	provoke, stir up, attract (trouble)
+愈	recover, heal, (愈来愈) more and more
+愚	foolish, stupid, fool (someone)
+愣	stunned, stare blankly, rash
+愧	ashamed, conscience-stricken
+慈	kind, loving, compassionate, mother
+慌	flustered, panic, terribly
+慑	fear, awe, intimidate
+慨	deep sigh, regret, generous, indignant
+慷	(慷慨) generous, fervent
+憋	hold back, suppress, suffocate
+懈	slack, lax, relaxed
+戈	dagger-axe, spear, weapon
+戳	poke, jab, stab, stamp, seal
+扁	biǎn: flat · piān: small boat
+扒	bā: peel, strip, pull down, cling to · pá: rake, steal, braise, crawl
+扛	carry on the shoulder, shoulder (a burden)
+扯	pull, tear, chat, gossip
+扳	pull, turn around, pull back
+抒	express, voice (feelings)
+抖	tremble, shake, shake out, perk up
+抚	stroke, comfort, console, nurture
+抠	dig out, pick at, stingy
+抡	swing, brandish
+抨	(抨击) attack in words, censure
+抹	smear, wipe, erase, plaster
+拄	lean on (a stick), prop oneself up
+拌	mix, toss (a salad), quarrel
+拎	carry in the hand, lift
+拓	tuò: open up, expand, develop · tà: make a rubbing
+拘	detain, arrest, restrain, rigid
+拙	clumsy, dull, my (humble)
+拢	gather together, approach, comb
+拣	choose, pick, pick up
+拧	níng: wring, pinch, twist · nǐng: twist, screw, mistaken · nìng: stubborn
+拯	save, rescue
+拱	arch, cup hands in salute, surround, push with snout
+拳	fist, boxing, curl up
+拴	tie up, fasten
+拽	drag, pull, tug, fling
+挎	carry on the arm or shoulder, sling over
+挚	(真挚) sincere, earnest
+挟	hold under the arm, coerce
+挠	scratch, hinder, (不屈不挠) yield
+挨	āi: next to, in sequence · ái: suffer, endure, drag out time
+挪	move, shift
+振	shake, rouse, (振作) brace up
+挽	pull, draw back, roll up, (挽救) rescue, mourn
+捂	cover with the hand, muffle
+捅	poke, stab, nudge, disclose
+捆	tie up, bundle
+捍	(捍卫) defend, guard
+捎	bring along, take to someone
+捏	pinch, mold with the fingers, fabricate
+捞	fish out, scoop up, gain
+捣	pound, beat, (捣乱) stir up trouble
+捶	beat, pound with the fist
+掀	lift a lid, raise, stir up
+掐	pinch, nip off, clutch
+掘	dig, excavate
+掠	plunder, sweep past
+掩	cover, hide, shut
+掰	break off with the hands, break apart
+掷	throw, hurl
+掺	mix in, blend
+揉	rub, knead
+揍	beat up, hit
+揣	chuāi: tuck into clothes · chuǎi: guess, estimate
+揪	grab, seize and pull
+揭	lift off, expose, uncover
+揽	take into the arms, take on, grab hold of
+搀	support by the arm, mix in
+搁	put, lay aside, shelve
+搂	hug, hold in the arms
+搅	stir, mix, disturb
+搏	fight, struggle, (脉搏) pulse
+搓	rub between the hands, twist
+摊	spread out, stall, share out
+摧	destroy, break
+撇	piē: cast aside, skim off · piě: left-falling stroke, throw
+撕	tear, rip
+撬	pry open, lever
+撰	compose, write
+撼	shake, move
+擎	hold up, lift up
+攀	climb, clamber, cling to
+攒	zǎn: save up, hoard · cuán: gather together
+攘	(熙熙攘攘) bustling, push aside, repel
+敛	gather in, hold back, restrain
+敞	open wide, spacious
+敦	(敦厚) honest, sincere, (敦促) urge
+敷	apply ointment, spread, (敷衍) perfunctory
+斑	spot, stripe, mottled
+斟	pour wine or tea, (斟酌) weigh and consider
+斥	scold, denounce, repel
+斧	axe
+斩	chop, behead
+斯	this, thus, such (classical)
+旨	purpose, intent, decree
+旭	rising sun
+旷	vast, open, neglect, skip class
+旺	prosperous, flourishing, blazing
+昌	flourishing, prosperous
+昏	dusk, dim, muddled, faint
+昔	formerly, in the past
+昧	dark, ignorant, hide, (冒昧) rash
+昼	daytime
+晃	huǎng: dazzle, flash past · huàng: sway, shake
+晋	advance, promote, Jin dynasty
+晓	dawn, know, tell
+晤	meet face to face
+晶	crystal, sparkling
+暄	(寒暄) exchange greetings, warm
+暧	(暧昧) ambiguous, dim
+暮	dusk, evening, late
+曙	dawn, daybreak
+曝	expose to the sun, (曝光) expose
+曰	say (classical)
+朦	(朦胧) dim, hazy
+朱	vermilion, bright red, surname Zhu
+朽	rotten, decayed
+杆	gān: pole · gǎn: stick, shaft, measure word for long objects
+杖	cane, staff
+杜	shut out, prevent, (杜绝) put an end to
+杠	bar, pole, (杠杆) lever
+杨	poplar, willow, surname Yang
+枉	in vain, wrong, crooked
+枚	measure word for coins, medals, small objects
+枢	pivot, hub, central
+枣	jujube, date
+柄	handle, hold on, authority
+柏	cypress
+柬	letter, invitation card
+柱	pillar, post
+柳	willow
+栓	bolt, plug, stopper
+栖	perch, dwell, stay
+栽	plant, grow, fall, suffer a setback
+桂	cassia, cinnamon, laurel
+框	frame, framework
+桑	mulberry
+桨	oar, paddle
+桩	stake, post, measure word for matters
+梢	tip of a branch, end
+梳	comb
+棘	thorns, brambles, (棘手) thorny
+棚	shed, awning, booth
+棱	edge, ridge, corner
+棺	coffin
+椭	(椭圆) oval, elliptical
+椰	coconut
+楷	(楷书) regular script, model
+榨	press, squeeze out juice
+槐	locust tree, scholar tree
+槛	threshold, doorsill
+槽	trough, groove, slot
+橙	orange
+橱	cabinet, cupboard
+歧	fork, branch, divergent
+歹	bad, evil, wicked
+歼	annihilate, wipe out
+殃	disaster, bring misfortune
+殴	beat, hit
+殷	(殷勤) attentive, abundant, (Shang dynasty)
+殿	hall, palace, temple
+毁	destroy, ruin, slander
+毅	resolute, firm
+毙	kill, die by shooting
+毯	blanket, rug, carpet
+氓	(流氓) hoodlum, common people (classical)
+汛	flood season, high water
+汪	pool, vast, (汪汪) woof
+汹	(汹涌) surging, turbulent
+沏	steep, brew tea
+沐	wash the hair, bathe
+沛	(充沛) abundant, copious
+沧	dark blue, (沧桑) vicissitudes
+沫	foam, froth
+沮	(沮丧) dejected, depressed
+沸	boil, boiling
+沼	swamp, marsh, pond
+沽	buy, sell
+沾	moisten, touch, get a share of
+泄	leak, let out, vent, reveal
+泊	pō: lake · bó: moor, anchor, stay
+泌	(分泌) secrete, seep
+波	wave, ripple, fluctuation
+泣	weep, sob
+泰	peaceful, safe, grand
+泻	pour down, rush, diarrhea
+泽	marsh, pool, luster, favor
+津	ferry, ford, saliva
+洽	(洽谈) consult, negotiate, harmonious
+浊	muddy, turbid, chaotic
+浑	muddy, whole, entire
+浩	vast, grand
+浸	soak, immerse, steep
+涂	smear, apply, scribble, blot out
+涕	tears, snivel
+涛	big waves, billows
+涝	waterlogged, flooded
+涡	whirlpool, eddy
+涤	wash, cleanse
+涮	rinse, dip-boil in hot pot, fool someone
+涯	shore, edge, limit
+淀	shallow lake, sediment, (淀粉) starch
+淆	(混淆) confuse, mix up
+淌	drip, trickle, shed tears
+渊	deep pool, abyss, deep
+渔	fish, fishing
+渗	seep, ooze, permeate
+渣	dregs, residue, crumbs
+渺	vast, remote, (渺小) tiny
+湾	bay, gulf, bend
+溃	burst a dike, break down, collapse, fester
+溅	splash, spatter
+溉	(灌溉) irrigate
+溜	liū: slip away, slide, sneak off · liù: swift current, row
+溢	overflow, brim over, excessive
+溪	creek, stream, brook
+溯	go upstream, trace back
+溶	dissolve, melt
+滋	nourish, grow, breed, (滋味) flavor
+滔	(滔滔) torrential, flooding
+滞	stagnant, sluggish, stuck
+滤	filter, strain
+滥	overflow, excessive, indiscriminate
+滨	shore, bank, waterfront
+滩	beach, sandbar, shoal, rapids
+漆	lacquer, paint, (漆黑) pitch-black
+漾	ripple, overflow, brim with
+潇	(潇洒) natural and unrestrained
+潦	(潦草) sloppy, careless, (潦倒) down and out
+潭	deep pool, pond
+澄	chéng: clear, limpid · dèng: let sediment settle
+澈	(清澈) clear, limpid
+澜	(波澜) big waves, billows
+濒	on the verge of, border on
+瀑	waterfall
+灌	irrigate, pour, fill, (灌输) instill
+灶	kitchen stove
+灸	moxibustion
+灼	burn, scorch, bright
+灿	(灿烂) brilliant, dazzling
+炉	stove, furnace, oven
+炊	cook food, cooking
+炖	stew, simmer
+炫	dazzle, show off
+炬	torch
+炭	charcoal, coal
+炮	pào: cannon, firecracker · bāo: quick-fry · páo: roast medicinal herbs
+烁	(闪烁) glitter, twinkle
+烘	bake, dry by fire, (烘托) set off
+烛	candle
+烹	cook, boil, stir-fry
+焊	weld, solder
+焕	(焕发) glow, shine
+焚	burn
+焰	flame, blaze
+煌	(辉煌) bright, brilliant
+煎	pan-fry, decoct, (煎熬) torment
+煲	cook slowly, pot
+煽	incite, stir up, fan flames
+熄	put out, extinguish, go out
+熏	smoke, fumigate, cure food, (熏陶) influence
+熙	(熙熙攘攘) bustling, bright, prosperous
+熨	yùn: iron clothes · yù: (熨帖) fitting, appropriate
+燕	swallow (bird)
+爪	claw, talon, paw
+爵	noble rank, peerage, (爵士) jazz, knight
+爹	dad, father
+爽	refreshing, crisp, frank, (爽快) straightforward
+牡	male animal, (牡丹) peony
+牧	herd, tend livestock, pasture
+牲	(牲畜) livestock, sacrificial animal
+牺	(牺牲) sacrifice
+犬	dog
+狈	(狼狈) in a sorry plight, legendary wolf-like beast
+狡	(狡猾) cunning, crafty
+狭	narrow
+狱	prison, jail
+猎	hunt, hunting
+猖	(猖狂) wild, unrestrained, rampant
+猛	fierce, violent, sudden
+猩	(猩猩) orangutan, ape, (猩红) scarlet
+猾	(狡猾) cunning, crafty
+玄	mysterious, profound, black
+琢	zhuó: carve jade, polish · zuó: (琢磨) ponder, turn over in the mind
+瑞	auspicious, lucky omen
+瓣	petal, segment, clove
+瓦	roof tile, earthenware
+甘	sweet, (甘心) willing
+甩	fling, swing, throw off, dump
+甸	(草甸) meadow, outskirts of the capital (classical)
+畏	fear, dread, awe
+畔	side, bank, edge
+畜	chù: livestock, domestic animal · xù: raise animals
+畴	(范畴) category, farmland
+畸	(畸形) abnormal, deformed, irregular
+疆	border, boundary, frontier
+疏	sparse, thin, neglect, distant, dredge
+疙	(疙瘩) lump, bump, pimple
+疤	scar
+痪	(瘫痪) paralysis
+痰	phlegm
+痴	foolish, silly, infatuated, obsessed
+痹	(麻痹) numbness, paralysis
+瘟	plague, epidemic
+瘤	tumor, lump
+瘩	(疙瘩) lump, bump, pimple
+瘫	paralyzed, paralysis
+瘸	lame, limp
+瘾	addiction, craving
+癌	cancer
+皂	soap, black
+皆	all, every, in all cases
+皱	wrinkle, crease, frown
+盈	full, surplus, overflow
+盏	small cup, measure word for lamps
+盗	steal, rob, thief
+盟	alliance, oath, league
+盯	stare at, keep an eye on
+盹	doze, nap
+眨	blink, wink
+眯	narrow the eyes, squint, nap
+眶	eye socket
+睦	harmonious, friendly, amicable
+睬	pay attention to, take notice of
+睹	see, witness
+瞄	aim at, take aim
+瞅	look at, see (colloquial)
+瞎	blind, blindly, recklessly
+瞒	hide the truth from, conceal
+瞩	(瞩目) gaze at, focus attention on
+瞪	stare, glare, open the eyes wide
+瞻	look up, look ahead, gaze at
+矢	arrow, vow
+矣	classical final particle of completion
+矫	correct, rectify, straighten, (矫健) vigorous
+砂	sand, grit
+砌	lay bricks, build with mortar, steps
+砸	smash, pound, bungle
+碑	stone tablet, stele, monument
+碟	small plate, saucer, disc
+碧	bluish green, jade green
+磁	magnetic, magnetism, porcelain
+磅	pound (weight), scale, weigh
+磊	(磊落) open and upright, pile of rocks
+磋	(磋商) consult, discuss, polish
+磕	knock, bump, tap, (磕头) kowtow
+磨	mó: rub, grind, polish, wear down, pester · mò: millstone, grind grain
+礁	reef
+祀	sacrifice to, worship ancestors
+祈	pray, entreat
+祭	offer sacrifice to, memorial ceremony, hold a memorial
+祷	pray, prayer
+禅	chán: Zen, meditation · shàn: (禅让) abdicate
+禽	birds, fowl
+禾	grain crop, standing grain, rice plant
+秃	bald, bare
+秉	hold, grasp, (秉持) uphold
+秤	scale, balance for weighing
+秧	seedling, rice sprout
+秽	dirty, filthy, obscene
+稀	rare, sparse, thin, watery
+稚	young, childish, immature
+稠	thick, dense, crowded
+稽	(稽查) check, examine, (滑稽) funny
+穆	solemn, reverent
+穴	cave, hole, den, acupuncture point
+窃	steal, secretly
+窍	hole, aperture, (诀窍) knack, key
+窑	kiln, cave dwelling
+窒	(窒息) stop up, suffocate
+窘	embarrassed, awkward, hard-pressed
+窜	flee, scurry, (窜改) tamper with text
+窝	nest, den, lair, harbor
+窟	cave, hole, den
+窥	peep, spy on, pry
+窿	(窟窿) hole, cavity
+竣	(竣工) complete a project, finish
+竭	exhaust, use up, (竭力) do one's utmost
+竿	bamboo pole
+笛	flute, whistle
+筋	tendon, sinew, muscle, veins
+筐	basket
+筝	zheng (zither), (风筝) kite
+篷	awning, canopy, sail, (帐篷) tent
+簇	cluster, bunch, crowd together
+簸	bǒ: winnow, toss up and down · bò: (簸箕) dustpan, winnowing basket
+粪	manure, dung, excrement
+粹	pure, (精粹) essence
+糙	rough, coarse
+紊	(紊乱) disorder, confusion
+絮	cotton wadding, catkin, (絮叨) go on and on
+纤	xiān: fine, slender, (纤维) fiber · qiàn: towrope, (纤夫) boat tracker
+纬	weft, latitude
+纱	yarn, gauze, sheer fabric
+纲	main rope, outline, key principle
+纵	vertical, lengthwise, indulge, let loose, (纵然) even if
+纹	line, pattern, grain, wrinkle
+纺	spin thread, (纺织) weave
+纽	button, knot, (纽带) link, tie
+绅	(绅士) gentleman, gentry
+绎	(演绎) deduce, unravel
+绑	tie up, bind, (绑架) kidnap
+绞	twist, wring, strangle, hang by the neck
+绣	embroider, embroidery
+绯	(绯红) crimson, bright red
+绰	(绰号) nickname, ample, graceful
+绳	rope, cord, string
+绵	(绵羊) sheep, soft, continuous, unbroken
+绷	bēng: stretch taut, strain, (绷带) bandage · běng: keep a straight face
+绸	silk cloth, (丝绸) silk
+绽	(绽放) burst open, bloom, split at the seam
+缀	(点缀) adorn, stitch together, link
+缅	(缅怀) cherish the memory of, distant, (缅甸) Myanmar
+缆	cable, mooring rope
+缉	(通缉) hunt down, arrest
+缔	(缔造) found, establish, (缔结) conclude a treaty
+缕	strand, wisp, thread, measure word for wisps, strands
+缘	reason, cause, fate, affinity, edge
+缚	(束缚) bind, tie up, fetter
+缝	féng: sew, stitch · fèng: seam, crack, gap
+缠	wind around, entangle, pester
+缤	(缤纷) in riotous profusion, colorful
+缴	hand in, pay, surrender, capture
+缸	vat, jar, crock, measure word for vatfuls
+罗	net, gauze, gather, (罗列) set out, (罗马) Rome, surname Luo
+罢	stop, cease, (罢工) strike, (罢了) that is all
+罩	cover, hood, shade, mask
+署	(署名) sign, government office, (部署) deploy
+翁	old man, father-in-law
+翔	(飞翔) soar, glide, hover
+翘	qiào: stick up, tilt, warp · qiáo: raise one's head, outstanding
+翠	emerald green, jade, kingfisher
+翼	wing, flank, assist
+耀	shine, dazzle, glory
+耍	play, play with, wield, show off
+耕	plow, till, farm
+耸	tower, lofty, shrug, startle
+耻	shame, disgrace
+耿	(耿直) upright, honest, bright, (耿耿) on one's mind
+聋	deaf
+肆	wanton, unrestrained, four (formal numeral), shop
+肇	(肇事) cause trouble, begin, originate
+肖	(肖像) portrait, resemble
+肢	limb
+肴	(菜肴) dish, cooked food
+肾	kidney
+胀	swell, bloated, distended
+胎	fetus, tire, measure word for litters, births
+胚	embryo
+胧	(朦胧) dim, hazy
+脉	mài: pulse, vein, vessel, (山脉) mountain range · mò: (脉脉) tender, affectionate
+脊	spine, back, ridge
+腊	(腊月) twelfth lunar month, cured meat
+腕	wrist
+腥	fishy, raw smell, rank
+腹	belly, abdomen
+腺	gland
+腻	greasy, oily, fed up, sick of
+腾	gallop, soar, rise, make room, vacate
+膛	chest, bore, chamber, cavity
+膜	membrane, film
+膝	knee
+膨	(膨胀) swell, expand, inflate
+膳	(膳食) meals, food
+臊	sāo: foul smell, rank · sào: (害臊) bashful, ashamed
+舆	(舆论) public opinion, carriage
+舔	lick
+舟	boat
+舰	warship
+舱	cabin, hold
+舵	rudder, helm
+舶	(船舶) ship, ocean-going vessel
+艇	small boat, light vessel
+艾	mugwort, wormwood, (艾滋病) AIDS
+芒	(光芒) ray, awn of grain, (芒果) mango
+芝	(芝麻) sesame, (灵芝) lingzhi mushroom
+芦	(芦苇) reed, (葫芦) gourd
+芬	(芬芳) fragrant, aroma
+芭	(芭蕉) plantain, (芭蕾) ballet
+芯	wick, core, pith, refill
+芳	fragrant, (芳香) fragrance, virtuous
+芽	bud, sprout
+苍	pale, grey, dark green, (苍天) sky
+苏	revive, (苏醒) come to, (苏州) Suzhou, (苏联) Soviet
+苗	sprout, seedling, (苗族) Miao people
+苛	harsh, exacting, (苛刻) severe
+苟	careless, perfunctory, (苟且) drifting, if (classical)
+若	if, like, as if, seem
+茂	lush, flourishing, luxuriant
+茅	(茅草) thatch, reed grass
+茎	stem, stalk
+茫	(茫茫) vast, boundless, (茫然) at a loss
+荆	brambles, thorns, (荆州) Jingzhou
+荒	barren, desolate, famine, neglect, absurd
+荡	sway, swing, rinse, loaf about, (荡漾) ripple
+荧	(荧光) fluorescent, glimmer, (荧屏) screen
+荫	shade of trees, shelter
+荷	hé: lotus, (荷兰) Holland · hè: carry, bear, burden
+莫	do not, no one, nothing (classical), (莫非) could it be
+莲	lotus
+莹	(晶莹) sparkling, crystal clear, lustrous
+莽	rash, reckless, (草莽) wild grass
+菇	mushroom
+菩	(菩萨) bodhisattva
+萌	sprout, bud, (萌芽) germinate
+萍	duckweed, drifting
+萎	wither, wilt, shrivel
+萝	(萝卜) radish, trailing plant, (菠萝) pineapple
+萧	(萧条) bleak, desolate, (萧萧) rustling
+萨	(菩萨) bodhisattva, transliteration syllable
+董	(董事) director, board member, supervise
+葬	bury, (葬礼) funeral
+葱	scallion, green onion, (葱郁) green and lush
+蒂	stem of a fruit, base, (根深蒂固) deep-rooted
+蒙	méng: cover, suffer, receive, ignorant · mēng: deceive, guess wildly, dazed · měng: (蒙古) Mongolia
+蒜	garlic
+蒸	steam, evaporate
+蓬	(蓬勃) flourishing, fluffy, disheveled
+蔑	(蔑视) despise, scorn, slight
+蔓	vine, creeper, (蔓延) spread
+蔼	(和蔼) kindly, amiable
+蔽	cover, shield, hide, (隐蔽) conceal
+蕴	(蕴含) contain, accumulate, profound
+蕾	flower bud, (芭蕾) ballet
+藤	vine, rattan, cane
+藻	algae, seaweed, (辞藻) ornate phrasing
+蘑	(蘑菇) mushroom
+蘸	dip in sauce or ink
+虏	(俘虏) captive, capture
+虐	cruel, abuse, tyrannize
+虔	(虔诚) pious, devout, reverent
+虾	shrimp, prawn
+蚀	erode, corrode, eat away, (日蚀) eclipse
+蚊	mosquito
+蛙	frog
+蛮	rough, unreasonable, barbarian, quite, rather
+蜡	wax, candle
+蝇	fly (insect)
+螺	spiral shell, snail, (螺丝) screw
+蠢	stupid, clumsy, wriggle
+衅	(挑衅) provoke, quarrel, rift
+衍	(衍生) derive, spread out, (敷衍) perfunctory
+衔	hold in the mouth, rank, title, link
+衷	inner feelings, heartfelt, (衷心) sincere
+袍	robe, gown
+袖	sleeve, (领袖) leader, tuck in sleeve
+袭	raid, attack suddenly, inherit, copy
+袱	(包袱) cloth bundle, burden
+裂	split, crack, rend
+裔	descendants, (后裔) posterity, (华裔) ethnic Chinese
+裳	shang: (衣裳) clothing · cháng: skirt, lower garment (classical)
+裸	naked, bare
+觅	seek, look for
+誓	swear, vow, oath
+譬	(譬如) for example, analogy, metaphor
+讥	ridicule, mock, satirize
+讳	taboo, avoid saying, (忌讳) shun, conceal
+讹	(讹诈) extort, blackmail, (讹传) false, erroneous
+讼	(诉讼) lawsuit, dispute
+讽	(讽刺) satirize, mock, recite (classical)
+诀	(秘诀) knack, trick, (诀别) part forever, rhymed formula
+诈	cheat, swindle, pretend, (欺诈) fraud
+诧	(诧异) surprised, astonished
+诫	warn, admonish, (告诫) exhort
+诬	(诬陷) frame, falsely accuse, slander
+诱	lure, entice, induce, (诱惑) tempt
+诵	recite, chant, read aloud
+诽	(诽谤) slander, defame
+谋	plan, scheme, seek, plot
+谍	spy, (间谍) espionage
+谎	lie, falsehood
+谜	riddle, puzzle, mystery
+谣	rumor, folk song, ballad
+谤	(诽谤) slander, defame
+谬	error, absurd, (荒谬) ridiculous, fallacy
+谱	chart, score (music), register, (谱写) compose
+谴	(谴责) condemn, denounce
+谷	valley, grain, cereal
+豁	huō: crack, slit, stake everything · huò: open, clear, (豁达) broad-minded, exempt
+豹	leopard, panther
+贞	chaste, loyal, (贞操) virtue
+贤	virtuous, worthy, able, (贤惠) kind and capable
+贩	peddle, deal in, (小贩) peddler, (贩卖) traffic
+贪	greedy, covet, corrupt
+贬	demote, (贬低) belittle, (贬值) depreciate, censure
+贮	store, (贮藏) stockpile
+贱	cheap, lowly, despicable
+贼	thief, traitor, sly, crafty
+贾	surname Jia, (classical) merchant, trade
+贿	(贿赂) bribe, bribery
+赁	(租赁) rent, lease, hire
+赂	(贿赂) bribe
+赃	stolen goods, loot, (赃款) bribe money
+赌	gamble, bet
+赎	redeem, ransom, atone
+赐	bestow, grant, (恩赐) favor
+赡	(赡养) support, provide for
+赤	red, bare, naked, loyal, (赤道) equator
+赫	(显赫) illustrious, grand, (赫然) impressively
+赴	go to, attend, (赴约) keep an appointment
+趴	lie on one's stomach, lean over, bend over
+跤	(摔跤) fall, tumble, wrestling
+跨	step across, straddle, span
+踊	(踊跃) leap, eager, enthusiastic
+踹	kick, stamp, trample
+蹋	(糟蹋) trample, ruin, waste, step on
+蹦	jump, hop, bounce
+蹬	step on, pedal, tread
+蹭	rub against, scrape, dawdle, freeload
+躁	(急躁) irritable, rash, restless
+躬	bow, in person, (鞠躬) bow
+躯	(身躯) body
+轰	boom, bombard, rumble, drive out
+轴	axle, axis, shaft, scroll roller
+轿	sedan chair, (轿车) car
+辉	(光辉) radiance, splendor, shine
+辐	spoke, (辐射) radiate
+辖	(管辖) govern, have jurisdiction over
+辙	wheel rut, track, (没辙) no way out
+辜	guilt, crime, (辜负) let down, (无辜) innocent
+辟	pì: open up, (开辟) develop, (精辟) penetrating, refute · bì: ward off, monarch (classical)
+辨	distinguish, discriminate, tell apart
+辩	argue, debate, dispute
+辫	braid, plait, pigtail
+辰	(时辰) time, hour, fifth earthly branch, (星辰) stars
+辱	humiliate, insult, disgrace
+辽	distant, vast, (辽阔) expansive, (辽宁) Liaoning
+迁	move, relocate, change, (迁移) migrate
+迄	(迄今) up to now, until, so far
+迪	(启迪) enlighten, guide, transliteration syllable
+迭	alternate, repeatedly, (更迭) change in turn, (迭起) one after another
+迸	burst forth, spurt, gush out
+逆	contrary, go against, rebel, adverse
+逊	modest, inferior, (谦逊) humble, (逊色) inferior
+逝	pass away, die, elapse, (逝世) pass on
+逞	show off, flaunt, (得逞) succeed in a scheme, indulge
+逢	meet, encounter, come across, whenever
+逮	catch, seize, (逮捕) arrest
+逸	ease, leisure, escape, flee, (飘逸) elegant
+逾	exceed, go beyond, (逾期) overdue
+遂	then, thereupon, succeed, fulfil
+遏	(遏制) check, curb, restrain, stop
+遛	stroll, walk (a dog), take for a walk
+遣	send, dispatch, (消遣) pastime, (派遣) deploy
+遮	cover, block, shield, hide
+邦	nation, state, country
+邪	evil, wicked, heretical, sinister, strange
+郁	(忧郁) gloomy, depressed, (郁郁葱葱) lush, fragrant
+郑	(郑重) solemn, serious, ancient state Zheng
+鄙	(鄙视) despise, look down on, vulgar, lowly, (鄙人) my humble
+酌	pour wine, drink, (斟酌) consider, weigh
+酗	(酗酒) drink excessively, binge drinking
+酝	(酝酿) brew, ferment, take shape gradually
+酣	(酣睡) sound sleep, (酣畅) to one's heart's content, merry
+酥	crisp, flaky, limp, weak, (酥油) butter
+酬	reward, pay, (报酬) remuneration, (应酬) social dealings, toast
+酵	(发酵) ferment, leaven, yeast
+酿	brew, ferment, (酿成) lead to, bring about
+醇	pure, mellow, rich (wine), alcohol
+钉	dīng: nail, follow closely · dìng: nail down, sew on
+钙	calcium
+钞	(钞票) banknote, paper money
+钦	(钦佩) admire, respect, by the emperor
+钧	(千钧一发) ancient weight of thirty catties, (钧座) respectful you
+钩	hook, check mark, crochet
+钳	pliers, pincers, clamp
+铝	aluminum
+铭	inscribe, engrave, (铭记) remember firmly, (座右铭) motto
+铲	shovel, spade, scoop up, level off
+铸	cast metal, (铸造) found, (铸成) create
+锈	rust, corrode
+锋	sharp point, blade edge, vanguard, (锋利) keen, (先锋) pioneer
+锐	sharp, keen, acute, (尖锐) pointed
+锡	tin, bestow (classical)
+锤	hammer, weight, (锤炼) temper
+锦	brocade, (锦绣) splendid, (锦标) prize
+锯	saw
+锲	(锲而不舍) carve, engrave, keep at it
+镑	(英镑) pound sterling
+镶	inlay, set, (镶嵌) mount, rim
+闷	mèn: bored, depressed, (烦闷) stifled · mēn: stuffy, muggy, shut oneself in
+闸	sluice, floodgate, brake, switch
+闺	(闺女) daughter, (闺房) women's quarters, boudoir
+阀	(财阀) powerful clique, (军阀) warlord, (阀门) valve
+阁	pavilion, cabinet (government), (阁下) Your Excellency
+阂	(隔阂) barrier, estrangement
+阎	(阎王) King of Hell, Yama
+阐	(阐述) expound, explain, clarify
+阱	(陷阱) trap, pitfall
+陈	display, state, explain, old, stale, surname Chen
+陋	crude, shabby, ugly, (简陋) simple, (陋习) bad custom
+陡	steep, suddenly, (陡然) abruptly
+陨	fall from the sky, (陨石) meteorite, perish
+陵	hill, mound, mausoleum, tomb
+陶	pottery, ceramics, (陶醉) intoxicated, (陶冶) mold character
+隆	grand, prosperous, (隆重) solemn, bulge, rumble
+隘	narrow, (狭隘) petty, mountain pass
+隙	crack, gap, (间隙) interval, (空隙) opening, grudge
+隧	(隧道) tunnel
+隶	(奴隶) slave, (隶属) subordinate to, (隶书) clerical script
+雀	sparrow, small bird, (麻雀) sparrow, (孔雀) peacock
+雁	wild goose
+雅	elegant, refined, graceful, (高雅) cultured
+雇	hire, employ, (雇主) employer
+雕	carve, engrave, (雕刻) sculpture, eagle
+雹	hail, hailstone
+霉	mold, mildew, (倒霉) bad luck
+霍	(霍然) suddenly, quickly, (霍乱) cholera
+霜	frost, (冰霜) icy, cream, powder
+霞	rosy clouds, (晚霞) sunset glow, (朝霞) dawn glow
+霸	tyrant, hegemon, (霸占) seize by force, (霸道) overbearing
+靴	boot
+靶	target, (打靶) target practice
+鞠	(鞠躬) bow, rear, nourish (classical)
+鞭	whip, lash, (鞭炮) firecrackers, (鞭策) spur on
+韧	tough, pliable, (坚韧) tenacious, resilient
+韵	rhyme, (韵味) charm, lingering appeal, (韵律) rhythm
+顷	(顷刻) instant, moment, land measure of 100 mu, just now
+颁	(颁发) issue, award, (颁布) promulgate
+颂	praise, (歌颂) extol, ode, hymn
+颇	quite, rather, considerably, (偏颇) biased, lean
+颊	cheek
+颓	(颓废) dispirited, decadent, collapsing, declining
+颠	top, (颠倒) upside down, invert, jolt, bump, (颠覆) overturn
+颤	tremble, shiver, quiver, (颤抖) shake
+飙	(飙升) soar, whirlwind, race at speed
+饪	(烹饪) cooking, cuisine
+饲	(饲养) raise animals, feed, (饲料) fodder
+饵	bait, (诱饵) lure, cake
+饶	spare, forgive, (饶恕) pardon, abundant, throw in extra
+馁	(气馁) discouraged, lose heart, hungry (classical)
+馅	filling, stuffing
+馋	gluttonous, (嘴馋) craving food, greedy
+馨	(温馨) warm and fragrant, fragrance, (馨香) aroma
+驭	(驾驭) drive, control, master
+驮	carry on the back (of a pack animal)
+驯	tame, docile, (驯服) domesticate
+驰	gallop, speed, (奔驰) race, spread (of fame)
+驱	drive, expel, (驱逐) drive out, spur on, (驱动) drive
+驳	refute, (反驳) rebut, contradict, (斑驳) mottled, barge
+驻	be stationed, (驻扎) garrison, (驻足) halt, stay
+骇	(惊骇) terrify, shock, frighten
+骏	(骏马) fine horse, steed
+骚	(骚扰) harass, disturb, poetry (classical), (风骚) coquettish
+髓	marrow, (骨髓) bone marrow, essence, (精髓) pith
+髦	(时髦) fashionable, stylish
+鬼	ghost, devil, demon, sly, (鬼鬼祟祟) sneaky, suffix for addicts
+魁	chief, head, (魁梧) tall and sturdy, (罪魁) ringleader
+魂	soul, spirit, mood, (灵魂) soul
+魄	(魄力) daring, vigor, (气魄) spirit, (魂魄) soul
+魔	demon, devil, (魔鬼) devil, magic, (魔术) magic
+鲁	(粗鲁) rude, (鲁莽) reckless, dull, ancient state Lu
+鳄	(鳄鱼) crocodile, alligator
+鸣	cry (of birds, animals), ring, sound, (鸣谢) express
+鸦	crow, (乌鸦) crow, (鸦雀无声) silence
+鸽	pigeon, dove
+鹅	goose
+鹏	(大鹏) roc, giant mythical bird
+鹤	crane (bird)
+鹰	eagle, hawk, falcon
+鹿	deer
+黎	(黎明) dawn, (黎民) common people, many (classical)
+黏	sticky, glutinous, adhere
+鼎	tripod cauldron, (鼎盛) at its height, (鼎力) great support
+龟	guī: tortoise, turtle · jūn: (龟裂) crack, chap

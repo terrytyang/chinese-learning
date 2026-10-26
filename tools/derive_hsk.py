@@ -13,7 +13,8 @@ This is deliberately lossy. Rules:
     of any word containing them, with the same edition rule.
   * Traditional forms for characters are a majority vote over all words
     containing the character (positional, equal-length forms only); may be null.
-  * `gloss` is left null; `data/character-gloss.tsv` (curated) fills it at build.
+  * `gloss` comes from `data/character-gloss.tsv` (curated, char<TAB>gloss); a character
+    missing from that file gets null. The SQL output is the complete master.
   * Dropped: Wade-Giles, Bopomofo, Gwoyeu Romatzyh, numeric pinyin, radicals,
     classifiers, per-edition membership, import provenance.
   * IDs: character.id is the Unicode code point; word.id is the source entry id.
@@ -30,6 +31,7 @@ always overwritten.
 """
 
 import argparse
+import csv
 import json
 import re
 import sqlite3
@@ -50,7 +52,7 @@ CREATE TABLE character (
   readings TEXT NOT NULL,          -- JSON list of readings, most common first
   hsk_level INTEGER NOT NULL,      -- 1-7; 7 = bands 7-9
   hsk_edition TEXT NOT NULL,       -- 'latest' or 'old'
-  gloss TEXT                       -- null here; filled at build from data/character-gloss.tsv
+  gloss TEXT                       -- from data/character-gloss.tsv; null when not yet written
 );
 CREATE TABLE word (
   id INTEGER PRIMARY KEY,          -- source entry id, fixed by this file
@@ -81,7 +83,24 @@ def pick_level(levels_by_scheme):
     raise ValueError("no level")
 
 
-def derive(source_path, keep_edition="all", max_level=None):
+def load_glosses(path):
+    """char -> gloss from the curated TSV; '#' lines skipped; duplicates and bad lines are errors."""
+    glosses = {}
+    if not path or not Path(path).exists():
+        return glosses
+    with open(path, encoding="utf-8", newline="") as f:
+        for n, row in enumerate(csv.reader(f, delimiter="\t"), 1):
+            if not row or row[0].startswith("#"):
+                continue
+            if len(row) != 2 or not row[1].strip():
+                raise SystemExit(f"{path}:{n}: expected char<TAB>gloss")
+            if row[0] in glosses:
+                raise SystemExit(f"{path}:{n}: duplicate character {row[0]}")
+            glosses[row[0]] = row[1].strip()
+    return glosses
+
+
+def derive(source_path, keep_edition="all", max_level=None, gloss_path=None):
     src = sqlite3.connect(f"file:{Path(source_path).resolve()}?mode=ro", uri=True)
     q = lambda sql, *a: src.execute(sql, a).fetchall()
 
@@ -157,6 +176,10 @@ def derive(source_path, keep_edition="all", max_level=None):
              if (keep_edition == "all" or w["hsk_edition"] == keep_edition)
              and (max_level is None or w["hsk_level"] <= max_level)]
     kept = {ch for w in words for ch in w["simplified"]}
+    glosses = load_glosses(gloss_path)
+    unknown = sorted(set(glosses) - set(char_levels))
+    if unknown:
+        raise SystemExit(f"{gloss_path}: characters not in the master: {''.join(unknown)}")
     characters = []
     for ch in sorted(kept):
         level, edition = pick_level(char_levels[ch])
@@ -164,7 +187,9 @@ def derive(source_path, keep_edition="all", max_level=None):
         characters.append(dict(
             id=ord(ch), char=ch, traditional=traditional.get(ch), pinyin=readings[0],
             readings=json.dumps(readings, ensure_ascii=False), hsk_level=level, hsk_edition=edition,
+            gloss=glosses.get(ch),
         ))
+    stats["glossed"] = sum(1 for c in characters if c["gloss"])
     src.close()
     return characters, words, stats
 
@@ -176,7 +201,7 @@ def load(characters, words, path=":memory:"):
         Path(path).unlink(missing_ok=True)
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
-    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:hsk_level,:hsk_edition,NULL)", characters)
+    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:hsk_level,:hsk_edition,:gloss)", characters)
     db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:readings,:pos,:frequency_rank,:hsk_level,:hsk_edition)", words)
     db.commit()
     return db
@@ -200,13 +225,14 @@ def main():
                     help="keep only words of this edition (default: all)")
     ap.add_argument("--max-level", type=int, choices=range(1, 8), metavar="1-7",
                     help="keep only words at or below this level")
+    ap.add_argument("--gloss", default="data/character-gloss.tsv", help="curated character glosses (char<TAB>gloss)")
     args = ap.parse_args()
-    characters, words, stats = derive(args.source, args.edition, args.max_level)
+    characters, words, stats = derive(args.source, args.edition, args.max_level, args.gloss)
     db = load(characters, words, args.db or ":memory:")
     write_sql(db, args.output)
     db.close()
     where = args.output + (f" and {args.db}" if args.db else "")
-    print(f"characters: {len(characters)}   words: {len(words)}   -> {where}")
+    print(f"characters: {len(characters)} ({stats['glossed']} glossed)   words: {len(words)}   -> {where}")
     print(f"polyphone words: {stats['polyphones']}, primary reading reordered: {stats['reordered']}, "
           f"no pypinyin match (source order kept): {len(stats['unmatched'])}")
     for simp, expected, have in stats["unmatched"][:15]:

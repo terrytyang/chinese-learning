@@ -28,10 +28,14 @@ Rules for the gloss:
 2. Lead with the sense a student meets in common words and in classical texts.
    Drop surnames, place-name abbreviations, slang, dialect, radical numbers,
    "variant of", and chemistry/physics senses unless nothing else exists.
+   Exception: the twenty most common surnames (王李张刘陈杨黄赵吴周徐孙马朱胡郭何林高罗)
+   end the gloss with `surname X`. Dynasty names stay, as `Tang dynasty`.
 3. Split by reading only when the readings carry different meanings, and name
    the reading: `xíng: walk, go, OK · háng: row, line, firm`. One gloss with no
    reading label when the meanings are the same or the other readings are rare.
-   Separator between readings is ` · ` (space, middle dot, space).
+   Separator between readings is ` · ` (space, middle dot, space). Use only
+   readings from the `readings` column; a neutral-tone reading CEDICT lists but
+   that column lacks (过 guo) is folded into the main gloss unlabelled.
 4. Grammar words get their function, briefly: `completed-action particle`,
    `question particle`, `measure word for people, things`. Write "measure
    word", never "classifier" or "numerary adjunct".
