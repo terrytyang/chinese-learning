@@ -18,19 +18,23 @@ student. Runs only inside the dev container, never on the internet. Read
 - `hsk-original/` — reference dataset. Read-only. The app never opens it.
 - `tools/` — one-off derivation scripts (may use pypinyin)
 - `data/` — source-controlled content: `hsk.sql` (generated), `texts/*.md` (hand-written)
-- `src/chineselearning/` — the app: `sqlite3` + FastAPI + Jinja2 (+ htmx later)
+- `src/chineselearning/` — the app: `sqlite3` + FastAPI + Jinja2 + htmx (vendored in `static/`)
+- `docs/mockups/` — agreed page designs; a brief that says "match the mockup" means this
 - `tests/` — pytest; tests build a real SQLite file from `data/` and query it
 - `build/` — disposable outputs, git-ignored
 
 ## Standing rules
 
-- Column and code identifiers in English. Everything the user sees is Chinese
-  (标题, 作者, 年代, 类别 …), including admin pages.
+- Identifiers, labels, buttons, headings and messages are English. Content is
+  Chinese: titles, text bodies, tags (诗词), glosses are English.
 - The content database is repaved, never migrated. Schema change → change the
   build → rebuild. No migration tooling, no compatibility adapters.
 - Learner progress lives in a separate database file (`build/progress.sqlite`)
-  keyed by natural keys (the character, the word string). A content rebuild never
-  touches it.
+  keyed by natural keys (the character, the word string), one row per key with
+  `changed_at`, no history. States: unconfirmed (no row) → exposed → recognized
+  → mastered. A content rebuild never touches it.
+- A single character is a character everywhere: never a `word` key, never a
+  one-character surface in a word table. Its dictionary data is on `character`.
 - IDs are natural or fixed by the source files: `character.id` is the code point,
   `word.id` comes from `data/hsk.sql`, `text.id` from the file header. Anything
   that must survive a rebuild is exported to `data/`, never kept only in the DB.
@@ -44,3 +48,5 @@ student. Runs only inside the dev container, never on the internet. Read
   one line in `docs/design.md`'s decision log; don't write changelogs elsewhere.
 - Classical texts rarely contain modern HSK words (枫桥夜泊 contains none); don't
   design as if word matching will do most of the work.
+- Pages are a shell plus htmx fragments: a mutation returns the fragment it
+  changed, never a redirect; state that selects a view lives in the URL.

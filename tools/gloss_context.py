@@ -38,13 +38,13 @@ def load_tsv(path, key=0, value=1):
 
 def context_rows(db, kdefinition):
     rows = []
-    for char, readings, level, edition in db.execute("SELECT char, readings, hsk_level, hsk_edition FROM character ORDER BY hsk_level, char"):
+    sql = "SELECT char, readings, hsk_level, hsk_edition, pinyin, meanings, alt_readings FROM character ORDER BY hsk_level, char"
+    for char, readings, level, edition, pinyin, meanings, alt in db.execute(sql):
         cedict = []
-        for pinyin, meanings in db.execute("SELECT pinyin, meanings FROM word WHERE simplified = ?", (char,)):
-            # the standalone entry's readings carry their own meanings; show each
-            for r in json.loads(db.execute("SELECT readings FROM word WHERE simplified = ?", (char,)).fetchone()[0]):
-                cedict.append(f"{r['pinyin']}: " + "; ".join(r["meanings"][:6]))
-            break
+        if meanings:
+            cedict.append(f"{pinyin}: " + "; ".join(json.loads(meanings)[:6]))
+        for r in json.loads(alt or "[]"):
+            cedict.append(f"{r['pinyin']}: " + "; ".join(r["meanings"][:6]))
         rows.append({
             "char": char, "readings": " ".join(json.loads(readings)), "level": level, "edition": edition,
             "cedict": " | ".join(cedict), "kdefinition": kdefinition.get(char, ""),

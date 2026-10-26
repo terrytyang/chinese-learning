@@ -1,14 +1,22 @@
 """Derive the master HSK tables from the reference dataset.
 
 Reads hsk-original/hsk_vocab.sqlite (never modified) and writes data/hsk.sql,
-a plain SQLite dump of two flat tables, `character` and `word`.
+a plain SQLite dump of two flat tables:
+
+  character  every character occurring in any HSK item (3,034). When the syllabus
+             lists the character itself as an item, that item's dictionary data
+             (meanings, part of speech, frequency, level as an item) is carried
+             on the character row; there is no single-character row in `word`.
+  word       multi-character vocabulary items only (9,899).
 
 This is deliberately lossy. Rules:
   * One HSK level per word. The 2026 edition wins; otherwise the newest edition
     that lists the word. `hsk_edition` is 'latest' (2026) or 'old' (anything else).
   * Level 7 means the combined 7-9 band.
   * Readings are ordered by commonness (pypinyin), not source order. The first
-    one is the primary and is denormalized into `pinyin` / `meanings`.
+    one is the primary: `pinyin`, `traditional`, `meanings`. Other dictionary
+    forms, when any, are in `alt_readings` (JSON list of {pinyin, traditional,
+    meanings}); null when the item has one form. Nothing is stored twice.
   * Characters get their readings from pypinyin; their level is the lowest level
     of any word containing them, with the same edition rule.
   * Traditional forms for characters are a majority vote over all words
@@ -49,18 +57,23 @@ CREATE TABLE character (
   char TEXT NOT NULL UNIQUE,
   traditional TEXT,                -- best-effort, may be null
   pinyin TEXT NOT NULL,            -- most common reading
-  readings TEXT NOT NULL,          -- JSON list of readings, most common first
-  hsk_level INTEGER NOT NULL,      -- 1-7; 7 = bands 7-9
-  hsk_edition TEXT NOT NULL,       -- 'latest' or 'old'
-  gloss TEXT                       -- from data/character-gloss.tsv; null when not yet written
+  readings TEXT NOT NULL,          -- JSON list of readings as pinyin, most common first
+  gloss TEXT,                      -- short curated English gloss (data/character-gloss.tsv)
+  meanings TEXT,                   -- JSON list, dictionary meanings of the primary reading; null if not an item
+  alt_readings TEXT,               -- JSON [{pinyin, traditional, meanings}] for other dictionary forms; null if none
+  pos TEXT,                        -- comma-separated part-of-speech codes as an item; null if not an item
+  frequency_rank INTEGER,          -- as an item; lower is more common; null if not an item
+  hsk_level INTEGER NOT NULL,      -- 1-7 as a character: lowest level of any item containing it
+  word_level INTEGER,              -- 1-7 as an item in its own right; null if the syllabus never lists it alone
+  hsk_edition TEXT NOT NULL        -- 'latest' or 'old'
 );
-CREATE TABLE word (
+CREATE TABLE word (                -- multi-character items only
   id INTEGER PRIMARY KEY,          -- source entry id, fixed by this file
   simplified TEXT NOT NULL UNIQUE,
   traditional TEXT NOT NULL,
   pinyin TEXT NOT NULL,            -- primary reading
-  meanings TEXT NOT NULL,          -- JSON list, primary reading only
-  readings TEXT NOT NULL,          -- JSON [{pinyin, traditional, meanings}], primary first
+  meanings TEXT NOT NULL,          -- JSON list, primary reading
+  alt_readings TEXT,               -- JSON [{pinyin, traditional, meanings}] for other forms; null if none
   pos TEXT,                        -- comma-separated source part-of-speech codes
   frequency_rank INTEGER,          -- lower is more common
   hsk_level INTEGER NOT NULL,
@@ -158,11 +171,11 @@ def derive(source_path, keep_edition="all", max_level=None, gloss_path=None):
             if ordered[0] is not readings[0]:
                 stats["reordered"] += 1
             readings = ordered
-        primary = readings[0]
+        primary, others = readings[0], readings[1:]
         words.append(dict(
             id=entry_id, simplified=simp, traditional=primary["traditional"], pinyin=primary["pinyin"],
             meanings=json.dumps(primary["meanings"], ensure_ascii=False),
-            readings=json.dumps(readings, ensure_ascii=False),
+            alt_readings=json.dumps(others, ensure_ascii=False) if others else None,
             pos=",".join(pos[entry_id]) or None, frequency_rank=freq,
             hsk_level=level, hsk_edition=edition,
         ))
@@ -180,16 +193,24 @@ def derive(source_path, keep_edition="all", max_level=None, gloss_path=None):
     unknown = sorted(set(glosses) - set(char_levels))
     if unknown:
         raise SystemExit(f"{gloss_path}: characters not in the master: {''.join(unknown)}")
+    as_item = {w["simplified"]: w for w in words if len(w["simplified"]) == 1}
+    words = [w for w in words if len(w["simplified"]) > 1]
     characters = []
     for ch in sorted(kept):
         level, edition = pick_level(char_levels[ch])
         readings = pinyin(ch, style=Style.TONE, heteronym=True)[0]
+        item = as_item.get(ch)
         characters.append(dict(
             id=ord(ch), char=ch, traditional=traditional.get(ch), pinyin=readings[0],
-            readings=json.dumps(readings, ensure_ascii=False), hsk_level=level, hsk_edition=edition,
-            gloss=glosses.get(ch),
+            readings=json.dumps(readings, ensure_ascii=False), gloss=glosses.get(ch),
+            meanings=item["meanings"] if item else None,
+            alt_readings=item["alt_readings"] if item else None,
+            pos=item["pos"] if item else None,
+            frequency_rank=item["frequency_rank"] if item else None,
+            hsk_level=level, word_level=item["hsk_level"] if item else None, hsk_edition=edition,
         ))
     stats["glossed"] = sum(1 for c in characters if c["gloss"])
+    stats["items"] = len(as_item)
     src.close()
     return characters, words, stats
 
@@ -201,8 +222,8 @@ def load(characters, words, path=":memory:"):
         Path(path).unlink(missing_ok=True)
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
-    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:hsk_level,:hsk_edition,:gloss)", characters)
-    db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:readings,:pos,:frequency_rank,:hsk_level,:hsk_edition)", words)
+    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:gloss,:meanings,:alt_readings,:pos,:frequency_rank,:hsk_level,:word_level,:hsk_edition)", characters)
+    db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:alt_readings,:pos,:frequency_rank,:hsk_level,:hsk_edition)", words)
     db.commit()
     return db
 
@@ -232,7 +253,7 @@ def main():
     write_sql(db, args.output)
     db.close()
     where = args.output + (f" and {args.db}" if args.db else "")
-    print(f"characters: {len(characters)} ({stats['glossed']} glossed)   words: {len(words)}   -> {where}")
+    print(f"characters: {len(characters)} ({stats['glossed']} glossed, {stats['items']} are items themselves)   words: {len(words)}   -> {where}")
     print(f"polyphone words: {stats['polyphones']}, primary reading reordered: {stats['reordered']}, "
           f"no pypinyin match (source order kept): {len(stats['unmatched'])}")
     for simp, expected, have in stats["unmatched"][:15]:

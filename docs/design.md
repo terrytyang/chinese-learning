@@ -30,14 +30,25 @@ rebuild cannot orphan it.
 
 Two flat tables, deliberately lossy. Rules are documented in `tools/derive_hsk.py`.
 
-- `character(id = code point, char, traditional, pinyin, readings JSON, hsk_level 1–7, hsk_edition)`
-- `word(id = source entry id, simplified UNIQUE, traditional, pinyin, meanings JSON, readings JSON, pos, frequency_rank, hsk_level, hsk_edition)`
+- `character` — every character occurring in any HSK item (3,034): `id` = code
+  point, `char`, `traditional`, `pinyin` (most common reading), `readings` (JSON
+  list, most common first), `gloss` (short, curated, from
+  `data/character-gloss.tsv`), `hsk_level` (lowest level of any item containing
+  it), `hsk_edition`. When the syllabus lists the character itself as an item
+  (1,571 do), the item's data is carried on the same row: `meanings` (CEDICT,
+  primary reading), `alt_readings` (other dictionary forms), `pos`,
+  `frequency_rank`, `word_level` (its level *as an item*; 银 is a level-3
+  character but a level-6 item). Null otherwise.
+- `word` — multi-character items only (9,899): `id` = source entry id,
+  `simplified`, `traditional`, `pinyin`, `meanings` (primary form),
+  `alt_readings` (JSON `[{pinyin, traditional, meanings}]` for other forms, null
+  when there is one), `pos`, `frequency_rank`, `hsk_level`, `hsk_edition`.
 
-`hsk_edition` is `latest` (2026 list) or `old` (survives only from an earlier list;
-班主任 is `5/old`). Level 7 is the combined 7–9 band. Readings are ordered by
-commonness (pypinyin), and the first one is denormalized into `pinyin`/`meanings`.
-3,034 characters, 11,470 words. 啼 and 枫 are not in it; classical texts routinely
-contain non-HSK characters.
+A single character is a character everywhere — progress, lesson selection,
+display; there is no word row for it. `hsk_edition` is `latest` (2026 list) or
+`old`. Level 7 is the combined 7–9 band. Readings are ordered by commonness
+(pypinyin); nothing is stored twice. 啼 and 枫 are not in the master; classical
+texts routinely contain non-HSK characters.
 
 ### Layer 3: texts, text facts, lessons
 
@@ -198,6 +209,10 @@ real database from `data/` and query it.
 - 2026-10-18 Lessons are a separate entity, many per text, additive over the text's facts; study selections, expansions and notes move from text to lesson.
 - 2026-10-18 Readings are stored per position at intake, not resolved at view time.
 - 2026-10-18 The admin page may rewrite a text file's header (tags etc.), never its body.
+- 2026-10-25 Character glosses complete (3,034) and baked into `hsk.sql` by the derivation; the app no longer loads the TSV.
+- 2026-10-25 Single-character items consolidated onto `character` (`meanings`, `alt_readings`, `pos`, `frequency_rank`, `word_level`); `word` holds multi-character items only. Primary form in columns, other forms in `alt_readings`; the old `readings` column on `word` is gone.
+- 2026-10-25 Learner states are `unconfirmed` (no row) → `exposed` → `recognized` → `mastered`; one row per key with `changed_at`, no history; adding to a lesson sets `exposed` from `unconfirmed`.
+- 2026-10-25 Default lesson is "Learn 〈title〉"; intake records every word, the default selection excludes recognized and mastered; UI labels are English, content Chinese.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.
