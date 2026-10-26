@@ -45,12 +45,14 @@ tr.editing td { background: #f5f5f5; }
 .tint-level .lvl-6 { color: hsl(210, 60%, 27%); }
 .tint-level .lvl-7 { color: hsl(210, 60%, 20%); }
 .tint-level .lvl-0 { color: #999; }
-.tint-state .state-unrecognized { color: #b00020; }
+.tint-state .state-unconfirmed { color: #b00020; }
+.tint-state .state-exposed { color: #e65100; }
 .tint-state .state-recognized { color: #b8860b; }
 .tint-state .state-mastered { color: #2e7d32; }
 .bar { display: inline-block; width: 12rem; height: 0.8rem; background: #eee; vertical-align: middle; font-size: 0; }
 .bar span { display: inline-block; height: 100%; }
-.bar .s-unrecognized { background: #e57373; }
+.bar .s-unconfirmed { background: #e57373; }
+.bar .s-exposed { background: #ffab91; }
 .bar .s-recognized { background: #ffd54f; }
 .bar .s-mastered { background: #81c784; }
 .lessons a.current { font-weight: bold; text-decoration: none; }

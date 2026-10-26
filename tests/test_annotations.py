@@ -46,11 +46,11 @@ def post(site, path, **fields):
 
 def annotate_text_1(site):
     responses = [
-        post(site, "lessons", name="课"),
+        post(site, "lessons", name="A"),
         post(site, "characters/add", chars=["愁"]),
         post(site, "characters/愁/facts", gloss="忧愁"),
         post(site, "words/new", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7"),
-        post(site, "readings", p2="wù"),
+        post(site, "readings", p2="wu4"),
     ]
     assert [r.status_code for r in responses] == [303] * 5
 
@@ -81,29 +81,31 @@ def test_rewrite_of_unchanged_content_is_byte_identical(site):
 @pytest.mark.parametrize(
     "path, fields, message",
     [
-        ("words/new", {"surface": "月亮"}, "「月亮」没有出现在正文里"),
-        ("words/new", {"surface": "寒山寺"}, "字库里没有「寒山寺」，请填写释义"),
-        ("words/new", {"surface": "寒山寺", "gloss": "寺", "hsk_level": "9"}, "级只能是 1 到 7"),
-        ("readings", {"p2": "wu"}, "「乌」的读音只能是 wū、wù"),
-        ("readings", {"p7": "x"}, "位置 7 不是汉字"),
-        ("readings", {"p9": " "}, "位置 9「枫」的读音不能为空"),
+        ("words/new", {"surface": "月亮"}, "“月亮” does not occur in the text"),
+        ("words/new", {"surface": "寒山寺"}, "“寒山寺” is not in the master; a gloss is required"),
+        ("words/new", {"surface": "寒山寺", "gloss": "寺", "hsk_level": "9"}, "level must be 1 to 7"),
+        ("words/new", {"surface": "月", "gloss": "moon"}, "a single character is a character; add it in Characters"),
+        ("words/new", {"surface": " "}, "a word is required"),
+        ("readings", {"p2": "wu"}, "the reading of “乌” must be one of wū, wù"),
+        ("readings", {"p7": "x"}, "position 7 is not a Han character"),
+        ("readings", {"p9": " "}, "a reading for position 9 “枫” is required"),
     ],
 )
 def test_validation_returns_422_with_message(site, path, fields, message):
-    assert post(site, "lessons", name="课").status_code == 303
+    assert post(site, "lessons", name="A").status_code == 303
     r = post(site, path, **fields)
     assert r.status_code == 422 and message in r.text
     assert not site.file.exists()
 
 
 def test_validation_keeps_submitted_values(site):
-    assert post(site, "lessons", name="课").status_code == 303
+    assert post(site, "lessons", name="A").status_code == 303
     r = post(site, "words/new", surface="寒山寺", gloss="")
-    assert 'name="surface" placeholder="词" size="8" value="寒山寺"' in r.text
+    assert 'name="surface" placeholder="word" size="8" value="寒山寺"' in r.text
 
 
 def test_duplicate_add_is_a_noop(site):
-    assert post(site, "lessons", name="课").status_code == 303
+    assert post(site, "lessons", name="A").status_code == 303
     assert post(site, "words/new", surface="寒山寺", gloss="寺").status_code == 303
     assert post(site, "words/new", surface="寒山寺", gloss="别的").status_code == 303
     conn = db.connect(site.db, readonly=True)
@@ -131,12 +133,13 @@ def write_facts(site, text_id, **data):
 @pytest.mark.parametrize(
     "text_id, data, message",
     [
-        (99, {"characters": [{"char": "月"}]}, "99.json: 没有 id 为 99 的课文"),
-        (1, {"words": [{"surface": "寒山寺", "gloss": None}]}, "1.json: 字库里没有「寒山寺」"),
-        (1, {"readings": [{"position": 3, "char": "月", "pinyin": "yuè"}]}, "1.json: 位置 3 的字是「啼」，不是「月」；请重新 intake"),
-        (1, {"readings": [{"position": 7, "char": "，", "pinyin": "x"}]}, "1.json: 位置 7 不是汉字"),
-        (1, {"characters": [{"char": "愁", "origin": "guess"}]}, "1.json: origin 必须是"),
-        (1, {"characters": [{"gloss": "x"}]}, "1.json: 缺少字段 'char'"),
+        (99, {"characters": [{"char": "月"}]}, "99.json: no text with id 99"),
+        (1, {"words": [{"surface": "寒山寺", "gloss": None}]}, "1.json: “寒山寺” is not in the master"),
+        (1, {"words": [{"surface": "月", "gloss": "moon"}]}, "1.json: a single character is a character; add it in Characters"),
+        (1, {"readings": [{"position": 3, "char": "月", "pinyin": "yuè"}]}, "1.json: position 3 is “啼”, not “月”; re-run intake"),
+        (1, {"readings": [{"position": 7, "char": "，", "pinyin": "x"}]}, "1.json: position 7 is not a Han character"),
+        (1, {"characters": [{"char": "愁", "origin": "guess"}]}, "1.json: origin must be"),
+        (1, {"characters": [{"gloss": "x"}]}, "1.json: missing field 'char'"),
     ],
 )
 def test_build_rejects_bad_facts_files(site, tmp_path, text_id, data, message):
@@ -146,7 +149,7 @@ def test_build_rejects_bad_facts_files(site, tmp_path, text_id, data, message):
 
 
 def test_import_defaults_origin_and_keeps_character_facts(site, tmp_path):
-    write_facts(site, 1, characters=[{"char": "啼", "hsk_level": 7, "gloss": "鸟叫"}], words=[{"surface": "寒山寺", "gloss": "寺"}])
+    write_facts(site, 1, characters=[{"char": "啼", "hsk_level": 7, "gloss": "鸟叫"}], words=[{"surface": "寒山寺", "gloss": "寺", "pinyin": "han2 shan1 si4"}])
     db.build(tmp_path / "a.sqlite", site.data)
     conn = db.connect(tmp_path / "a.sqlite", readonly=True)
     assert tuple(conn.execute("SELECT hsk_level, gloss, origin FROM text_character").fetchone()) == (7, "鸟叫", "manual")

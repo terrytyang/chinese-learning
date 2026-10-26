@@ -1,7 +1,7 @@
 {
   "lesson_id": 4,
   "text_id": 4,
-  "name": "绝句（迟日江山丽）",
+  "name": "Learn 绝句（迟日江山丽）",
   "characters": [
     "丽",
     "子",
@@ -27,6 +27,6 @@
   "words": [
     "燕子"
   ],
-  "expansions": [],
+  "extra_words": [],
   "notes": []
 }

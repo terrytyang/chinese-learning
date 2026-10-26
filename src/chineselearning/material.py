@@ -10,6 +10,7 @@ from . import annotations, db, lessons, progress
 from .texts import HAN
 
 _S2T = OpenCC("s2t")
+ITEM_COLUMNS = ("meanings", "alt_readings", "pos", "frequency_rank", "word_level")  # a character's data as a syllabus item
 
 
 def traditional(body: str) -> list[str]:
@@ -39,7 +40,7 @@ def choose_highlight(words) -> list[dict]:
 
 
 def assemble(conn, text_id, lesson_id=None, learner_id=progress.LEARNER) -> dict:
-    """With a lesson: its selections, expansions and notes. Without: every text word, and no study list."""
+    """With a lesson: its selections, extra words and notes. Without: every text word, and no study list."""
     text = db.get_text(conn, text_id)
     body = text["body"]
     facts, states = annotations.load(conn, text_id), progress.current(conn, learner_id)
@@ -49,7 +50,7 @@ def assemble(conn, text_id, lesson_id=None, learner_id=progress.LEARNER) -> dict
     fact = {c["char"]: c for c in facts["characters"]}
     selected = {c["char"] for c in lesson["characters"]} if lesson else set()
     trad = traditional(body)
-    state = lambda kind, key: states.get((kind, key), "unrecognized")  # noqa: E731
+    state = lambda kind, key: states.get((kind, key), "unconfirmed")  # noqa: E731
 
     chars = []
     for i, ch in enumerate(body):
@@ -62,6 +63,7 @@ def assemble(conn, text_id, lesson_id=None, learner_id=progress.LEARNER) -> dict
             "pinyin": r["pinyin"] if r else None, "source": r["origin"] if r else "none", "traditional": trad[i],
             "hsk_level": f.get("hsk_level") or m.get("hsk_level"), "hsk_edition": m.get("hsk_edition"),
             "gloss": f.get("gloss") or m.get("gloss"), "in_master": m["found"],
+            **{k: m.get(k) for k in ITEM_COLUMNS},
             "study": ch in selected, "state": state("character", ch),
         })
     first = {}
@@ -83,7 +85,7 @@ def assemble(conn, text_id, lesson_id=None, learner_id=progress.LEARNER) -> dict
         "words": words,
         "highlight": choose_highlight(words),
         "study": [{k: first[c["char"]][k] for k in ("char", "pinyin", "gloss", "hsk_level", "state")} for c in lesson["characters"]] if lesson else [],
-        "expansions": [dict(word(e), char=e["char"]) for e in lesson["expansions"]] if lesson else [],
+        "extra_words": [dict(word(e), anchor=e["anchor"], kind=e["kind"]) for e in lesson["extra_words"]] if lesson else [],
         "notes": [{"anchor": n["anchor"], "note": n["note"]} for n in lesson["notes"]] if lesson else [],
         "counts": {"chars": len(han), "unique": len(unique), **{s: sum(1 for v in unique.values() if v == s) for s in progress.STATES}},
     }

@@ -64,17 +64,19 @@ CREATE TABLE lesson_word (        -- a text word to study in this lesson
   surface TEXT NOT NULL,
   PRIMARY KEY (lesson_id, surface)
 );
-CREATE TABLE lesson_expansion (   -- a character taught through a modern word (月 -> 月亮)
+CREATE TABLE lesson_extra_word (  -- a word the lesson teaches that the text does not contain as written
   lesson_id INTEGER NOT NULL REFERENCES lesson(id) ON DELETE CASCADE,
-  char TEXT NOT NULL,
   surface TEXT NOT NULL,
+  anchor TEXT,                     -- a passage of the text it relates to; one character = an expansion (月 -> 月亮)
   word_id INTEGER REFERENCES word(id),
-  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),  -- unlinked expansions only
+  pinyin TEXT,                     -- prefilled from the master or the characters' readings
+  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),  -- unlinked words only
   gloss TEXT,
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
-  PRIMARY KEY (lesson_id, char, surface),
   CHECK (word_id IS NOT NULL OR gloss IS NOT NULL)
 );
+-- The key is (lesson, surface, anchor or ''); SQLite forbids expressions in a PRIMARY KEY, so it is a unique index.
+CREATE UNIQUE INDEX lesson_extra_word_key ON lesson_extra_word (lesson_id, surface, coalesce(anchor, ''));
 CREATE TABLE lesson_note (        -- free commentary, optionally anchored on a substring of the text
   id INTEGER PRIMARY KEY,
   lesson_id INTEGER NOT NULL REFERENCES lesson(id) ON DELETE CASCADE,

@@ -11,7 +11,8 @@ from .texts import HAN, HAN_RUN
 PACKAGE_DIR = Path(__file__).parent
 SCHEMA_PATH = PACKAGE_DIR / "schema.sql"
 PROGRESS_SCHEMA_PATH = PACKAGE_DIR / "progress.sql"
-CONTENT_TABLES = ("character", "word", "text", "tag", "text_reading", "text_character", "text_word", "lesson", "lesson_character", "lesson_word", "lesson_expansion", "lesson_note")
+CONTENT_TABLES = ("character", "word", "text", "tag", "text_reading", "text_character", "text_word", "lesson", "lesson_character", "lesson_word", "lesson_extra_word", "lesson_note")
+JSON_COLUMNS = ("readings", "meanings", "alt_readings")
 
 
 def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
@@ -24,35 +25,9 @@ def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
         Path(progress_path).parent.mkdir(parents=True, exist_ok=True)
         conn.execute("ATTACH DATABASE ? AS progress", (str(Path(progress_path).resolve()),))
         conn.executescript(PROGRESS_SCHEMA_PATH.read_text(encoding="utf-8"))
-        conn.execute("INSERT INTO progress.learner (id, name) SELECT 1, '学生' WHERE NOT EXISTS (SELECT 1 FROM progress.learner)")
+        conn.execute("INSERT INTO progress.learner (id, name) SELECT 1, 'Student' WHERE NOT EXISTS (SELECT 1 FROM progress.learner)")
         conn.commit()
     return conn
-
-
-class GlossFileError(ValueError):
-    """data/character-gloss.tsv violates its format; the message names the line."""
-
-
-def load_character_glosses(conn, path) -> int:
-    """Apply the curated overlay `char<TAB>gloss` (rules: docs/prompts/character-gloss.md). Returns how many were set."""
-    seen = {}
-    for number, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
-        if not line.strip() or line.startswith("#"):
-            continue
-        columns = line.split("\t")
-        if len(columns) != 2:
-            raise GlossFileError(f"{path}:{number}: expected two tab-separated columns, got {len(columns)}")
-        char, gloss = columns[0].strip(), columns[1].strip()
-        if not gloss:
-            raise GlossFileError(f"{path}:{number}: blank gloss for {char!r}")
-        if len(gloss) > 120:
-            raise GlossFileError(f"{path}:{number}: gloss for {char!r} is {len(gloss)} characters, over 120")
-        if char in seen:
-            raise GlossFileError(f"{path}:{number}: duplicate character {char!r} (also on line {seen[char]})")
-        if conn.execute("UPDATE character SET gloss = ? WHERE char = ?", (gloss, char)).rowcount == 0:
-            raise GlossFileError(f"{path}:{number}: character {char!r} is not in the master")
-        seen[char] = number
-    return len(seen)
 
 
 def build(db_path, data_dir) -> dict[str, int]:
@@ -65,7 +40,6 @@ def build(db_path, data_dir) -> dict[str, int]:
     conn = connect(db_path)
     with conn:
         conn.executescript((data_dir / "hsk.sql").read_text(encoding="utf-8"))
-        load_character_glosses(conn, data_dir / "character-gloss.tsv")
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         for t in texts:
             conn.execute(
@@ -78,7 +52,6 @@ def build(db_path, data_dir) -> dict[str, int]:
         annotation_files.import_all(conn, data_dir)
         lesson_files.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
-    counts["character_gloss"] = conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0]
     conn.close()
     return counts
 
@@ -112,9 +85,8 @@ def list_texts(conn, tag=None, author=None, period=None) -> list[dict]:
     return [dict(r, tags=text_tags(conn, r["id"])) for r in rows]
 
 
-def update_text_info(conn, text_id, author, period, tags):
-    """Mirror a rewritten header: author, period and the tag set (new tag names are created)."""
-    conn.execute("UPDATE text SET author = ?, period = ? WHERE id = ?", (author, period, text_id))
+def update_text_tags(conn, text_id, tags):
+    """Mirror a rewritten header: the tag set (new tag names are created)."""
     conn.execute("DELETE FROM text_tag WHERE text_id = ?", (text_id,))
     for tag in tags:
         conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
@@ -138,26 +110,42 @@ def unique_characters(body: str) -> list[str]:
     return list(dict.fromkeys(HAN.findall(body)))
 
 
+def _decoded(row) -> dict:
+    """A master row with its JSON columns parsed; a null list column becomes []."""
+    out = dict(row)
+    for column in JSON_COLUMNS:
+        if column in out:
+            out[column] = json.loads(out[column]) if out[column] else []
+    return out
+
+
 def lookup_characters(conn, chars) -> list[dict]:
-    """One entry per character, in the given order; `found` is False when absent from the master."""
+    """One entry per character, in the given order; `found` is False when absent from the master.
+
+    A found entry carries every `character` column: the readings list, and the item data
+    (`meanings`, `alt_readings`, `pos`, `frequency_rank`, `word_level`) when the syllabus lists it alone.
+    """
     chars = list(dict.fromkeys(chars))
     found = {}
     for chunk in _chunks(chars):
         marks = ",".join("?" * len(chunk))
         for r in conn.execute(f"SELECT * FROM character WHERE char IN ({marks})", chunk):
-            found[r["char"]] = dict(r, readings=json.loads(r["readings"]), found=True)
+            found[r["char"]] = dict(_decoded(r), found=True)
     return [found.get(c, {"char": c, "found": False}) for c in chars]
 
 
 def find_words(conn, body: str) -> list[dict]:
-    """Every 2–4 character window inside a run of Han characters that is a master word, once each, in order of first appearance."""
+    """Every 2–4 character window inside a run of Han characters that is a master word, once each, in order of first appearance.
+
+    Each entry is the `word` row with `meanings` and `alt_readings` parsed; the full list of forms is the primary columns plus `alt_readings`.
+    """
     runs = [m.group() for m in HAN_RUN.finditer(body)]
     candidates = list(dict.fromkeys(run[i : i + n] for run in runs for i in range(len(run)) for n in (2, 3, 4) if i + n <= len(run)))
     found = {}
     for chunk in _chunks(candidates):
         marks = ",".join("?" * len(chunk))
         for r in conn.execute(f"SELECT * FROM word WHERE simplified IN ({marks})", chunk):
-            found[r["simplified"]] = dict(r, meanings=json.loads(r["meanings"]), readings=json.loads(r["readings"]))
+            found[r["simplified"]] = _decoded(r)
     return [found[c] for c in candidates if c in found]
 
 

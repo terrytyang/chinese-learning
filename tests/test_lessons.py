@@ -1,4 +1,4 @@
-"""Lessons: create, rename, delete, selections and additions, files, and import."""
+"""Lessons: create, rename, delete, selections, extra words (expansions and related words), files, and import."""
 
 import json
 
@@ -10,24 +10,41 @@ from chineselearning.annotations import AnnotationError
 EXPECTED_FILE = """{
   "lesson_id": 1,
   "text_id": 1,
-  "name": "课",
+  "name": "A",
   "characters": [
     "愁"
   ],
   "words": [
     "寒山寺"
   ],
-  "expansions": [
+  "extra_words": [
     {
-      "char": "乌",
-      "surface": "乌鸦",
-      "hsk_level": 7,
-      "gloss": "黑色的鸟",
+      "anchor": null,
+      "surface": "半夜",
+      "pinyin": "bàn yè",
+      "gloss": null,
       "origin": "manual"
     },
     {
-      "char": "月",
+      "anchor": "乌",
+      "surface": "乌鸦",
+      "pinyin": "wū yā",
+      "hsk_level": 7,
+      "gloss": "crow",
+      "origin": "manual"
+    },
+    {
+      "anchor": "姑苏",
+      "surface": "苏州",
+      "pinyin": "sū zhōu",
+      "hsk_level": 4,
+      "gloss": "Suzhou",
+      "origin": "manual"
+    },
+    {
+      "anchor": "月",
       "surface": "月亮",
+      "pinyin": "yuè liang",
       "gloss": null,
       "origin": "manual"
     }
@@ -52,13 +69,15 @@ def lesson_file(site, text_id=1, lesson_id=1):
 
 
 def fill_lesson(site):
-    r = post(site, "lessons", name="课")
+    r = post(site, "lessons", name="A")
     assert (r.status_code, r.headers["location"]) == (303, "/texts/1?lesson=1#lesson")
     assert post(site, "characters/add", chars=["愁"]).status_code == 303
     assert post(site, "words/new", surface="寒山寺", gloss="苏州城外的寺庙", hsk_level="7").status_code == 303
-    assert post(site, "expansions", char="月", surface="月亮").status_code == 303
-    assert post(site, "expansions", char="乌", surface="乌鸦").status_code == 200  # not a master word: second form
-    assert post(site, "expansions", char="乌", surface="乌鸦", step="2", gloss="黑色的鸟", hsk_level="7").status_code == 303
+    assert post(site, "extra-words", anchor="月", surface="月亮").status_code == 303
+    assert post(site, "extra-words", anchor="乌", surface="乌鸦").status_code == 200  # not a master word: second form
+    assert post(site, "extra-words", anchor="乌", surface="乌鸦", step="2", pinyin="wu1 ya1", gloss="crow").status_code == 303
+    assert post(site, "extra-words", anchor="姑苏", surface="苏州", step="2", gloss="Suzhou", hsk_level="4").status_code == 303
+    assert post(site, "extra-words", anchor="", surface="半夜").status_code == 303
     assert post(site, "notes", anchor="月落乌啼", note="首句写景").status_code == 303
 
 
@@ -66,12 +85,13 @@ def test_lesson_round_trip_file_and_rebuild(site, tmp_path):
     fill_lesson(site)
     assert lesson_file(site).read_text(encoding="utf-8") == EXPECTED_FILE
     page = site.client.get("/texts/1").text
-    assert '<tr id="char-愁">' in page and '<tr id="word-寒山寺">' in page and '<tr id="expansion-乌-乌鸦">' in page and '<tr id="note-1">' in page
+    assert '<tr id="char-愁">' in page and '<tr id="word-寒山寺">' in page and '<tr id="extra-乌-乌鸦">' in page and '<tr id="extra-半夜">' in page and '<tr id="note-1">' in page
     counts = db.build(tmp_path / "again.sqlite", site.data)
-    assert (counts["lesson"], counts["lesson_character"], counts["lesson_word"], counts["lesson_expansion"], counts["lesson_note"]) == (1, 1, 1, 2, 1)
+    assert (counts["lesson"], counts["lesson_character"], counts["lesson_word"], counts["lesson_extra_word"], counts["lesson_note"]) == (1, 1, 1, 4, 1)
     conn = db.connect(tmp_path / "again.sqlite", readonly=True)
     assert lesson_files.export(conn, 1) == json.loads(EXPECTED_FILE)
-    assert {r["surface"]: r["word_id"] is not None for r in conn.execute("SELECT surface, word_id FROM lesson_expansion")} == {"月亮": True, "乌鸦": False}
+    assert {r["surface"]: r["word_id"] is not None for r in conn.execute("SELECT surface, word_id FROM lesson_extra_word")} == {"月亮": True, "乌鸦": False, "苏州": False, "半夜": True}
+    assert [(e["surface"], e["kind"]) for e in lessons.load(conn, 1)["extra_words"]] == [("月亮", "expansion"), ("乌鸦", "expansion"), ("苏州", "related"), ("半夜", "related")]
     before = lesson_file(site).read_bytes()
     lesson_files.write_files(db.connect(site.db), 1, site.data)
     assert lesson_file(site).read_bytes() == before
@@ -79,17 +99,17 @@ def test_lesson_round_trip_file_and_rebuild(site, tmp_path):
 
 def test_create_rename_delete(site):
     assert post(site, "lessons", name=" ").status_code == 422
-    assert post(site, "lessons", name="一级字").status_code == 303
-    r = post(site, "lessons", name="一级字")
-    assert r.status_code == 422 and "已有名为「一级字」的课程" in r.text
-    assert post(site, "lessons", name="二级字").headers["location"] == "/texts/1?lesson=2#lesson"
+    assert post(site, "lessons", name="Level 1").status_code == 303
+    r = post(site, "lessons", name="Level 1")
+    assert r.status_code == 422 and "a lesson named “Level 1” already exists" in r.text
+    assert post(site, "lessons", name="Level 2").headers["location"] == "/texts/1?lesson=2#lesson"
     assert sorted(p.name for p in (site.data / "lessons").iterdir()) == ["1-1.json", "1-2.json"]
-    assert post(site, "lessons/1/rename", name="重名").status_code == 303
-    assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["name"] == "重名"
-    assert post(site, "lessons/1/rename", name="二级字").status_code == 422
+    assert post(site, "lessons/1/rename", name="Renamed").status_code == 303
+    assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["name"] == "Renamed"
+    assert post(site, "lessons/1/rename", name="Level 2").status_code == 422
     assert post(site, "characters/add", chars=["月"]).status_code == 303  # into lesson 1, the default
     r = post(site, "lessons/1/delete")
-    assert r.status_code == 422 and "课程不是空的" in r.text
+    assert r.status_code == 422 and "the lesson is not empty" in r.text
     assert post(site, "characters/月/remove").status_code == 303
     assert post(site, "lessons/1/delete").headers["location"] == "/texts/1#lesson"
     assert [p.name for p in (site.data / "lessons").iterdir()] == ["1-2.json"]
@@ -98,9 +118,9 @@ def test_create_rename_delete(site):
 
 
 def test_lesson_selection_and_links(site):
-    assert post(site, "lessons", name="甲").status_code == 303 and post(site, "lessons", name="乙").status_code == 303
+    assert post(site, "lessons", name="A").status_code == 303 and post(site, "lessons", name="B").status_code == 303
     page = site.client.get("/texts/1", params={"lesson": 2}).text
-    assert '<a href="/texts/1?lesson=2" class="current">乙</a>' in page and "<h2>学习字 <small>乙</small></h2>" in page
+    assert '<a href="/texts/1?lesson=2" class="current">B</a>' in page and "<h2>Characters <small>B</small></h2>" in page
     assert 'action="/texts/1/characters/add?lesson=2"' in page and 'action="/texts/1/lessons/2/rename?lesson=2"' in page
     r = site.client.post("/texts/1/characters/add?lesson=2", data={"chars": ["月"]})
     assert (r.status_code, r.headers["location"]) == (303, "/texts/1?lesson=2#characters")
@@ -110,24 +130,24 @@ def test_lesson_selection_and_links(site):
     facts = json.loads(site.file.read_text(encoding="utf-8"))
     assert facts["characters"] == [{"char": "月", "hsk_level": None, "gloss": "月亮", "origin": "manual"}]
     assert 'value="月亮"' in site.client.get("/texts/1", params={"lesson": 2}).text.split('id="char-月"')[1].split("</tr>")[0]
-    assert '<a href="/texts/1?lesson=1">甲</a> <a href="/texts/1?lesson=2">乙</a>' in site.client.get("/texts").text
+    assert '<a href="/texts/1?lesson=1">A</a> <a href="/texts/1?lesson=2">B</a>' in site.client.get("/texts").text
     page = site.client.get("/texts/1", params={"lesson": 2, "cmin": "3"}).text
     assert 'action="/texts/1/progress?lesson=2&amp;cmin=3"' in page and '<input type="hidden" name="lesson" value="2">' in page
 
 
 def test_without_a_lesson_lesson_forms_are_refused(site):
-    assert "还没有课程" in site.client.get("/texts/1").text
+    assert "No lessons yet" in site.client.get("/texts/1").text
     r = post(site, "characters/add", chars=["月"])
-    assert r.status_code == 422 and "请先新建课程" in r.text
+    assert r.status_code == 422 and "create a lesson first" in r.text
     assert post(site, "notes", note="x").status_code == 422
     assert post(site, "words/new", surface="寒山寺", gloss="寺").status_code == 422
     assert post(site, "readings", p0="yuè").status_code == 303  # readings are facts: no lesson needed
 
 
 def test_select_requires_a_text_word_and_unselect(site):
-    assert post(site, "lessons", name="课").status_code == 303
+    assert post(site, "lessons", name="A").status_code == 303
     r = post(site, "words/add", words=["寒山寺"])
-    assert r.status_code == 422 and "还不是课文的词" in r.text
+    assert r.status_code == 422 and "is not yet a word of the text" in r.text
     assert post(site, "words/new", surface="寒山寺", gloss="寺").status_code == 303
     assert post(site, "words/add", words=["寒山寺"]).status_code == 303
     assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["words"] == ["寒山寺"]
@@ -135,6 +155,34 @@ def test_select_requires_a_text_word_and_unselect(site):
     assert post(site, "words/寒山寺/remove").status_code == 303
     assert json.loads(lesson_file(site).read_text(encoding="utf-8"))["words"] == []
     assert 'name="words" value="寒山寺"' in site.client.get("/texts/1").text
+
+
+def test_extra_word_validation(site):
+    assert post(site, "lessons", name="A").status_code == 303 and post(site, "characters/add", chars=["月"]).status_code == 303
+    conn = db.connect(site.db)
+    with pytest.raises(AnnotationError, match="“太阳” does not occur in the text"):
+        lessons.add_extra_word(conn, 1, "太阳", anchor="太阳", gloss="sun")
+    with pytest.raises(AnnotationError, match="an expansion of “月” must contain it; “太阳” does not"):
+        lessons.add_extra_word(conn, 1, "太阳", anchor="月")
+    with pytest.raises(AnnotationError, match="“月影” is not in the master; a gloss is required"):
+        lessons.add_extra_word(conn, 1, "月影", anchor="月")
+    with pytest.raises(AnnotationError, match="a single character is a character; add it in Characters"):
+        lessons.add_extra_word(conn, 1, "月", anchor="月")
+    with pytest.raises(AnnotationError, match="a word is required"):
+        lessons.add_extra_word(conn, 1, " ")
+    with pytest.raises(AnnotationError, match="level must be 1 to 7"):
+        lessons.add_extra_word(conn, 1, "月影", anchor="月", gloss="x", hsk_level="9")
+    lessons.add_extra_word(conn, 1, "月影", anchor="月", gloss="moon shadow")  # unlinked: pinyin from the characters, level defaults to 7
+    lessons.add_extra_word(conn, 1, "月亮", anchor="月", hsk_level="4", pinyin="yue4 liang5")  # linked: no level stored, pinyin as given
+    lessons.add_extra_word(conn, 1, "半夜", anchor="夜半")
+    rows = [tuple(r) for r in conn.execute("SELECT surface, anchor, word_id IS NOT NULL, pinyin, hsk_level, gloss FROM lesson_extra_word ORDER BY surface")]
+    assert rows == [("半夜", "夜半", 1, "bàn yè", None, None), ("月亮", "月", 1, "yuè liang", None, None), ("月影", "月", 0, "yuè yǐng", 7, "moon shadow")]
+    r = post(site, "extra-words", anchor="太阳", surface="月亮")
+    assert r.status_code == 422 and "“太阳” does not occur in the text" in r.text
+    r = post(site, "extra-words", anchor="月", surface="")
+    assert r.status_code == 422 and "a word is required" in r.text
+    r = post(site, "extra-words", anchor="", surface="月")
+    assert r.status_code == 422 and "a single character is a character; add it in Characters" in r.text
 
 
 def write_lesson(site, filename, **data):
@@ -146,11 +194,17 @@ def write_lesson(site, filename, **data):
 @pytest.mark.parametrize(
     "name, data, message",
     [
-        ("9-1.json", {"lesson_id": 1, "text_id": 9, "name": "x"}, "9-1.json: 没有 id 为 9 的课文"),
-        ("1-7.json", {"lesson_id": 1, "text_id": 1, "name": "x"}, "1-7.json: 文件名应为 1-1.json"),
-        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "characters": ["人"]}, "1-1.json: 「人」不是正文里的单个汉字"),
-        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "words": ["寒山寺"]}, "1-1.json: 「寒山寺」还不是课文的词"),
-        ("1-1.json", {"lesson_id": 1, "text_id": 1}, "1-1.json: 缺少字段 'name'"),
+        ("9-1.json", {"lesson_id": 1, "text_id": 9, "name": "x"}, "9-1.json: no text with id 9"),
+        ("1-7.json", {"lesson_id": 1, "text_id": 1, "name": "x"}, "1-7.json: the file name should be 1-1.json"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "characters": ["人"]}, "1-1.json: “人” is not a single character of the text"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "words": ["寒山寺"]}, "1-1.json: “寒山寺” is not yet a word of the text"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "words": ["月"]}, "1-1.json: a single character is a character; add it in Characters"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月", "anchor": "月"}]}, "1-1.json: a single character is a character"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "太阳", "anchor": "月"}]}, "1-1.json: an expansion of “月” must contain it"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月影", "anchor": "月"}]}, "1-1.json: “月影” is not in the master; a gloss is required"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月亮", "anchor": "太阳"}]}, "1-1.json: “太阳” does not occur in the text"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"anchor": "月"}]}, "1-1.json: missing field 'surface'"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1}, "1-1.json: missing field 'name'"),
     ],
 )
 def test_build_rejects_bad_lesson_files(site, tmp_path, name, data, message):
@@ -160,7 +214,7 @@ def test_build_rejects_bad_lesson_files(site, tmp_path, name, data, message):
 
 
 def test_two_files_claiming_one_lesson_id(site, tmp_path):
-    write_lesson(site, "1-1.json", lesson_id=1, text_id=1, name="甲")
-    write_lesson(site, "2-1.json", lesson_id=1, text_id=2, name="乙")
-    with pytest.raises(AnnotationError, match="2-1.json: 课程 id 1 已被占用"):
+    write_lesson(site, "1-1.json", lesson_id=1, text_id=1, name="A")
+    write_lesson(site, "2-1.json", lesson_id=1, text_id=2, name="B")
+    with pytest.raises(AnnotationError, match="2-1.json: lesson id 1 is already taken"):
         db.build(tmp_path / "x.sqlite", site.data)

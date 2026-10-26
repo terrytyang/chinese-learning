@@ -5,25 +5,25 @@
       "position": 0,
       "char": "月",
       "pinyin": "yuè",
-      "origin": "manual"
+      "origin": "auto"
     },
     {
       "position": 1,
       "char": "落",
       "pinyin": "luò",
-      "origin": "manual"
+      "origin": "auto"
     },
     {
       "position": 2,
       "char": "乌",
       "pinyin": "wū",
-      "origin": "manual"
+      "origin": "auto"
     },
     {
       "position": 3,
       "char": "啼",
-      "pinyin": "ti",
-      "origin": "manual"
+      "pinyin": "tí",
+      "origin": "auto"
     },
     {
       "position": 4,
@@ -47,6 +47,12 @@
       "position": 8,
       "char": "江",
       "pinyin": "jiāng",
+      "origin": "auto"
+    },
+    {
+      "position": 9,
+      "char": "枫",
+      "pinyin": "fēng",
       "origin": "auto"
     },
     {
@@ -167,36 +173,16 @@
   "characters": [
     {
       "char": "啼",
-      "hsk_level": 5,
-      "gloss": "chirping",
-      "origin": "manual"
-    },
-    {
-      "char": "月",
       "hsk_level": null,
-      "gloss": "moon, month",
-      "origin": "manual"
+      "gloss": null,
+      "origin": "auto"
     },
     {
       "char": "枫",
-      "hsk_level": 5,
-      "gloss": "maple",
-      "origin": "manual"
-    },
-    {
-      "char": "落",
       "hsk_level": null,
-      "gloss": "falls",
-      "origin": "manual"
+      "gloss": null,
+      "origin": "auto"
     }
   ],
-  "words": [
-    {
-      "surface": "寒山寺",
-      "pinyin": "hán shān sì",
-      "hsk_level": null,
-      "gloss": "a mountain",
-      "origin": "manual"
-    }
-  ]
+  "words": []
 }

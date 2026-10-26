@@ -1,9 +1,10 @@
-"""Admin routes under /texts: the text page (info, lessons, readings, characters, words, expansions, notes, learner state) and a JSON lookup."""
+"""Admin routes under /texts: the text page (tags, lessons, readings, characters, words, extra words, notes, learner state) and a JSON lookup."""
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from . import admin_page, annotation_files, annotations, db, lesson_files, lessons, progress, texts
+from . import pinyin as pinyin_
 from .annotations import AnnotationError
 from .progress import ProgressError
 from .texts import TextFileError
@@ -23,7 +24,7 @@ def router(templates, connection, data_dir) -> APIRouter:
     def require_text(conn, text_id) -> dict:
         row = db.get_text(conn, text_id)
         if row is None:
-            raise HTTPException(status_code=404, detail="没有这篇课文")
+            raise HTTPException(status_code=404, detail="no such text")
         return row
 
     def page(request, conn, text_id, status=200, error=None, submitted=None, editing=None, pending=None):
@@ -53,8 +54,17 @@ def router(templates, connection, data_dir) -> APIRouter:
     def in_lesson(request, conn, text_id) -> int:
         lesson = admin_page.view(request, conn, text_id)["lesson"]
         if lesson is None:
-            raise AnnotationError("请先新建课程")
+            raise AnnotationError("create a lesson first")
         return lesson["id"]
+
+    def select_character(conn, lesson_id, char):
+        """Adding to a lesson is the one implicit state change: unconfirmed becomes exposed."""
+        lessons.add_character(conn, lesson_id, char)
+        progress.expose(conn, "character", char.strip())
+
+    def select_word(conn, lesson_id, surface):
+        lessons.add_word(conn, lesson_id, surface)
+        progress.expose(conn, "word", surface.strip())
 
     @r.get("/texts", response_class=HTMLResponse)
     def index(request: Request, tag: str = "", author: str = "", period: str = "", conn=Depends(connection)):
@@ -70,12 +80,13 @@ def router(templates, connection, data_dir) -> APIRouter:
     def api_characters(chars: str = "", conn=Depends(connection)):
         return {"characters": db.lookup_characters(conn, db.unique_characters(chars))}
 
-    @r.post("/texts/{text_id}/info")
-    def info(request: Request, text_id: int, author: str = Form(""), period: str = Form(""), tags: str = Form(""), conn=Depends(connection)):
+    @r.post("/texts/{text_id}/tags")
+    def tags(request: Request, text_id: int, tags: str = Form(""), conn=Depends(connection)):
+        """The only header edit from the app: the `tags:` line."""
         def change():
-            text = texts.write_header(texts.path_for(data_dir / "texts", text_id), author=author, period=period, tags=tags)
-            db.update_text_info(conn, text_id, text.author, text.period, text.tags)
-        return save(request, conn, text_id, change, "info", {"form": "info", "author": author, "period": period, "tags": tags}, write=False)
+            text = texts.write_header(texts.path_for(data_dir / "texts", text_id), tags=tags)
+            db.update_text_tags(conn, text_id, text.tags)
+        return save(request, conn, text_id, change, "info", {"form": "tags", "tags": tags}, write=False)
 
     @r.post("/texts/{text_id}/lessons")
     def lesson_create(request: Request, text_id: int, name: str = Form(""), conn=Depends(connection)):
@@ -91,14 +102,14 @@ def router(templates, connection, data_dir) -> APIRouter:
 
     @r.post("/texts/{text_id}/readings")
     def readings_save(request: Request, text_id: int, fields=Depends(raw_form), conn=Depends(connection)):
-        values = {int(k[1:]): v.strip() for k, v in fields.items() if k[:1] == "p" and k[1:].isdigit()}
+        values = {int(k[1:]): pinyin_.to_marks(v.strip()) for k, v in fields.items() if k[:1] == "p" and k[1:].isdigit()}
 
         def change():
             body = require_text(conn, text_id)["body"]
             stored = {x["position"]: x["pinyin"] for x in annotations.load(conn, text_id)["readings"]}
             for position, value in sorted(values.items()):
                 if not value:
-                    raise AnnotationError(f"位置 {position}「{body[position]}」的读音不能为空")
+                    raise AnnotationError(f"a reading for position {position} “{body[position]}” is required")
                 if value != stored.get(position):
                     annotations.set_reading(conn, text_id, position, body[position], value)
         return save(request, conn, text_id, change, "reading", {"form": "pinyin", **fields}, editing=("pinyin",))
@@ -108,7 +119,7 @@ def router(templates, connection, data_dir) -> APIRouter:
         def change():
             lesson_id, v = in_lesson(request, conn, text_id), admin_page.view(request, conn, text_id)
             for ch in [c["char"] for c in admin_page.candidate_characters(conn, text_id, lesson_id, v["filters"])] if all else chars:
-                lessons.add_character(conn, lesson_id, ch)
+                select_character(conn, lesson_id, ch)
         return save(request, conn, text_id, change, "characters", {"form": "chars-add"})
 
     @r.post("/texts/{text_id}/characters/{char}/{action}")
@@ -125,7 +136,7 @@ def router(templates, connection, data_dir) -> APIRouter:
         def change():
             lesson_id, v = in_lesson(request, conn, text_id), admin_page.view(request, conn, text_id)
             for surface in [w["surface"] for w in admin_page.candidate_words(conn, text_id, lesson_id, v["filters"])] if all else words:
-                lessons.add_word(conn, lesson_id, surface)
+                select_word(conn, lesson_id, surface)
         return save(request, conn, text_id, change, "words", {"form": "words-add"})
 
     @r.post("/texts/{text_id}/words/new")
@@ -133,7 +144,7 @@ def router(templates, connection, data_dir) -> APIRouter:
         def change():
             lesson_id = in_lesson(request, conn, text_id)
             annotations.add_word(conn, text_id, f["surface"], f["gloss"], f["pinyin"], hsk_level=f["hsk_level"])
-            lessons.add_word(conn, lesson_id, f["surface"])
+            select_word(conn, lesson_id, f["surface"])
         return save(request, conn, text_id, change, f"word-{f['surface'].strip()}", {"form": "word-new", **f})
 
     @r.post("/texts/{text_id}/words/{word}/{action}")
@@ -147,33 +158,38 @@ def router(templates, connection, data_dir) -> APIRouter:
             return save(request, conn, text_id, change, f"word-{word}", {"form": f"word-facts:{word}", **f}, editing=("words", word))
         raise HTTPException(status_code=404)
 
-    @r.post("/texts/{text_id}/expansions")
-    def expansion_add(
-        request: Request, text_id: int, char: str = Form(""), surface: str = Form(""), gloss: str = Form(""), hsk_level: str = Form(""),
-        state: str = Form(""), step: str = Form(""), conn=Depends(connection),
+    @r.post("/texts/{text_id}/extra-words")
+    def extra_word_add(
+        request: Request, text_id: int, anchor: str = Form(""), surface: str = Form(""), pinyin: str = Form(""), gloss: str = Form(""),
+        hsk_level: str = Form(""), state: str = Form(""), step: str = Form(""), conn=Depends(connection),
     ):
-        """Two steps: a master word links at once; otherwise the page returns asking for gloss, level and state (step 2)."""
-        word = surface.strip()
+        """Two steps: a master word links at once; otherwise the page returns asking for pinyin, gloss, level and state (step 2).
+
+        The form is `extra-add:<anchor>` / `extra-local:<anchor>`; an expansion form carries its character as the anchor."""
+        word, anchor = surface.strip(), anchor.strip()
         local = step == "2"
-        submitted = {"form": f"expansion-{'local' if local else 'add'}:{char}", "char": char, "surface": surface, "gloss": gloss, "hsk_level": hsk_level, "state": state}
-        pending = {"char": char, "surface": word} if local else None
-        if not local and word and not conn.execute("SELECT 1 FROM word WHERE simplified = ?", (word,)).fetchone():
-            return page(request, conn, text_id, 200, None, {**submitted, "form": f"expansion-local:{char}"}, pending={"char": char, "surface": word})
+        submitted = {"form": f"extra-{'local' if local else 'add'}:{anchor}", "anchor": anchor, "surface": surface, "pinyin": pinyin, "gloss": gloss, "hsk_level": hsk_level, "state": state}
+        pending = {"anchor": anchor, "surface": word} if local else None
+        if not local and len(word) > 1 and not conn.execute("SELECT 1 FROM word WHERE simplified = ?", (word,)).fetchone():
+            return page(request, conn, text_id, 200, None, {**submitted, "form": f"extra-local:{anchor}"}, pending={"anchor": anchor, "surface": word})
 
         def change():
-            lessons.add_expansion(conn, in_lesson(request, conn, text_id), char, surface, gloss if local else None, hsk_level=hsk_level if local else None)
-            if local and state and state != "unrecognized":
+            lessons.add_extra_word(conn, in_lesson(request, conn, text_id), surface, anchor, gloss if local else None, pinyin if local else None, hsk_level=hsk_level if local else None)
+            progress.expose(conn, "word", word)
+            if local and state and state != "unconfirmed":
                 progress.set_state(conn, "word", word, state)
-        return save(request, conn, text_id, change, f"expansion-{char}-{word}", submitted, pending=pending)
+        return save(request, conn, text_id, change, f"extra-{lessons.extra_key(anchor, word)}", submitted, pending=pending)
 
-    @r.post("/texts/{text_id}/expansions/{char}/{word}/{action}")
-    def expansion_action(request: Request, text_id: int, char: str, word: str, action: str, f=Depends(edit_fields), conn=Depends(connection)):
-        key = f"{char}/{word}"
+    @r.post("/texts/{text_id}/extra-words/{word}/{action}")
+    def extra_word_action(request: Request, text_id: int, word: str, action: str, f=Depends(edit_fields), conn=Depends(connection)):
+        """The row is (word, anchor); `anchor` comes as a form field and is kept on update."""
+        anchor = f["anchor"].strip()
+        key = lessons.extra_key(anchor, word)
         if action == "update":
-            change = lambda: lessons.update(conn, in_lesson(request, conn, text_id), "expansions", (char, word), f)  # noqa: E731
-            return save(request, conn, text_id, change, f"expansion-{char}-{f['surface'].strip()}", {"form": f"expansion-edit:{key}", **f}, editing=("expansions", key))
+            change = lambda: lessons.update(conn, in_lesson(request, conn, text_id), "extra_words", (word, anchor), f)  # noqa: E731
+            return save(request, conn, text_id, change, f"extra-{lessons.extra_key(anchor, f['surface'].strip())}", {"form": f"extra-edit:{key}", **f}, editing=("extra_words", key))
         if action == "delete":
-            return save(request, conn, text_id, lambda: lessons.remove(conn, in_lesson(request, conn, text_id), "expansions", char, word), "expansions", {"form": "expansions"})
+            return save(request, conn, text_id, lambda: lessons.remove(conn, in_lesson(request, conn, text_id), "extra_words", word, anchor), "expansions" if len(anchor) == 1 else "related", {"form": "extra"})
         raise HTTPException(status_code=404)
 
     @r.post("/texts/{text_id}/notes")

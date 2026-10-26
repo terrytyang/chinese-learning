@@ -584,6 +584,12 @@
       "origin": "auto"
     },
     {
+      "position": 122,
+      "char": "俨",
+      "pinyin": "yǎn",
+      "origin": "auto"
+    },
+    {
       "position": 123,
       "char": "然",
       "pinyin": "rán",
@@ -641,6 +647,12 @@
       "position": 133,
       "char": "属",
       "pinyin": "shǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 135,
+      "char": "阡",
+      "pinyin": "qiān",
       "origin": "auto"
     },
     {
@@ -785,6 +797,12 @@
       "position": 164,
       "char": "垂",
       "pinyin": "chuí",
+      "origin": "auto"
+    },
+    {
+      "position": 165,
+      "char": "髫",
+      "pinyin": "tiáo",
       "origin": "auto"
     },
     {
@@ -1046,6 +1064,12 @@
       "origin": "auto"
     },
     {
+      "position": 221,
+      "char": "秦",
+      "pinyin": "qín",
+      "origin": "auto"
+    },
+    {
       "position": 222,
       "char": "时",
       "pinyin": "shí",
@@ -1073,6 +1097,12 @@
       "position": 227,
       "char": "子",
       "pinyin": "zǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 228,
+      "char": "邑",
+      "pinyin": "yì",
       "origin": "auto"
     },
     {
@@ -1121,6 +1151,12 @@
       "position": 237,
       "char": "出",
       "pinyin": "chū",
+      "origin": "auto"
+    },
+    {
+      "position": 238,
+      "char": "焉",
+      "pinyin": "yān",
       "origin": "auto"
     },
     {
@@ -1229,6 +1265,12 @@
       "position": 260,
       "char": "论",
       "pinyin": "lùn",
+      "origin": "auto"
+    },
+    {
+      "position": 261,
+      "char": "魏",
+      "pinyin": "wèi",
       "origin": "auto"
     },
     {
@@ -1568,9 +1610,21 @@
       "origin": "auto"
     },
     {
+      "position": 335,
+      "char": "郡",
+      "pinyin": "jùn",
+      "origin": "auto"
+    },
+    {
       "position": 336,
       "char": "下",
       "pinyin": "xià",
+      "origin": "auto"
+    },
+    {
+      "position": 338,
+      "char": "诣",
+      "pinyin": "yì",
       "origin": "auto"
     },
     {
@@ -1724,9 +1778,21 @@
       "origin": "auto"
     },
     {
+      "position": 372,
+      "char": "刘",
+      "pinyin": "liú",
+      "origin": "auto"
+    },
+    {
       "position": 373,
       "char": "子",
       "pinyin": "zi",
+      "origin": "auto"
+    },
+    {
+      "position": 374,
+      "char": "骥",
+      "pinyin": "jì",
       "origin": "auto"
     },
     {

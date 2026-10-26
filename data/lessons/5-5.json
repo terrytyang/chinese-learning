@@ -1,7 +1,7 @@
 {
   "lesson_id": 5,
   "text_id": 5,
-  "name": "桃花源记",
+  "name": "Learn 桃花源记",
   "characters": [
     "一",
     "下",
@@ -238,6 +238,6 @@
     "高尚",
     "鲜美"
   ],
-  "expansions": [],
+  "extra_words": [],
   "notes": []
 }

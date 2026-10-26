@@ -1,0 +1,60 @@
+{% from "macros.html" import keep, err, level_select, state_select, state_cell, badge, master, edit_row with context %}
+{# One extra word row, or its inline edit form (the anchor is fixed; surface, pinyin, gloss and level change). #}
+{% macro extra_row(a, span) -%}
+  {% if editing == ("extra_words", a.key) %}{% set v = edit_values or a %}
+  {% call edit_row("extra-words/" ~ a.surface ~ "/update", span, "extra-edit:" ~ a.key) %}<input type="hidden" name="anchor" value="{{ a.anchor or '' }}">Word <input name="surface" size="6" value="{{ v.surface or "" }}">
+    Pinyin <input name="pinyin" size="12" value="{{ v.pinyin or "" }}">
+    {% if not a.word_id %}Level {{ level_select(v.hsk_level) }}{% endif %} Gloss <input name="gloss" size="20" value="{{ v.gloss or "" }}">{% endcall %}
+  {% else %}
+  <tr id="extra-{{ a.key }}">{% if a.kind == "related" %}<td>{{ a.anchor or "" }}</td>{% endif %}<td class="word">{{ a.surface }}</td>{{ master(a) }}<td>{{ badge(a) }}</td>{{ state_cell("word", a.surface, a.state) }}
+      <td><a href="{{ base }}?edit=extra_words:{{ a.key }}{{ qa }}#extra-{{ a.key }}">Edit</a>
+          <form method="post" action="{{ base }}/extra-words/{{ a.surface }}/delete{{ q }}"><input type="hidden" name="anchor" value="{{ a.anchor or '' }}"><button>Delete</button></form></td></tr>
+  {% endif %}
+{%- endmacro %}
+{# The add form for an anchor: one step for a master word, a second step (pinyin, gloss, level, state) for a local one. #}
+{% macro add_form(anchor, hidden, placeholder) -%}
+  {% set anchor_field %}{% if hidden %}<input type="hidden" name="anchor" value="{{ anchor }}">{% else %}<input name="anchor" placeholder="passage it relates to (optional)" size="12" value="{{ anchor }}">{% endif %}{% endset %}
+  {% if pending and pending.anchor == anchor %}{% set fk = "extra-local:" ~ anchor %}
+  <form method="post" action="{{ base }}/extra-words{{ q }}" class="local">{{ err(fk) }}
+    {{ anchor_field }}<input type="hidden" name="step" value="2">
+    “{{ pending.surface }}” is not in the master: Word <input name="surface" size="6" value="{{ keep(fk, 'surface') or pending.surface }}">
+    Pinyin <input name="pinyin" size="12" placeholder="pinyin" value="{{ keep(fk, 'pinyin') }}">
+    Gloss <input name="gloss" size="16" value="{{ keep(fk, 'gloss') }}"> Level {{ level_select(keep(fk, 'hsk_level')) }} State {{ state_select(keep(fk, 'state')) }}
+    <button>Add</button>
+  </form>
+  {% else %}{% set fk = "extra-add:" ~ anchor %}
+  <form method="post" action="{{ base }}/extra-words{{ q }}">{{ err(fk) }}
+    {{ anchor_field }}<input name="surface" placeholder="{{ placeholder }}" size="8" value="{{ keep(fk, 'surface') }}"> <button>Look up &amp; add</button>
+  </form>
+  {% endif %}
+{%- endmacro %}
+<section id="expansions">
+  <h2>Expansions <small>{{ lesson.name }}</small></h2>
+  {% for row, items in expansions %}
+  <div class="block" id="expansions-{{ row.char }}">
+    <h3><span class="char">{{ row.char }}</span> {{ row.pinyin or "" }}</h3>
+    {% if items %}
+    <table>
+      <thead><tr><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Dictionary</th><th>Origin</th><th>State</th><th></th></tr></thead>
+      <tbody>{% for a in items %}{{ extra_row(a, 8) }}{% endfor %}</tbody>
+    </table>
+    {% endif %}
+    {{ add_form(row.char, true, "expand " ~ row.char ~ " into…") }}
+  </div>
+  {% else %}<p class="empty">Add characters to the lesson first.</p>{% endfor %}
+</section>
+
+<section id="related">
+  <h2>Related words <small>{{ lesson.name }}</small></h2>
+  {% if related %}
+  <table>
+    <thead><tr><th>Anchor</th><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Dictionary</th><th>Origin</th><th>State</th><th></th></tr></thead>
+    <tbody>{% for a in related %}{{ extra_row(a, 9) }}{% endfor %}</tbody>
+  </table>
+  {% else %}<p class="empty">None</p>{% endif %}
+  {# The related form's anchor: the one awaiting step 2, else the one kept from a failed add; an expansion's (one character) belongs to its block. #}
+  {% set rel_anchor = "" %}
+  {% if pending and pending.anchor | length != 1 %}{% set rel_anchor = pending.anchor %}
+  {% elif submitted.form and submitted.form.startswith("extra-add:") and submitted.anchor | length != 1 %}{% set rel_anchor = submitted.anchor %}{% endif %}
+  {{ add_form(rel_anchor, false, "word") }}
+</section>

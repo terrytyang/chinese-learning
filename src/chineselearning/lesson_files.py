@@ -12,7 +12,7 @@ NAME = re.compile(r"(\d+)-(\d+)\.json")
 
 
 def export(conn, lesson_id) -> dict:
-    """File content: selections as sorted lists, expansions by (char, surface), notes by (anchor, note)."""
+    """File content: selections as sorted lists, extra words by (anchor or '', surface), notes by (anchor, note)."""
     lesson = lessons.get(conn, lesson_id)
     rows = lambda sql: [dict(r) for r in conn.execute(sql, (lesson_id,))]  # noqa: E731
     return {
@@ -21,7 +21,7 @@ def export(conn, lesson_id) -> dict:
         "name": lesson["name"],
         "characters": [r[0] for r in conn.execute("SELECT char FROM lesson_character WHERE lesson_id = ? ORDER BY char", (lesson_id,))],
         "words": [r[0] for r in conn.execute("SELECT surface FROM lesson_word WHERE lesson_id = ? ORDER BY surface", (lesson_id,))],
-        "expansions": [unlinked_level(r) for r in rows("SELECT char, surface, hsk_level, gloss, origin, word_id FROM lesson_expansion WHERE lesson_id = ? ORDER BY char, surface")],
+        "extra_words": [unlinked_level(r) for r in rows("SELECT anchor, surface, pinyin, hsk_level, gloss, origin, word_id FROM lesson_extra_word WHERE lesson_id = ? ORDER BY coalesce(anchor, ''), surface")],
         "notes": rows("SELECT anchor, note, origin FROM lesson_note WHERE lesson_id = ? ORDER BY coalesce(anchor, ''), note"),
     }
 
@@ -49,19 +49,19 @@ def import_all(conn, data_dir):
             match = NAME.fullmatch(path.name)
             text_id, lesson_id = data.get("text_id"), data.get("lesson_id")
             if not match or (int(match.group(1)), int(match.group(2))) != (text_id, lesson_id):
-                raise AnnotationError(f"文件名应为 {text_id}-{lesson_id}.json")
+                raise AnnotationError(f"the file name should be {text_id}-{lesson_id}.json")
             if not conn.execute("SELECT 1 FROM text WHERE id = ?", (text_id,)).fetchone():
-                raise AnnotationError(f"没有 id 为 {text_id} 的课文")
+                raise AnnotationError(f"no text with id {text_id}")
             lessons.create(conn, text_id, data["name"], lesson_id)
             for char in data.get("characters", []):
                 lessons.add_character(conn, lesson_id, char)
             for surface in data.get("words", []):
                 lessons.add_word(conn, lesson_id, surface)
-            for e in data.get("expansions", []):
-                lessons.add_expansion(conn, lesson_id, e["char"], e["surface"], e.get("gloss"), e.get("origin", "manual"), e.get("hsk_level"))
+            for e in data.get("extra_words", []):
+                lessons.add_extra_word(conn, lesson_id, e["surface"], e.get("anchor"), e.get("gloss"), e.get("pinyin"), e.get("origin", "manual"), e.get("hsk_level"))
             for n in data.get("notes", []):
                 lessons.add_note(conn, lesson_id, n["note"], n.get("anchor"), n.get("origin", "manual"))
         except AnnotationError as e:
             raise AnnotationError(f"{path}: {e}") from None
         except KeyError as e:
-            raise AnnotationError(f"{path}: 缺少字段 {e}") from None
+            raise AnnotationError(f"{path}: missing field {e}") from None

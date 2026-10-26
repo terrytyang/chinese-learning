@@ -38,7 +38,7 @@ def paragraphs(m: dict) -> list[list[list[dict]]]:
 
 
 def state_counts(rows) -> dict:
-    """{unique, unrecognized, recognized, mastered} over rows that carry a state."""
+    """{unique} plus one count per learner state over rows that carry a state."""
     return {"unique": len(rows), **{s: sum(1 for x in rows if x["state"] == s) for s in progress.STATES}}
 
 
@@ -47,7 +47,7 @@ def router(templates, connection) -> APIRouter:
 
     def render(request, conn, text_id, lesson_id, pinyin, traditional, gloss, words, tint, show_mastered):
         if db.get_text(conn, text_id) is None or (lesson_id is not None and (lessons.get(conn, lesson_id) or {}).get("text_id") != text_id):
-            raise HTTPException(status_code=404, detail="没有这篇课文或课程")
+            raise HTTPException(status_code=404, detail="no such text or lesson")
         m = material.assemble(conn, text_id, lesson_id)
         options = {"pinyin": pinyin == 1, "traditional": traditional == 1, "gloss": gloss == 1, "words": words == 1,
                    "tint": tint if tint in TINTS else "none", "show_mastered": show_mastered == 1}
@@ -55,7 +55,7 @@ def router(templates, connection) -> APIRouter:
         context = {
             "m": m, "o": options, "paragraphs": paragraphs(m),
             "by_surface": {w["surface"]: w for w in m["words"]},
-            "lists": {"words": visible(m["words"]), "study": visible(m["study"]), "expansions": visible(m["expansions"])},
+            "lists": {"words": visible(m["words"]), "study": visible(m["study"]), "extra_words": visible(m["extra_words"])},
         }
         return templates.TemplateResponse(request, "reader.html", context)
 

@@ -1,14 +1,11 @@
 import sqlite3
 
-import pytest
-
 from chineselearning import db
-from chineselearning.db import GlossFileError
 
 
 def test_build_counts(built):
     path, counts = built
-    assert {k: counts[k] for k in ("character", "word", "text", "tag")} == {"character": 3034, "word": 11470, "text": 5, "tag": 2}
+    assert {k: counts[k] for k in ("character", "word", "text", "tag")} == {"character": 3034, "word": 9899, "text": 5, "tag": 2}
 
 
 def test_build_imports_texts_with_tags(built):
@@ -30,7 +27,7 @@ def test_cli_build_prints_counts(tmp_path, capsys):
     from chineselearning.cli import main
 
     main(["build", "--db", str(tmp_path / "c.sqlite")])
-    assert "character 3034, word 11470, text 5, tag 2" in capsys.readouterr().out
+    assert "character 3034, word 9899, text 5, tag 2" in capsys.readouterr().out
 
 
 def test_find_words_never_spans_a_line_break_or_punctuation(built):
@@ -40,50 +37,33 @@ def test_find_words_never_spans_a_line_break_or_punctuation(built):
     assert [w["simplified"] for w in db.find_words(conn, "山中国家")] == ["中国", "国家"]
 
 
-def test_character_glosses_loaded(built):
-    path, counts = built
-    assert counts["character_gloss"] == 248
-    conn = db.connect(path, readonly=True)
+def test_master_shape(built):
+    """Glosses arrive baked into hsk.sql; `word` holds multi-character items only; forms beyond the primary are in alt_readings."""
+    conn = db.connect(built[0], readonly=True)
+    assert conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0] == 3034
     assert conn.execute("SELECT gloss FROM character WHERE char = '月'").fetchone()[0] == "moon, month"
-    assert conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0] == 248
-
-
-@pytest.mark.parametrize(
-    "lines, message",
-    [
-        (["月\tmoon", "鿿\tnothing"], "gloss.tsv:2: character '鿿' is not in the master"),
-        (["月\tmoon", "# comment", "", "月\tmonth"], "gloss.tsv:4: duplicate character '月' (also on line 1)"),
-        (["月\t  "], "gloss.tsv:1: blank gloss for '月'"),
-        (["月\tmoon\tmonth"], "gloss.tsv:1: expected two tab-separated columns, got 3"),
-        (["月"], "gloss.tsv:1: expected two tab-separated columns, got 1"),
-        (["月\t" + "x" * 121], "gloss.tsv:1: gloss for '月' is 121 characters, over 120"),
-    ],
-)
-def test_bad_gloss_line_fails_naming_the_line(built, tmp_path, lines, message):
-    path = tmp_path / "gloss.tsv"
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    conn = db.connect(built[0])
-    try:
-        with pytest.raises(GlossFileError) as info:
-            db.load_character_glosses(conn, path)
-        assert str(info.value).endswith(message)
-    finally:
-        conn.rollback()
+    assert conn.execute("SELECT count(*) FROM word WHERE length(simplified) = 1").fetchone()[0] == 0
+    assert "readings" not in [r[1] for r in conn.execute("PRAGMA table_info(word)")]
+    word = db.find_words(conn, "银行")[0]
+    assert word["pinyin"] == "yín háng" and word["meanings"][0] == "bank" and word["alt_readings"] == []
+    yin = db.lookup_characters(conn, "银啼")
+    assert (yin[0]["hsk_level"], yin[0]["word_level"], yin[0]["readings"][0]) == (3, 6, "yín") and "n" in yin[0]["pos"].split(",")
+    assert isinstance(yin[0]["meanings"], list) and isinstance(yin[0]["frequency_rank"], int) and yin[0]["alt_readings"] == []
+    assert yin[1] == {"char": "啼", "found": False}
 
 
 def test_committed_facts_and_lessons_load(tmp_path):
-    """The converted files in data/ build: a reading for every Han position of every text, and a default lesson each."""
+    """The regenerated files in data/ build: a reading for every Han position of every text, and the default lesson each."""
     from chineselearning.texts import HAN
 
     path = tmp_path / "live.sqlite"
     counts = db.build(path, "data")
-    assert counts["lesson"] >= 5 and counts["lesson_expansion"] >= 7 and counts["lesson_note"] >= 1
+    assert counts["lesson"] == 5 and counts["lesson_extra_word"] == 0 and counts["lesson_note"] == 0
     conn = db.connect(path, readonly=True)
     for text in db.list_texts(conn):
         body = db.get_text(conn, text["id"])["body"]
         stored = {r[0] for r in conn.execute("SELECT position FROM text_reading WHERE text_id = ?", (text["id"],))}
-        readable = {i for i, ch in enumerate(body) if HAN.fullmatch(ch) and conn.execute("SELECT 1 FROM character WHERE char = ?", (ch,)).fetchone()}
-        assert readable <= stored, text["title"]
-        assert conn.execute("SELECT count(*) FROM lesson WHERE text_id = ? AND name = ?", (text["id"], text["title"])).fetchone()[0] == 1
-    assert conn.execute("SELECT count(*) FROM lesson_expansion e JOIN lesson l ON l.id = e.lesson_id WHERE l.text_id = 3").fetchone()[0] == 5
+        assert stored == {i for i, ch in enumerate(body) if HAN.fullmatch(ch)}, text["title"]
+        assert conn.execute("SELECT count(*) FROM lesson WHERE text_id = ? AND name = ?", (text["id"], f"Learn {text['title']}")).fetchone()[0] == 1
     assert conn.execute("SELECT count(*) FROM lesson_character c JOIN lesson l ON l.id = c.lesson_id WHERE l.text_id = 1").fetchone()[0] == 28
+    assert conn.execute("SELECT pinyin, origin FROM text_reading WHERE text_id = 1 AND char = '啼'").fetchone()[:] == ("tí", "auto")

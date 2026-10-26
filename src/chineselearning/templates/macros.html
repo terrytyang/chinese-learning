@@ -1,4 +1,4 @@
-{# Shared by the admin text page and its sections; imported "with context" (base, q, qa, kept, filters, submitted, error). #}
+{# Shared by the admin text page and its sections; imported "with context" (base, q, qa, kept, filters, submitted, error, STATES). #}
 {# A submitted value is kept only in the form it came from. #}
 {% macro keep(form, field) -%}
 {%- if submitted.form == form %}{{ submitted[field] or "" }}{% endif -%}
@@ -12,29 +12,29 @@
 <select name="hsk_level"{% if form %} form="{{ form }}"{% endif %}>{% if blank %}<option value=""{% if not chosen %} selected{% endif %}>—</option>{% endif %}{% for n in range(1, 8) %}<option value="{{ n }}"{% if n | string == chosen %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>
 {%- endmacro %}
 {% macro state_select(current) -%}
-<select name="state">{% for s in ("unrecognized", "recognized", "mastered") %}<option value="{{ s }}"{% if s == (current or "unrecognized") %} selected{% endif %}>{{ s | state }}</option>{% endfor %}</select>
+<select name="state">{% for s in STATES %}<option value="{{ s }}"{% if s == (current or "exposed") %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
 {%- endmacro %}
-{# Learner state with three buttons; a repeated state is a no-op server-side. #}
+{# Learner state with one button per state; a repeated state is a no-op server-side. #}
 {% macro state_cell(kind, key, state) -%}
-<td class="state">{{ state | state }}
+<td class="state">{{ state }}
   <form method="post" action="{{ base }}/progress{{ q }}"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="key" value="{{ key }}">
-  {% for s in ("unrecognized", "recognized", "mastered") %}<button name="state" value="{{ s }}"{% if s == state %} disabled{% endif %}>{{ s | state }}</button>{% endfor %}</form>{{ err("state:" ~ kind ~ ":" ~ key) }}</td>
+  {% for s in STATES %}<button name="state" value="{{ s }}"{% if s == state %} disabled{% endif %}>{{ s }}</button>{% endfor %}</form>{{ err("state:" ~ kind ~ ":" ~ key) }}</td>
 {%- endmacro %}
 {% macro badge(a) -%}
-<span class="origin origin-{{ a.origin }}">{{ {"auto": "自动", "suggested": "建议", "manual": "手动"}[a.origin] }}</span>
+<span class="origin origin-{{ a.origin }}">{{ a.origin }}</span>
 {%- endmacro %}
 {% macro master(a) -%}
-<td>{{ a.pinyin or "" }}</td><td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("；") }}</td>
+<td>{{ a.pinyin or "" }}</td><td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% endif %}</td><td>{{ a.gloss or "" }}</td><td>{{ a.meanings[:3] | join("; ") }}</td>
 {%- endmacro %}
 {# One row replaced by its inline edit form posting to `action`; the caller supplies the fields. #}
 {% macro edit_row(action, span, form) -%}
 <tr class="editing"><td colspan="{{ span }}"><form method="post" action="{{ base }}/{{ action }}{{ q }}">{{ err(form) }}
-  {{ caller() }} <button>保存</button> <a href="{{ base }}{{ q }}">取消</a></form></td></tr>
+  {{ caller() }} <button>Save</button> <a href="{{ base }}{{ q }}">Cancel</a></form></td></tr>
 {%- endmacro %}
 {# Level-range and state filter for a candidate list; a GET that keeps the lesson and the other list's filters. #}
 {% macro filter_form(prefix, anchor) -%}
 <form method="get" action="{{ base }}#{{ anchor }}" class="filters">{% for k, val in kept.items() if not k.startswith(prefix) %}<input type="hidden" name="{{ k }}" value="{{ val }}">{% endfor %}
-  级 {% for bound in ("min", "max") %}<select name="{{ prefix }}{{ bound }}"><option value="">全部</option>{% for n in range(1, 8) %}<option value="{{ n }}"{% if filters[prefix ~ bound] == n | string %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>{% if bound == "min" %} 到 {% endif %}{% endfor %}
-  状态 <select name="{{ prefix }}state"><option value="">全部</option>{% for s in ("unrecognized", "recognized", "mastered") %}<option value="{{ s }}"{% if filters[prefix ~ "state"] == s %} selected{% endif %}>{{ s | state }}</option>{% endfor %}</select>
-  <button>筛选</button></form>
+  Level {% for bound in ("min", "max") %}<select name="{{ prefix }}{{ bound }}"><option value="">any</option>{% for n in range(1, 8) %}<option value="{{ n }}"{% if filters[prefix ~ bound] == n | string %} selected{% endif %}>{{ n | hsk }}</option>{% endfor %}</select>{% if bound == "min" %} to {% endif %}{% endfor %}
+  State <select name="{{ prefix }}state"><option value="">any</option>{% for s in STATES %}<option value="{{ s }}"{% if filters[prefix ~ "state"] == s %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+  <button>Filter</button></form>
 {%- endmacro %}

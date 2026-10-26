@@ -68,8 +68,8 @@ tags: 诗词
 Header: `key: value` lines up to the first blank line; `id`, `title`, `tags`
 required; `tags` comma-separated, at least one; `author`, `period`, `notes`
 optional. Body: everything after the blank line, verbatim. The file name is for
-humans; identity is the `id`. The admin page may rewrite the header (tags,
-author, period); it never rewrites the body.
+humans; identity is the `id`. The admin page rewrites only the `tags:` line of
+the header; author and period are edited in the file; it never rewrites the body.
 
 Tables: `text(id, title, author, period, body, notes)`, `tag(name)`,
 `text_tag(text_id, tag_name)`. Tags are literary categories (诗词, 文言, 散文, 节选,
@@ -100,13 +100,18 @@ additions — many per text, each in `data/lessons/<text id>-<lesson id>.json`:
 | `lesson` | `id`, `text_id`, `name` (unique per text) |
 | `lesson_character` | `lesson_id`, `char` — a character to study in this lesson |
 | `lesson_word` | `lesson_id`, `surface` — a text word to study in this lesson |
-| `lesson_expansion` | `lesson_id`, `char`, `surface`, `word_id` (nullable), `hsk_level` (unlinked only), `gloss`, `origin` |
+| `lesson_extra_word` | `lesson_id`, `surface`, `anchor` (nullable: a passage of the text; one character makes the word an *expansion* of it, 月 → 月亮, and the surface must contain it), `word_id` (nullable), `pinyin` (prefilled from the master or the characters' readings), `hsk_level` (unlinked only, default 7), `gloss` (required when unlinked), `origin`. Key: (lesson, surface, anchor or ''), a unique expression index |
 | `lesson_note` | `id`, `lesson_id`, `anchor`, `note`, `origin` |
 
-A lesson with no selections, expansions or notes renders as the plain text
-with its facts. Intake creates the first lesson, named after the title, selecting
-every unique character the learner has not mastered and every text word; the
+A lesson with no selections, extra words or notes renders as the plain text
+with its facts. Intake creates the first lesson, "Learn 〈title〉", selecting every
+unique character and every text word whose state is unconfirmed or exposed; the
 admin then customises per lesson (drop a level, re-include mastered items).
+Adding a character or word to a lesson, by any route, sets `exposed` when its
+state is `unconfirmed`; nothing else changes state implicitly. A single
+character is never a word: `text_word`, `lesson_word` and `lesson_extra_word`
+reject one-character surfaces. The assembled material derives each extra word's
+`kind`, `expansion` or `related`, from its anchor.
 Lesson ids are assigned at creation and fixed by the file. Print and exercises
 are lesson-based.
 
@@ -127,12 +132,14 @@ updates the database *and* rewrites the file. Files store surfaces, never
                  "gloss": "苏州城外的寺庙", "origin": "manual"}]}
 ```
 ```json
-{"lesson_id": 1, "text_id": 1, "name": "枫桥夜泊",
- "characters": ["月", "落", "乌", "啼"],
- "words":      ["寒山寺"],
- "expansions": [{"char": "月", "surface": "月亮", "gloss": null, "origin": "manual"},
-                {"char": "乌", "surface": "乌鸦", "hsk_level": 7, "gloss": "crow", "origin": "suggested"}],
- "notes":      [{"anchor": "月落乌啼", "note": "……", "origin": "manual"}]}
+{"lesson_id": 1, "text_id": 1, "name": "Learn 枫桥夜泊",
+ "characters":  ["月", "落", "乌", "啼"],
+ "words":       ["寒山寺"],
+ "extra_words": [{"anchor": null, "surface": "半夜", "pinyin": "bàn yè", "gloss": null, "origin": "manual"},
+                 {"anchor": "乌", "surface": "乌鸦", "pinyin": "wū yā", "hsk_level": 7, "gloss": "crow", "origin": "suggested"},
+                 {"anchor": "姑苏", "surface": "苏州", "pinyin": "sū zhōu", "hsk_level": 7, "gloss": "Suzhou", "origin": "manual"},
+                 {"anchor": "月", "surface": "月亮", "pinyin": "yuè liang", "gloss": null, "origin": "manual"}],
+ "notes":       [{"anchor": "月落乌啼", "note": "……", "origin": "manual"}]}
 ```
 
 ### Intake
@@ -140,8 +147,8 @@ updates the database *and* rewrites the file. Files store surfaces, never
 `chineselearning intake <text id>` runs once per text, before curation. It
 stores, as `origin = auto`: a reading for every Han position (resolution order:
 override already present > the reading of a text word covering the position,
-leftmost-longest > the character's primary reading > none); a `text_character`
-for every character absent from the master; a `text_word` for every 2–4
+leftmost-longest > the character's primary reading > pypinyin's reading > none);
+a `text_character` for every character absent from the master; a `text_word` for every 2–4
 character window of the body (within runs of Han characters) that matches
 `word.simplified` — brute force, a few thousand lookups at most; and the default
 lesson. False positives (交通, 无论 in 桃花源记) are rows to delete or gloss, not
@@ -158,11 +165,12 @@ file, strictly and with messages that name the offending value.
 
 ### Layer 4: learner state and collections
 
-`progress(learner_id, kind, key, state, changed_at)` — append-only. `kind` is
-`character` or `word`; `key` is the character itself or the word string (works
-for local words too). States: `unrecognized`, `recognized` (can read and explain,
-can't write), `mastered` (can also write). Current state = latest row; history
-answers "what became recognized last week".
+`progress(learner_id, kind, key, state, changed_at)` — one row per key, no
+history. `kind` is `character` or `word`; `key` is the character itself or the
+word string (works for local words too; never a single character). States:
+`unconfirmed` (no row) → `exposed` (met in a lesson) → `recognized` (can read and
+explain, can't write) → `mastered` (can also write). Setting `unconfirmed`
+deletes the row; `changed_at` says when the current state was set.
 
 Attempts at exercises (cloze and later games) are logged in the same file:
 `attempt(learner_id, text_id, exercise, score, detail JSON, at)`.
@@ -172,7 +180,8 @@ Attempts at exercises (cloze and later games) are logged in the same file:
 **Admin (plain)**: list texts with tag/author/period filters; open a text and see
 every unique character with pinyin, level and whether it is in the master; the
 word candidates found; the annotations so far. Click a character to add it to
-study, to create an expansion, or to add a local word. Save a collection.
+study, to create an expansion or a related word, or to add a local word. Every
+label is English; only content is Chinese. Pinyin typed as `ti2` is stored as `tí`. Save a collection.
 
 Every student-facing presentation renders one assembled structure, built by one
 function from a text, its facts, and optionally one lesson: the body as characters, each with its
@@ -181,7 +190,7 @@ spans with reading and gloss; expansions; notes. New presentations are templates
 over that structure, never new queries.
 
 **Student**: `/learn/{text}` is the text with its facts; `/learn/{text}/{lesson}`
-adds the lesson's selections, expansions and notes. Both offer toggles for pinyin (`<ruby>`), traditional (OpenCC
+adds the lesson's selections, extra words and notes. Both offer toggles for pinyin (`<ruby>`), traditional (OpenCC
 `s2t`, pure-Python package, overridable per text), hover/tap glosses, and word
 highlighting with the highlighted words listed beneath; characters tinted by
 HSK level or progress state. **Print**: the same structure through `@media print`
@@ -213,6 +222,9 @@ real database from `data/` and query it.
 - 2026-10-25 Single-character items consolidated onto `character` (`meanings`, `alt_readings`, `pos`, `frequency_rank`, `word_level`); `word` holds multi-character items only. Primary form in columns, other forms in `alt_readings`; the old `readings` column on `word` is gone.
 - 2026-10-25 Learner states are `unconfirmed` (no row) → `exposed` → `recognized` → `mastered`; one row per key with `changed_at`, no history; adding to a lesson sets `exposed` from `unconfirmed`.
 - 2026-10-25 Default lesson is "Learn 〈title〉"; intake records every word, the default selection excludes recognized and mastered; UI labels are English, content Chinese.
+- 2026-10-26 `lesson_expansion` becomes `lesson_extra_word` with a nullable `anchor` and stored `pinyin`; a one-character anchor is an expansion, anything else a related word. Its key is a unique expression index because SQLite forbids `coalesce` in a PRIMARY KEY.
+- 2026-10-26 Only `tags` is editable from the app; author and period are edited in the text file.
+- 2026-10-26 Intake gives a character the master lacks pypinyin's reading (`auto`); pypinyin is a main dependency. Numbered pinyin is converted to tone marks wherever a reading is accepted.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.

@@ -1,7 +1,7 @@
 {
   "lesson_id": 2,
   "text_id": 2,
-  "name": "春晓",
+  "name": "Learn 春晓",
   "characters": [
     "不",
     "啼",
@@ -28,6 +28,6 @@
     "多少",
     "风雨"
   ],
-  "expansions": [],
+  "extra_words": [],
   "notes": []
 }

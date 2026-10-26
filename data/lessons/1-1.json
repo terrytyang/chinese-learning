@@ -1,83 +1,38 @@
 {
   "lesson_id": 1,
   "text_id": 1,
-  "name": "Words",
+  "name": "Learn 枫桥夜泊",
   "characters": [
     "乌",
+    "到",
+    "半",
     "啼",
     "城",
     "声",
+    "外",
     "夜",
+    "天",
     "姑",
+    "客",
     "寒",
+    "对",
     "寺",
+    "山",
     "愁",
+    "月",
     "枫",
     "江",
     "渔",
     "满",
+    "火",
     "眠",
     "船",
     "苏",
     "落",
+    "钟",
     "霜"
   ],
-  "words": [
-    "寒山寺"
-  ],
-  "expansions": [
-    {
-      "char": "乌",
-      "surface": "乌鸦",
-      "hsk_level": 3,
-      "gloss": "crow",
-      "origin": "manual"
-    },
-    {
-      "char": "寺",
-      "surface": "寺庙",
-      "gloss": null,
-      "origin": "manual"
-    },
-    {
-      "char": "月",
-      "surface": "月亮",
-      "gloss": "the moon",
-      "origin": "manual"
-    },
-    {
-      "char": "月",
-      "surface": "月光",
-      "hsk_level": null,
-      "gloss": "moonlight",
-      "origin": "manual"
-    },
-    {
-      "char": "满",
-      "surface": "满天",
-      "hsk_level": 4,
-      "gloss": "full in the sky",
-      "origin": "manual"
-    },
-    {
-      "char": "眠",
-      "surface": "睡眠",
-      "gloss": null,
-      "origin": "manual"
-    },
-    {
-      "char": "落",
-      "surface": "落山",
-      "hsk_level": 3,
-      "gloss": "(sun) set",
-      "origin": "manual"
-    }
-  ],
-  "notes": [
-    {
-      "anchor": "夜半钟声",
-      "note": "a scene where clock chimes at night",
-      "origin": "manual"
-    }
-  ]
+  "words": [],
+  "extra_words": [],
+  "notes": []
 }

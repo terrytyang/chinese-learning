@@ -57,7 +57,7 @@ def import_all(conn, data_dir):
         text_id = data.get("text_id")
         try:
             if path.stem != str(text_id) or not conn.execute("SELECT 1 FROM text WHERE id = ?", (text_id,)).fetchone():
-                raise AnnotationError(f"没有 id 为 {text_id} 的课文")
+                raise AnnotationError(f"no text with id {text_id}")
             for r in data.get("readings", []):
                 annotations.set_reading(conn, text_id, r["position"], r["char"], r["pinyin"], r.get("origin", "manual"))
             for c in data.get("characters", []):
@@ -67,4 +67,4 @@ def import_all(conn, data_dir):
         except AnnotationError as e:
             raise AnnotationError(f"{path}: {e}") from None
         except KeyError as e:
-            raise AnnotationError(f"{path}: 缺少字段 {e}") from None
+            raise AnnotationError(f"{path}: missing field {e}") from None

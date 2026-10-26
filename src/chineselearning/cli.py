@@ -25,12 +25,12 @@ def main(argv=None):
     intake.add_argument("--force", action="store_true", help="redo the auto rows even if the text already has annotations")
     intake.add_argument("--db", default=DEFAULT_DB)
     intake.add_argument("--data", default=DATA_DIR)
-    intake.add_argument("--progress", default=DEFAULT_PROGRESS, help="learner database; mastered characters stay out of the default lesson")
+    intake.add_argument("--progress", default=DEFAULT_PROGRESS, help="learner database; recognized and mastered items stay out of the default lesson")
     args = parser.parse_args(argv)
     if args.command == "build":
         try:
             counts = db.build(args.db, DATA_DIR)
-        except (TextFileError, AnnotationError, db.GlossFileError) as e:
+        except (TextFileError, AnnotationError) as e:
             sys.exit(f"build failed: {e}")
         print(f"{args.db}: " + ", ".join(f"{table} {n}" for table, n in counts.items()))
     elif args.command == "serve":

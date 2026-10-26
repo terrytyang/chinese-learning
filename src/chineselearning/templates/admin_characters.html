@@ -1,42 +1,42 @@
 {% from "macros.html" import keep, err, level_select, state_cell, filter_form with context %}
 <section id="characters">
-  <h2>学习字 <small>{{ lesson.name }}</small></h2>
+  <h2>Characters <small>{{ lesson.name }}</small></h2>
   {% if study %}
   <table>
-    <thead><tr><th>字</th><th>拼音</th><th>级</th><th>释义</th><th>状态</th><th></th></tr></thead>
+    <thead><tr><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th><th></th></tr></thead>
     <tbody>
     {% for a in study %}{% set fid = "facts-" ~ a.char %}{% set fk = "char-facts:" ~ a.char %}
       <tr id="char-{{ a.char }}"><td class="char">{{ a.char }}</td><td>{{ a.pinyin or "" }}</td>
         {% if a.in_master %}
         <td>{{ a.hsk_level | hsk }}</td>
         <td>{{ a.master_gloss or "" }}
-          <form id="{{ fid }}" method="post" action="{{ base }}/characters/{{ a.char }}/facts{{ q }}"><input name="gloss" placeholder="课文释义" size="12" value="{{ keep(fk, 'gloss') or a.gloss or '' }}"> <button>写入</button>{{ err(fk) }}</form></td>
+          <form id="{{ fid }}" method="post" action="{{ base }}/characters/{{ a.char }}/facts{{ q }}"><input name="gloss" placeholder="gloss in this text" size="12" value="{{ keep(fk, 'gloss') or a.gloss or '' }}"> <button>Save</button>{{ err(fk) }}</form></td>
         {% else %}
         <td>{{ level_select(keep(fk, 'hsk_level') or a.fact_level, blank=true, form=fid) }}</td>
-        <td><form id="{{ fid }}" method="post" action="{{ base }}/characters/{{ a.char }}/facts{{ q }}"><input name="gloss" placeholder="释义" size="12" value="{{ keep(fk, 'gloss') or a.gloss or '' }}"> <button>写入</button>{{ err(fk) }}</form></td>
+        <td><form id="{{ fid }}" method="post" action="{{ base }}/characters/{{ a.char }}/facts{{ q }}"><input name="gloss" placeholder="gloss — not in HSK, please fill" size="12" value="{{ keep(fk, 'gloss') or a.gloss or '' }}"> <button>Save</button>{{ err(fk) }}</form></td>
         {% endif %}
         {{ state_cell("character", a.char, a.state) }}
-        <td><form method="post" action="{{ base }}/characters/{{ a.char }}/remove{{ q }}"><button>移出</button></form></td></tr>
+        <td><form method="post" action="{{ base }}/characters/{{ a.char }}/remove{{ q }}"><button>Remove from lesson</button></form></td></tr>
     {% endfor %}
     </tbody>
   </table>
-  {% else %}<p class="empty">暂无</p>{% endif %}
+  {% else %}<p class="empty">None</p>{% endif %}
 
-  <h3>候选字</h3>
+  <h3>Not in this lesson</h3>
   {{ filter_form("c", "characters") }}{{ err("chars-add") }}
   {% if candidate_chars %}
   <form method="post" action="{{ base }}/characters/add{{ q }}" class="bulk">
     <table>
-      <thead><tr><th></th><th>字</th><th>拼音</th><th>级</th><th>释义</th><th>状态</th></tr></thead>
+      <thead><tr><th></th><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th></tr></thead>
       <tbody>
       {% for a in candidate_chars %}
         <tr><td><input type="checkbox" name="chars" value="{{ a.char }}"></td><td class="char">{{ a.char }}</td><td>{{ a.pinyin or "" }}</td>
-            <td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% elif not a.in_master %}<span class="marker">不在字库</span>{% endif %}</td>
-            <td>{{ a.gloss or a.master_gloss or "" }}</td><td>{{ a.state | state }}</td></tr>
+            <td>{% if a.hsk_level %}{{ a.hsk_level | hsk }}{% elif not a.in_master %}<span class="marker">not in HSK</span>{% endif %}</td>
+            <td>{{ a.gloss or a.master_gloss or "" }}</td><td>{{ a.state }}</td></tr>
       {% endfor %}
       </tbody>
     </table>
-    <button>加入本课</button> <button name="all" value="1">全选加入本课</button>
+    <button>Add to lesson</button> <button name="all" value="1">Add all shown to lesson</button>
   </form>
-  {% else %}<p class="empty">没有候选字</p>{% endif %}
+  {% else %}<p class="empty">No characters match</p>{% endif %}
 </section>

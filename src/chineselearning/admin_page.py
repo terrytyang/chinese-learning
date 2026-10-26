@@ -6,7 +6,7 @@ from . import annotations, db, lessons, progress
 from .texts import HAN
 
 FILTERS = ("cmin", "cmax", "cstate", "wmin", "wmax", "wstate")
-EMPTY = {"characters": [], "words": set(), "expansions": [], "notes": []}
+EMPTY = {"characters": [], "words": set(), "extra_words": [], "notes": []}
 
 
 def view(request, conn, text_id) -> dict:
@@ -43,7 +43,7 @@ def character_rows(conn, text_id, body=None) -> dict[str, dict]:
         ch, f = m["char"], fact.get(m["char"], {})
         rows[ch] = {"char": ch, "pinyin": first.get(ch), "in_master": m["found"], "hsk_level": f.get("hsk_level") or m.get("hsk_level"),
                     "fact_level": f.get("hsk_level"), "gloss": f.get("gloss"), "master_gloss": m.get("gloss"),
-                    "state": states.get(("character", ch), "unrecognized")}
+                    "state": states.get(("character", ch), "unconfirmed")}
     return rows
 
 
@@ -56,7 +56,7 @@ def word_rows(conn, text_id, lesson_words) -> list[dict]:
     states = progress.current(conn)
     rows = annotations.load(conn, text_id)["words"]
     for a in rows:
-        a.update(state=states.get(("word", a["surface"]), "unrecognized"), selected=a["surface"] in lesson_words)
+        a.update(state=states.get(("word", a["surface"]), "unconfirmed"), selected=a["surface"] in lesson_words)
     return rows
 
 
@@ -84,15 +84,18 @@ def context(request, conn, text_id, v) -> dict:
     study = [rows[c["char"]] for c in content["characters"]]
     in_lesson = {s["char"] for s in study}
     words = word_rows(conn, text_id, content["words"])
-    for e in content["expansions"]:
-        e["state"] = states.get(("word", e["surface"]), "unrecognized")
-    blocks = [s["char"] for s in study] + sorted({e["char"] for e in content["expansions"]} - in_lesson, key=body.find)
+    extra = content["extra_words"]
+    for e in extra:
+        e.update(state=states.get(("word", e["surface"]), "unconfirmed"), key=lessons.extra_key(e["anchor"], e["surface"]))
+    expansions = [e for e in extra if e["kind"] == "expansion"]
+    blocks = [s["char"] for s in study] + sorted({e["anchor"] for e in expansions} - in_lesson, key=body.find)
     return {
         **v, "text": text, "base": f"/texts/{text_id}", "chars": chars, "study": study,
         "candidate_chars": [r for ch, r in rows.items() if ch not in in_lesson and passes(r, v["filters"], "c")],
         "lesson_words": [a for a in words if a["selected"]],
         "candidate_words": [a for a in words if not a["selected"] and passes(a, v["filters"], "w")],
-        "expansions": [(rows[ch], [e for e in content["expansions"] if e["char"] == ch]) for ch in blocks],
+        "expansions": [(rows[ch], [e for e in expansions if e["anchor"] == ch]) for ch in blocks],
+        "related": [e for e in extra if e["kind"] == "related"],
         "notes": content["notes"],
         "counts": {"unique": len(rows), "missing": sum(1 for r in rows.values() if not r["in_master"]), "words": len(words)},
     }
