@@ -1,0 +1,30 @@
+{% from "admin/macros.html" import keep, err with context %}
+{# The text block: ruby over every character, or the edit form (polyphones a select, characters the master lacks an input, the rest fixed). #}
+{% if text_editing %}
+<form id="text" class="card" hx-post="{{ base }}/text" hx-target="#text" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <div class="row"><span class="sec">Text</span><span class="muted">Editing readings — polyphones and unknown characters are editable; the rest is fixed.</span><span class="spacer"></span><button type="button" hx-get="{{ base }}/text">Cancel</button> <button class="primary">Save readings</button></div>
+  {{ err("pinyin") }}
+  <div class="zh body-edit">
+  {%- for line in lines %}<div class="line">
+    {%- for c in line -%}
+      {%- if c.han %}{% set cur = keep("pinyin", "p" ~ c.position) or c.pinyin or "" -%}
+      <span class="editcell">
+        {%- if c.readings | length > 1 %}<select name="p{{ c.position }}" aria-label="Reading">{% for p in c.readings %}<option{% if p == cur %} selected{% endif %}>{{ p }}</option>{% endfor %}</select>
+        {%- elif not c.in_master %}<input name="p{{ c.position }}" aria-label="Reading" placeholder="pinyin" value="{{ cur }}">
+        {%- else %}<span class="fixed">{{ cur }}</span>{% endif -%}
+        <span>{{ c.char }}</span></span>
+      {%- else %}<span class="editcell"><span class="fixed"></span><span>{{ c.char }}</span></span>{% endif -%}
+    {%- endfor -%}
+  </div>{% endfor %}
+  </div>
+</form>
+{% else %}
+<div id="text" class="card" hx-target="#text" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}>
+  <div class="row"><span class="sec">Text</span><span class="muted">{{ summary }}</span><span class="spacer"></span><button hx-get="{{ base }}/text/edit">Edit pinyin</button></div>
+  <div class="zh body">
+  {%- for line in lines %}<div class="line">
+    {%- for c in line %}{% if c.han %}<ruby>{{ c.char }}<rt>{{ c.pinyin or "" }}</rt></ruby>{% else %}{{ c.char }}{% endif %}{% endfor -%}
+  </div>{% endfor %}
+  </div>
+</div>
+{% endif %}

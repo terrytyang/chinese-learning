@@ -1,0 +1,9 @@
+{# The tab card: the tab bar with its counts and the active tab's fragment. hx-target and hx-swap are inherited by every control inside. #}
+<div id="tabs" class="card" hx-target="#tabs" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}>
+{% if lesson %}
+  <nav class="tabs">{% for key, label in TABS.items() %}<a class="tab{% if key == tab %} on{% endif %}" href="{{ lesson_base }}/{{ key }}" hx-get="{{ lesson_base }}/{{ key }}" hx-push-url="true">{{ label }} <span class="muted">{{ counts[key] }}</span></a>{% endfor %}</nav>
+  {% include "admin/tab_" ~ tab ~ ".html" %}
+{% else %}
+  <p class="empty">No lessons yet; create one, or run intake.</p>
+{% endif %}
+</div>

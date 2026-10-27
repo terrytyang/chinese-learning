@@ -1,0 +1,34 @@
+{% from "admin/macros.html" import keep, err, lvl, levels, level_select, state_select, states, pill, edit_url, gloss_cell with context %}
+{% set P = lesson_base ~ "/words" %}
+<div class="sec">Words in text <span class="hint">— every HSK word the import scan found as an exact run of characters, plus words you add; this list is the text's word list, shared by all its lessons. Tick to include in this lesson; Delete drops a false positive from the text's list.</span></div>
+<div class="row">
+  <form class="filters" hx-get="{{ P }}" hx-trigger="change" hx-push-url="true">
+    <label class="muted">Show <select name="show">{% for value, label in show_options %}<option value="{{ value }}"{% if filters.show == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="muted">Level <select name="min" aria-label="Lowest level">{{ levels(filters.min) }}</select> to <select name="max" aria-label="Highest level">{{ levels(filters.max) }}</select></label>
+  </form>
+  <span class="spacer"></span>
+  <span class="muted">{{ words | length }} shown</span>
+  <button hx-post="{{ P }}/add-shown{{ q }}">Add all shown to lesson</button>
+  <button hx-post="{{ P }}/review-shown{{ q }}">Mark all shown as reviewed</button>
+</div>
+{{ err("shown") }}
+{% if words %}
+<table>
+  <thead><tr><th>In</th><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Origin</th><th>State</th><th></th></tr></thead>
+  <tbody>
+  {% for w in words %}{% set fk = "edit:" ~ w.surface %}
+    <tr id="word-{{ w.surface }}"><td><input type="checkbox" name="in" value="1" aria-label="Include in lesson"{% if w.selected %} checked{% endif %} hx-post="{{ P }}/{{ w.surface }}/include{{ q }}"></td><td class="zh word">{{ w.surface }}</td>
+      {%- if editing == w.surface %}<td colspan="3"><form class="inline" hx-post="{{ P }}/{{ w.surface }}/save{{ q }}">{{ err(fk) }}{% if not w.word_id %}<input type="hidden" name="hsk_level" value="{{ w.hsk_level or '' }}">{% endif %}<input name="pinyin" aria-label="Pinyin" value="{{ keep(fk, 'pinyin') or w.pinyin or '' }}"> <input name="gloss" aria-label="Gloss" value="{{ keep(fk, 'gloss') or w.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}{{ q }}">Cancel</button></form></td>
+      {%- else %}<td>{{ w.pinyin or "" }}</td><td>{{ lvl(w.hsk_level) }}</td>{{ gloss_cell(w) }}{% endif %}
+      <td>{{ pill(w.origin) }}</td><td>{{ states("word", w.surface, w.state) }}</td>
+      <td class="actions"><button hx-get="{{ edit_url(P, w.surface) }}">Edit</button> <button hx-post="{{ P }}/{{ w.surface }}/delete{{ q }}">Delete</button></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No words match</p>{% endif %}
+
+<div class="sec">Add a word that appears in the text <span class="hint">— one the scan missed, such as a name or a classical phrase</span></div>
+<form class="inline" hx-post="{{ P }}/new{{ q }}">{{ err("new") }}<input class="zh" name="surface" placeholder="word" value="{{ keep('new', 'surface') or (pending.surface if pending else '') }}"> <button class="primary">Look up</button></form>
+{% if pending %}
+<form class="local" hx-post="{{ P }}/new{{ q }}">{{ err("new-local") }}<input type="hidden" name="step" value="2"><input type="hidden" name="surface" value="{{ pending.surface }}"><span>Not an HSK word.</span> <input name="pinyin" placeholder="pinyin" value="{{ keep('new-local', 'pinyin') or pending.pinyin }}"> <input name="gloss" placeholder="gloss" value="{{ keep('new-local', 'gloss') }}"> {{ level_select(keep('new-local', 'hsk_level')) }} {{ state_select(keep('new-local', 'state')) }} <button class="primary">Add</button></form>
+{% endif %}

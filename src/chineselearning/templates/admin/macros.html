@@ -1,0 +1,54 @@
+{# Shared by the admin fragments; imported "with context" (base, lesson_base, tab, q, error, submitted, pending, editing, STATES). #}
+{# A submitted value is kept only in the form it came from. #}
+{% macro keep(form, field) -%}
+{%- if submitted and submitted.form == form %}{{ submitted[field] or "" }}{% endif -%}
+{%- endmacro %}
+{# The validation message, rendered inside the form it belongs to. #}
+{% macro err(form) -%}
+{%- if error and error.form == form %}<p class="error">{{ error.message }}</p>{% endif -%}
+{%- endmacro %}
+{% macro lvl(level) -%}
+<span class="lvl l{{ level or 0 }}">{{ level | hsk if level else "n/a" }}</span>
+{%- endmacro %}
+{% macro levels(current) -%}
+{%- for n in range(1, 8) %}<option value="{{ n }}"{% if n | string == current | string %} selected{% endif %}>{{ n | hsk }}</option>{% endfor -%}
+{%- endmacro %}
+{% macro level_select(current) -%}
+<select name="hsk_level" aria-label="Level">{{ levels(current or 7) }}</select>
+{%- endmacro %}
+{% macro state_select(current) -%}
+<select name="state" aria-label="State">{% for s in STATES %}<option value="{{ s }}"{% if s == (current or "exposed") %} selected{% endif %}>{{ s }}</option>{% endfor %}</select>
+{%- endmacro %}
+{% macro pill(origin) -%}
+<span class="pill {{ origin }}">{{ origin }}</span>
+{%- endmacro %}
+{# Four state buttons; the current one is lit, and a no-op server-side. #}
+{% macro states(kind, key, state) -%}
+<form class="states" hx-post="{{ lesson_base }}/{{ tab }}/progress{{ q }}"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="key" value="{{ key }}">
+{%- for s in STATES %}<button name="state" value="{{ s }}"{% if s == state %} class="on"{% endif %}>{{ s }}</button>{% endfor %}</form>{{ err("state:" ~ kind ~ ":" ~ key) }}
+{%- endmacro %}
+{# The tab's URL with a row's inline edit open. #}
+{% macro edit_url(P, key) -%}
+{{ P }}{{ q or "?" }}{% if q %}&amp;{% endif %}edit={{ key }}
+{%- endmacro %}
+{# The text's gloss, else the master's first meanings. #}
+{% macro gloss_cell(a) -%}
+<td>{% if a.gloss %}{{ a.gloss }}{% else %}<span class="muted">{{ a.meanings[:3] | join("; ") }}</span>{% endif %}</td>
+{%- endmacro %}
+{# An extra word's row, or its inline edit; `with_anchor` adds the anchor column (Related words). #}
+{% macro extra_row(P, e, with_anchor=false) -%}
+{% set fk = "edit:" ~ e.key -%}
+<tr id="extra-{{ e.key }}">{% if with_anchor %}<td class="zh">{{ e.anchor or "—" }}</td>{% endif %}<td class="zh word">{{ e.surface }}</td>
+{%- if editing == e.key %}<td colspan="3"><form class="inline" hx-post="{{ P }}/{{ e.surface }}/save{{ q }}">{{ err(fk) }}<input type="hidden" name="anchor" value="{{ e.anchor or '' }}"><input type="hidden" name="surface" value="{{ e.surface }}">{% if not e.word_id %}<input type="hidden" name="hsk_level" value="{{ e.hsk_level or '' }}">{% endif %}<input name="pinyin" aria-label="Pinyin" value="{{ keep(fk, 'pinyin') or e.pinyin or '' }}"> <input name="gloss" aria-label="Gloss" value="{{ keep(fk, 'gloss') or e.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}{{ q }}">Cancel</button></form></td>
+{%- else %}<td>{{ e.pinyin or "" }}</td><td>{{ lvl(e.hsk_level) }}</td>{{ gloss_cell(e) }}{% endif -%}
+<td>{{ pill(e.origin) }}</td><td>{{ states("word", e.surface, e.state) }}</td>
+<td class="actions"><button hx-get="{{ edit_url(P, e.key) }}">Edit</button> <button hx-post="{{ P }}/{{ e.surface }}/delete{{ q }}" hx-vals='{{ {"anchor": e.anchor or ""} | tojson }}'>Delete</button></td></tr>
+{%- endmacro %}
+{# The add form for an anchor (hidden in an expansion block), then the second form while a looked-up word is not in the master. #}
+{% macro add_form(P, anchor, hidden, placeholder) -%}
+{% set fk = "add:" ~ anchor %}{% set lk = "local:" ~ anchor %}{% set waiting = pending and pending.anchor == anchor -%}
+<form class="inline" hx-post="{{ P }}/add{{ q }}">{{ err(fk) }}{% if hidden %}<input type="hidden" name="anchor" value="{{ anchor }}">{% else %}<input class="zh" name="anchor" placeholder="passage it relates to (optional)" value="{{ anchor }}"> {% endif %}<input class="zh" name="surface" placeholder="{{ placeholder }}" value="{{ keep(fk, 'surface') or (pending.surface if waiting else '') }}"> <button{% if not hidden %} class="primary"{% endif %}>Look up &amp; add</button></form>
+{%- if waiting %}
+<form class="local" hx-post="{{ P }}/add{{ q }}">{{ err(lk) }}<input type="hidden" name="step" value="2"><input type="hidden" name="anchor" value="{{ anchor }}"><input type="hidden" name="surface" value="{{ pending.surface }}"><span><span class="zh">{{ pending.surface }}</span> is not an HSK word.</span> <input name="pinyin" placeholder="pinyin" value="{{ keep(lk, 'pinyin') or pending.pinyin }}"> <input name="gloss" placeholder="gloss" value="{{ keep(lk, 'gloss') }}"> {{ level_select(keep(lk, 'hsk_level')) }} {{ state_select(keep(lk, 'state')) }} <button class="primary">Add</button></form>
+{%- endif %}
+{%- endmacro %}

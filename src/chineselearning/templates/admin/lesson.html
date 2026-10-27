@@ -1,0 +1,8 @@
+{% from "admin/macros.html" import keep, err with context %}
+{# The lesson controls: the select reloads the tab card (and, out of band, these controls and the text block) for the chosen lesson. #}
+<div id="lesson-controls" class="lesson-controls" hx-target="#lesson-controls" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}>
+  {% if lessons %}<label class="muted">Lesson <select name="lesson" hx-get="{{ base }}" hx-target="#tabs">{% for l in lessons %}<option value="{{ l.id }}"{% if lesson and l.id == lesson.id %} selected{% endif %}>{{ l.name }}</option>{% endfor %}</select></label>{% endif %}
+  <form class="inline" hx-post="{{ base }}/lessons{% if lesson %}?lesson={{ lesson.id }}{% endif %}">{{ err("lesson-new") }}<input name="name" placeholder="new lesson name" value="{{ keep('lesson-new', 'name') }}"> <button>New lesson</button></form>
+  {% if lesson %}<form class="inline" hx-post="{{ base }}/lessons/{{ lesson.id }}/rename">{{ err("rename") }}<input name="name" aria-label="Lesson name" value="{{ keep('rename', 'name') or lesson.name }}"> <button>Rename</button></form>
+  <a href="/learn/{{ text.id }}/{{ lesson.id }}">Open student view ↗</a>{% endif %}
+</div>

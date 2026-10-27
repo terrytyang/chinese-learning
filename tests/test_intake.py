@@ -1,6 +1,7 @@
 """Intake: auto facts, stored readings for every position (pypinyin for characters the master lacks), the default lesson, and reading edits on the page."""
 
 import json
+import re
 
 import pytest
 
@@ -9,6 +10,8 @@ from chineselearning.annotations import AnnotationError
 from chineselearning.cli import main
 from chineselearning.intake import intake
 from chineselearning.texts import HAN
+
+HX = {"HX-Request": "true"}
 
 
 def connect(site):
@@ -24,8 +27,9 @@ def lesson(site, text_id=1, lesson_id=1):
 
 
 def test_intake_text_1_readings_facts_and_default_lesson(site):
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
     conn = connect(site)
+    progress.set_state(conn, "character", "月", "mastered")
+    conn.commit()
     assert intake(conn, 1, site.data) == {"words": 0, "characters": 2, "readings": 28, "lesson": 1}
     body = db.get_text(conn, 1)["body"]
     stored = {r["position"]: r for r in facts(site)["readings"]}
@@ -63,8 +67,8 @@ def test_intake_text_5_words_and_lesson_words(site):
     counts = intake(conn, 5, site.data)
     assert counts["words"] == len(expected) > 0 and counts["characters"] > 0 and counts["lesson"] == 1
     assert sorted(w["surface"] for w in facts(site, 5)["words"]) == expected and lesson(site, 5, 1)["words"] == expected
-    page = site.client.get("/texts/5").text
-    assert page.count('<tr id="word-') == counts["words"] and "<h2>Words in text <small>Learn 桃花源记</small></h2>" in page
+    tab = site.client.get("/texts/5/lessons/1/words", params={"show": "all", "min": 1, "max": 7}, headers=HX).text
+    assert tab.count('<tr id="word-') == counts["words"] and f'Words in text <span class="muted">{counts["words"]}/{counts["words"]}</span>' in tab
 
 
 def test_intake_refuses_rerun_and_force_leaves_lessons_and_manual_rows(site):
@@ -72,9 +76,9 @@ def test_intake_refuses_rerun_and_force_leaves_lessons_and_manual_rows(site):
     intake(conn, 1, site.data)
     with pytest.raises(AnnotationError, match="already has"):
         intake(conn, 1, site.data)
-    assert site.client.post("/texts/1/readings", data={"p2": "wù"}).status_code == 303
-    assert site.client.post("/texts/1/characters/落/remove").status_code == 303
-    assert site.client.post("/texts/1/lessons", data={"name": "Two"}).status_code == 303
+    assert site.client.post("/texts/1/text", data={"p2": "wù"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/落/remove").status_code == 200
+    assert site.client.post("/texts/1/lessons", data={"name": "Two"}).status_code == 200
     assert intake(connect(site), 1, site.data, force=True) == {"words": 0, "characters": 2, "readings": 27, "lesson": None}
     stored = {r["position"]: r for r in facts(site)["readings"]}
     assert (stored[2]["pinyin"], stored[2]["origin"], stored[1]["origin"]) == ("wù", "manual", "auto")
@@ -110,7 +114,7 @@ def test_edit_mode_sets_one_position(site):
     body = db.get_text(conn, 5)["body"]
     positions = [i for i, ch in enumerate(body) if ch == "舍"]
     assert len(positions) > 1
-    assert site.client.post("/texts/5/readings", data={f"p{positions[0]}": "shè"}).status_code == 303
+    assert site.client.post("/texts/5/text", data={f"p{positions[0]}": "shè"}).status_code == 200
     stored = {r["position"]: r for r in facts(site, 5)["readings"]}
     assert (stored[positions[0]]["pinyin"], stored[positions[0]]["origin"]) == ("shè", "manual")
     assert all(stored[p]["pinyin"] == "shě" and stored[p]["origin"] == "auto" for p in positions[1:])
@@ -120,15 +124,15 @@ def test_edit_mode_sets_one_position(site):
 
 def test_invalid_reading_lists_allowed_readings(site):
     position = db.get_text(connect(site), 5)["body"].index("舍")
-    r = site.client.post("/texts/5/readings", data={f"p{position}": "xx"})
+    r = site.client.post("/texts/5/text", data={f"p{position}": "xx"})
     assert r.status_code == 422 and "the reading of “舍” must be one of shě, shè, shì" in r.text and f'name="p{position}"' in r.text
 
 
 def test_auto_false_positive_is_deleted_from_candidates(site):
     intake(connect(site), 5, site.data)
-    assert site.client.post("/texts/5/words/无论/remove").status_code == 303
-    page = site.client.get("/texts/5").text
-    assert 'name="words" value="无论"' in page and '<span class="origin origin-auto">auto</span>' in page and 'formaction="/texts/5/words/无论/delete"' in page
-    assert site.client.post("/texts/5/words/无论/delete").status_code == 303
+    assert site.client.post("/texts/5/lessons/1/words/无论/include", headers=HX).status_code == 200  # unticked
+    tab = site.client.get("/texts/5/lessons/1/words", params={"show": "excluded", "min": 1, "max": 7}, headers=HX).text
+    assert re.findall(r'<tr id="word-(.*?)">', tab) == ["无论"] and '<span class="pill auto">auto</span>' in tab and 'hx-post="/texts/5/lessons/1/words/无论/delete' in tab
+    assert site.client.post("/texts/5/lessons/1/words/无论/delete", headers=HX).status_code == 200
     assert "无论" not in [w["surface"] for w in facts(site, 5)["words"]] and "无论" not in lesson(site, 5, 1)["words"]
-    assert site.client.post("/texts/5/words/桃花/rename").status_code == 404
+    assert site.client.post("/texts/5/lessons/1/words/桃花/rename").status_code == 404

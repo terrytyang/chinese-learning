@@ -1,0 +1,13 @@
+{% from "admin/macros.html" import extra_row, add_form with context %}
+{% set P = lesson_base ~ "/related" %}
+<div class="sec">Related words <span class="hint">— a word that does not appear in the text as written but is closely tied to a passage of it (夜半 → 半夜, 姑苏 → 苏州), or to the text as a whole (the author). Anchor is the passage, if any. These belong to the lesson.</span></div>
+{% if related %}
+<table>
+  <thead><tr><th>Anchor</th><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Origin</th><th>State</th><th></th></tr></thead>
+  <tbody>{% for e in related %}{{ extra_row(P, e, true) }}{% endfor %}</tbody>
+</table>
+{% else %}<p class="empty">None</p>{% endif %}
+<div class="sec">Add a related word</div>
+{# The form's anchor: the one awaiting its second form, else the one kept from a failed look-up. #}
+{% set anchor = pending.anchor if pending else (submitted.anchor if submitted and submitted.form.startswith("add:") else "") %}
+{{ add_form(P, anchor, false, "word") }}

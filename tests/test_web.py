@@ -22,12 +22,12 @@ def test_texts_list_and_filters(client):
 def test_text_1_flags_missing_characters_and_finds_no_words(client):
     r = client.get("/texts/1")
     assert r.status_code == 200
-    assert "枫桥夜泊" in r.text and "张继" in r.text and "唐朝" in r.text and "诗词" in r.text
-    body = re.search(r'<div class="body ruby">(.*?)</div>', r.text, re.S).group(1)
-    assert body.count("<ruby>") == 28 and body.count("<br>") == 1 and "，" in body and body.startswith("<ruby>月<rt></rt></ruby>")
+    assert "枫桥夜泊" in r.text and "张继 · 唐朝" in r.text and '<span class="zh">诗词</span>' in r.text
+    body = r.text.split('<div class="zh body">')[1].split('<div id="tabs"')[0]
+    assert body.count("<ruby>") == 28 and body.count('<div class="line">') == 2 and "，" in body and body.startswith('<div class="line"><ruby>月<rt></rt></ruby>')
     assert "<ruby>啼<rt></rt></ruby>" in body and "<ruby>枫<rt></rt></ruby>" in body  # absent from the master, no reading stored
-    assert "28 characters, 2 not in HSK, 0 words" in r.text
-    assert "<ruby>月<rt></rt></ruby>" in r.text and "No lessons yet" in r.text  # no intake yet: no readings, no lesson
+    assert "28 characters · 2 not in HSK (啼, 枫) · 2 without a gloss" in r.text
+    assert "No lessons yet" in r.text  # no intake yet: no readings, no lesson
 
 
 def test_pages_are_english_with_chinese_content(client):
@@ -39,15 +39,15 @@ def test_pages_are_english_with_chinese_content(client):
             assert label not in re.sub(r"<(td|a|option|h1|title)[^>]*>[^<]*</\1>", "", html), (url, label)
         assert "桃花源记" in html
     assert "<th>Title</th><th>Author</th><th>Period</th><th>Tags</th>" in pages["/texts"] and "<option value=\"\">any</option>" in pages["/texts"]
-    assert "<h2>Lessons</h2>" in pages["/texts/5"] and '<button>Edit pinyin</button>' not in pages["/texts/5"] and 'class="button">Edit pinyin</a>' in pages["/texts/5"]
+    assert 'hx-get="/texts/5/text/edit">Edit pinyin</button>' in pages["/texts/5"] and "No lessons yet" in pages["/texts/5"]
     assert "<h1>Learn</h1>" in pages["/learn"] and "<th>Progress</th>" in pages["/learn"]
     assert "Tint:" in pages["/learn/5"] and "<button>Apply</button>" in pages["/learn/5"] and "> Show mastered</label>" in pages["/learn/5"]
 
 
 def test_pinyin_edit_mode(client):
-    edit = client.get("/texts/5", params={"edit": "pinyin"}).text
-    assert re.search(r'<ruby>舍<rt><select name="p\d+"><option>shě</option><option>shè</option><option>shì</option></select></rt></ruby>', edit)
-    assert "<button>Save readings</button>" in edit
+    edit = client.get("/texts/5/text/edit", headers={"HX-Request": "true"}).text
+    assert re.search(r'<select name="p\d+" aria-label="Reading"><option>shě</option><option>shè</option><option>shì</option></select><span>舍</span>', edit)
+    assert edit.startswith('<form id="text"') and '<button class="primary">Save readings</button>' in edit
 
 
 def test_unknown_text_is_404(client):

@@ -1,7 +1,6 @@
 """Learner progress: one row per key in its own database file, the implicit `exposed` on adding to a lesson, and the admin page's state column."""
 
 import re
-from urllib.parse import unquote
 
 import pytest
 
@@ -54,17 +53,20 @@ def test_expose_only_lifts_unconfirmed(site):
 
 
 def test_adding_to_a_lesson_sets_exposed_and_nothing_else_does(site):
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
-    assert site.client.post("/texts/1/lessons", data={"name": "A"}).status_code == 303
-    assert site.client.post("/texts/1/characters/add", data={"chars": ["月", "落"]}).status_code == 303
     conn = connect(site)
+    progress.set_state(conn, "character", "月", "mastered")
+    conn.commit()
+    assert site.client.post("/texts/1/lessons", data={"name": "A"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/add", data={"chars": ["月", "落"]}).status_code == 200
     assert (progress.state_of(conn, "character", "月"), progress.state_of(conn, "character", "落"), progress.state_of(conn, "character", "乌")) == ("mastered", "exposed", "unconfirmed")
-    assert site.client.post("/texts/1/words/new", data={"surface": "寒山寺", "gloss": "temple", "hsk_level": "7"}).status_code == 303
-    assert site.client.post("/texts/1/extra-words", data={"anchor": "月", "surface": "月亮"}).status_code == 303
+    assert site.client.post("/texts/1/lessons/1/words/new", data={"surface": "寒山寺", "step": "2", "gloss": "temple", "hsk_level": "7"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/expansions/add", data={"anchor": "月", "surface": "月亮"}).status_code == 200
     assert (progress.state_of(conn, "word", "寒山寺"), progress.state_of(conn, "word", "月亮")) == ("exposed", "exposed")
-    assert site.client.post("/texts/1/characters/落/remove").status_code == 303
-    assert site.client.post("/texts/1/words/寒山寺/delete").status_code == 303
-    assert site.client.post("/texts/1/characters/add?cmin=1&cmax=1", data={"all": "1"}).status_code == 303
+    assert site.client.post("/texts/1/lessons/1/characters/落/remove").status_code == 200
+    assert site.client.post("/texts/1/lessons/1/words/寒山寺/delete").status_code == 200
+    level_1 = re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1/lessons/1/characters", params={"min": 1, "max": 1, "state": "any"}).text)
+    assert "天" in level_1 and "乌" not in level_1
+    assert site.client.post("/texts/1/lessons/1/characters/add", data={"chars": level_1}).status_code == 200
     assert (progress.state_of(conn, "character", "落"), progress.state_of(conn, "word", "寒山寺"), progress.state_of(conn, "character", "天")) == ("exposed", "exposed", "exposed")
     assert progress.state_of(conn, "character", "乌") == "unconfirmed"  # level 4: not in the filtered bulk add
     db.build(site.db, site.data)  # a rebuild imports the lesson file without touching progress
@@ -72,47 +74,45 @@ def test_adding_to_a_lesson_sets_exposed_and_nothing_else_does(site):
 
 
 def test_build_leaves_progress_untouched(site):
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
+    conn = connect(site)
+    progress.set_state(conn, "character", "月", "mastered")
+    conn.commit()
+    conn.close()
     before = site.progress.read_bytes()
     db.build(site.db, site.data)
     assert site.progress.read_bytes() == before
     assert progress.state_of(connect(site), "character", "月") == "mastered"
-    assert site.client.post("/texts/1/lessons", data={"name": "A"}).status_code == 303
-    assert site.client.post("/texts/1/characters/add", data={"chars": ["月"]}).status_code == 303
-    assert "<td class=\"state\">mastered" in site.client.get("/texts/1").text
+    assert site.client.post("/texts/1/lessons", data={"name": "A"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/add", data={"chars": ["月"]}).status_code == 200
+    assert re.search(r'<tr id="char-月">.*?value="mastered" class="on"', site.client.get("/texts/1").text, re.S)
 
 
 def test_page_state_column_and_buttons(site):
     intake(connect(site), 1, site.data)
     page = site.client.get("/texts/1").text
-    assert page.count('<td class="state">exposed') == 28
-    r = site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "recognized"})
-    assert (r.status_code, unquote(r.headers["location"])) == (303, "/texts/1#char-月")
-    page = site.client.get("/texts/1").text
-    assert re.search(r'<tr id="char-月">.*?<td class="state">recognized', page, re.S)
-    assert '<button name="state" value="recognized" disabled>recognized</button>' in page
-    assert '<button name="state" value="unconfirmed">unconfirmed</button>' in page
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "recognized"}).status_code == 303
+    assert page.count('value="exposed" class="on"') == 28
+    r = site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "月", "state": "recognized"}, headers={"HX-Request": "true"})
+    assert r.status_code == 200 and r.text.startswith('<div id="tabs"')
+    assert re.search(r'<tr id="char-月">.*?<button name="state" value="recognized" class="on">recognized</button>', r.text, re.S)
+    assert '<button name="state" value="unconfirmed">unconfirmed</button>' in r.text
+    assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "月", "state": "recognized"}).status_code == 200
     assert connect(site).execute("SELECT count(*) FROM progress.progress").fetchone()[0] == 28
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "unconfirmed"}).status_code == 303
+    assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "月", "state": "unconfirmed"}).status_code == 200
     assert connect(site).execute("SELECT count(*) FROM progress.progress").fetchone()[0] == 27
-    r = site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "bogus"})
+    r = site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "月", "state": "bogus"})
     assert r.status_code == 422 and "state must be" in r.text
-    assert site.client.post("/texts/1/progress", data={"kind": "word", "key": "月", "state": "mastered"}).status_code == 422
+    assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "word", "key": "月", "state": "mastered"}).status_code == 422
 
 
 def test_candidate_filters_by_state_and_level(site):
     intake(connect(site), 1, site.data)
     for ch in ("月", "落", "乌"):
-        assert site.client.post(f"/texts/1/characters/{ch}/remove").status_code == 303
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "落", "state": "recognized"}).status_code == 303
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "乌", "state": "unconfirmed"}).status_code == 303
-    page = site.client.get("/texts/1").text
-    assert re.findall(r'name="chars" value="(.)"', page) == ["月", "落", "乌"]
-    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cstate": "mastered"}).text) == ["月"]
-    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cstate": "unconfirmed"}).text) == ["乌"]
-    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cstate": "exposed"}).text) == []
-    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cmin": "4"}).text) == ["落", "乌"]
-    assert re.findall(r'name="chars" value="(.)"', site.client.get("/texts/1", params={"cmin": "4", "cmax": "4"}).text) == ["落"]
-    assert '<option value="4" selected>4</option>' in site.client.get("/texts/1", params={"cmin": "4"}).text
+        assert site.client.post(f"/texts/1/lessons/1/characters/{ch}/remove").status_code == 200
+    for ch, state in (("月", "mastered"), ("落", "recognized"), ("乌", "unconfirmed")):
+        assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": ch, "state": state}).status_code == 200
+    tab = "/texts/1/lessons/1/characters"
+    shown = lambda **params: re.findall(r'name="chars" value="(.)"', site.client.get(tab, params=params).text)  # noqa: E731
+    assert shown() == ["乌"] and shown(state="any") == ["月", "落", "乌"]  # default: unconfirmed or exposed
+    assert shown(state="mastered") == ["月"] and shown(state="unconfirmed") == ["乌"] and shown(state="exposed") == []
+    assert shown(state="any", min=4) == ["落", "乌"] and shown(state="any", min=4, max=4) == ["落"]
+    assert '<option value="4" selected>4</option>' in site.client.get(tab, params={"min": "4"}).text

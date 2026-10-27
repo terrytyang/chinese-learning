@@ -92,7 +92,7 @@ def extra_key(anchor, surface) -> str:
     return f"{anchor}-{surface}" if anchor else surface
 
 
-def _characters_pinyin(conn, surface) -> str:
+def characters_pinyin(conn, surface) -> str:
     """A word's reading from its characters' primary readings; every character must be in the master."""
     primary = dict(conn.execute(f"SELECT char, pinyin FROM character WHERE char IN ({','.join('?' * len(surface))})", list(surface)).fetchall())
     if any(ch not in primary for ch in surface):
@@ -114,7 +114,7 @@ def add_extra_word(conn, lesson_id, surface, anchor=None, gloss=None, pinyin=Non
     if word_id is not None:
         pinyin, level = pinyin or conn.execute("SELECT pinyin FROM word WHERE id = ?", (word_id,)).fetchone()[0], None
     else:
-        pinyin, level = pinyin or _characters_pinyin(conn, surface), level or 7
+        pinyin, level = pinyin or characters_pinyin(conn, surface), level or 7
     sql = f"INSERT OR {'REPLACE' if replace else 'IGNORE'} INTO lesson_extra_word (lesson_id, surface, anchor, word_id, pinyin, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     conn.execute(sql, (lesson_id, surface, anchor, word_id, pinyin, level, gloss, origin_of(origin)))
 

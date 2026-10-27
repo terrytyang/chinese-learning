@@ -177,11 +177,15 @@ Attempts at exercises (cloze and later games) are logged in the same file:
 
 ## Modes
 
-**Admin (plain)**: list texts with tag/author/period filters; open a text and see
-every unique character with pinyin, level and whether it is in the master; the
-word candidates found; the annotations so far. Click a character to add it to
-study, to create an expansion or a related word, or to add a local word. Every
-label is English; only content is Chinese. Pinyin typed as `ti2` is stored as `tí`. Save a collection.
+**Admin**: `/texts` lists texts with tag/author/period filters. `/texts/{text}?lesson=`
+is one page per text: a shell (title, lesson select, tags as chips, the text with
+ruby and an Edit pinyin mode) over htmx fragments, with five tabs per lesson at
+`/texts/{text}/lessons/{lesson}/<tab>` — Characters, Words in text, Expansions,
+Related words, Notes. Each tab is a fragment with its own URL; its filters and the
+active tab live in the URL, and a non-htmx request to a fragment URL gets the whole
+shell. Every mutation POSTs and returns the fragment it changed; a validation
+failure returns it with the message at its form, status 422. Every label is
+English; only content is Chinese. Pinyin typed as `ti2` is stored as `tí`.
 
 Every student-facing presentation renders one assembled structure, built by one
 function from a text, its facts, and optionally one lesson: the body as characters, each with its
@@ -225,6 +229,9 @@ real database from `data/` and query it.
 - 2026-10-26 `lesson_expansion` becomes `lesson_extra_word` with a nullable `anchor` and stored `pinyin`; a one-character anchor is an expansion, anything else a related word. Its key is a unique expression index because SQLite forbids `coalesce` in a PRIMARY KEY.
 - 2026-10-26 Only `tags` is editable from the app; author and period are edited in the text file.
 - 2026-10-26 Intake gives a character the master lacks pypinyin's reading (`auto`); pypinyin is a main dependency. Numbered pinyin is converted to tone marks wherever a reading is accepted.
+- 2026-10-27 The admin page is a shell plus htmx fragments (vendored htmx 2.0.4): every region has its own URL, a mutation returns the region it changed, a 422 swaps the form back with its message; no redirects, no page anchors.
+- 2026-10-27 Words in text is the text's word list under filters (default: not yet reviewed); a checkbox per row includes it in the lesson, "Mark all shown as reviewed" sets origin manual; inline edit changes pinyin and gloss only, a word's level is set when it is created.
+- 2026-10-27 The page follows the admin mockup: a gloss and level are edited inline only for characters the master lacks; notes are added and deleted, not edited; a lesson is created and renamed on the page and deleted through the data layer.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.

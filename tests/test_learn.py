@@ -72,10 +72,10 @@ def test_reader_toggles_on_text_and_lesson(site):
     plain = site.client.get("/learn/1").text
     assert '<span class="c lvl-1 state-unconfirmed">月</span>' in plain and '<span class="c lvl-0 state-unconfirmed">啼</span>' in plain
     intake(connect(site), 1, site.data)
-    assert site.client.post("/texts/1/words/new", data={"surface": "寒山寺", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 303
-    assert site.client.post("/texts/1/characters/愁/facts", data={"gloss": "忧愁"}).status_code == 303
-    assert site.client.post("/texts/1/extra-words", data={"anchor": "月", "surface": "月亮"}).status_code == 303
-    assert site.client.post("/texts/1/extra-words", data={"anchor": "姑苏", "surface": "苏州", "step": "2", "gloss": "Suzhou"}).status_code == 303
+    assert site.client.post("/texts/1/lessons/1/words/new", data={"surface": "寒山寺", "step": "2", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/愁/facts", data={"gloss": "忧愁"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/expansions/add", data={"anchor": "月", "surface": "月亮"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/related/add", data={"anchor": "姑苏", "surface": "苏州", "step": "2", "gloss": "Suzhou"}).status_code == 200
     plain = site.client.get("/learn/1").text
     assert '<span class="c lvl-1 state-exposed">月</span>' in plain and '<span class="c lvl-0 state-exposed">啼</span>' in plain
     assert "study" not in reader_body(plain) and "<h2>Characters</h2>" not in plain and "<ruby>" not in plain and 'class="reader tint-none"' in plain
@@ -102,10 +102,10 @@ def test_reader_toggles_on_text_and_lesson(site):
 
 def test_reader_omits_mastered_from_lists_unless_shown(site):
     intake(connect(site), 1, site.data)
-    assert site.client.post("/texts/1/words/new", data={"surface": "寒山寺", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 303
-    assert site.client.post("/texts/1/extra-words", data={"anchor": "月", "surface": "月亮"}).status_code == 303
+    assert site.client.post("/texts/1/lessons/1/words/new", data={"surface": "寒山寺", "step": "2", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/expansions/add", data={"anchor": "月", "surface": "月亮"}).status_code == 200
     for kind, key in (("word", "寒山寺"), ("character", "愁")):
-        assert site.client.post("/texts/1/progress", data={"kind": kind, "key": key, "state": "mastered"}).status_code == 303
+        assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": kind, "key": key, "state": "mastered"}).status_code == 200
     page = site.client.get("/learn/1/1", params={"words": 1}).text
     assert '<td class="word">寒山寺</td>' not in page and '<td class="char">愁</td>' not in page and '<td class="word">月亮</td>' in page
     assert reader_body(page).count('class="w"') == 1 and "state-mastered study" in page
@@ -115,11 +115,11 @@ def test_reader_omits_mastered_from_lists_unless_shown(site):
 
 def test_learn_index_lists_texts_and_lessons_with_counts(site):
     intake(connect(site), 1, site.data)
-    assert site.client.post("/texts/1/lessons", data={"name": "Level 1"}).status_code == 303
-    assert site.client.post("/texts/1/characters/add?lesson=2", data={"chars": ["月"]}).status_code == 303
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 303
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "落", "state": "recognized"}).status_code == 303
-    assert site.client.post("/texts/1/progress", data={"kind": "character", "key": "乌", "state": "unconfirmed"}).status_code == 303
+    assert site.client.post("/texts/1/lessons", data={"name": "Level 1"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/2/characters/add", data={"chars": ["月"]}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "月", "state": "mastered"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "落", "state": "recognized"}).status_code == 200
+    assert site.client.post("/texts/1/lessons/1/characters/progress", data={"kind": "character", "key": "乌", "state": "unconfirmed"}).status_code == 200
     page = site.client.get("/learn").text
     assert "<th>unconfirmed / exposed / recognized / mastered</th>" in page
     texts = re.findall(r'<tr class="text">.*?<a href="/learn/(\d+)">(.*?)</a> <a class="original" href="/learn/\d+">text only</a>.*?<td class="unique">(\d+)</td>.*?<td class="shares">(.*?)</td>', page, re.S)
