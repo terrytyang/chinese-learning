@@ -4,9 +4,11 @@ A private Chinese learning and teaching system: a native-speaking parent curatin
 texts (poems, classical prose, excerpts) and building character, vocabulary and
 reading work for one student. HSK is a reference scale, not the curriculum.
 
-Everything runs inside a container; see [`.devcontainer/README.md`](.devcontainer/README.md).
-The data model and the reasoning behind it are in [`docs/design.md`](docs/design.md).
-Development is done with Claude Code from briefs in [`docs/briefs/`](docs/briefs/).
+It runs wherever `uv` runs: the owner's VS Code dev container
+([`.devcontainer/README.md`](.devcontainer/README.md)), a plain checkout, or a Claude Code
+cloud session, all with the same commands. The data model and the reasoning behind it
+are in [`docs/design.md`](docs/design.md). Development is done with Claude Code from
+briefs in [`docs/briefs/`](docs/briefs/).
 
 ```sh
 uv sync --locked
