@@ -12,7 +12,7 @@
 {% if error %}<p class="error">{{ error }}</p>{% endif %}
 {% if rows %}
 <table>
-  <thead><tr><th>Item</th><th>Pinyin</th><th>Level</th><th>Source</th><th>Gloss</th><th>State</th><th></th></tr></thead>
+  <thead><tr><th class="w-item">Item</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th class="w-source">Source</th><th>Gloss</th><th class="w-state">State</th><th class="w-act"></th></tr></thead>
   <tbody>
   {% for r in rows %}{% include "admin/dictionary_row.html" %}
   {% endfor %}

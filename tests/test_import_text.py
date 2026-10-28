@@ -26,7 +26,8 @@ def test_page_and_preview(site, baseline):
     page = site.client.get("/texts/import").text
     assert "<h1>Import a text</h1>" in page and 'class="on"' in page.split("<nav")[1].split("</nav>")[0].split("Learn")[0]  # Texts is current
     assert 'hx-post="/texts/import/preview" hx-trigger="input delay:300ms" hx-target="#preview"' in page and 'name="tags" value="诗词"' in page
-    assert f'<pre id="preview" class="zh">data/texts/{n:03d}-.md: empty value for &#39;title&#39;</pre>' in page
+    assert '<pre id="preview" class="zh">Fill in a title and the body; the file to be written appears here.</pre>' in page
+    assert site.client.post("/texts/import/preview", data={**POEM, "body": " "}, headers=HX).text.endswith("appears here.</pre>")
     assert 'href="/texts/import">Import a text</a>' in site.client.get("/texts").text
     r = site.client.post("/texts/import/preview", data=POEM, headers=HX)
     assert r.status_code == 200 and r.text == f'<pre id="preview" class="zh">{FILE.format(n)}</pre>'
@@ -43,7 +44,7 @@ def test_import_writes_the_file_inserts_intakes_and_matches_a_later_build(site, 
     assert r.status_code == 200 and r.text.startswith('<div id="import">')
     assert f"Written <code>data/texts/{n:03d}-静夜思.md</code> · intake: 17 characters, {len(words)} words · " in r.text
     assert f'<a href="/texts/{n}">Open <span class="zh">静夜思</span> →</a>' in r.text and 'name="title" value=""' in r.text and 'name="tags" value="诗词"' in r.text
-    assert f'<pre id="preview" class="zh" hx-swap-oob="true">data/texts/{n + 1:03d}-.md: empty value for &#39;title&#39;</pre>' in r.text
+    assert '<pre id="preview" class="zh" hx-swap-oob="true">Fill in a title and the body; the file to be written appears here.</pre>' in r.text
     path = site.data / "texts" / f"{n:03d}-静夜思.md"
     assert path.read_text(encoding="utf-8") == FILE.format(n)
     conn = db.connect(site.db)

@@ -139,8 +139,8 @@ def routes(r, admin, connection):
 
     def add_card(request, conn, status=200, lookup=None, added=None, error=None, submitted=None, oob_rows=False):
         ctx = {"request": request, "lookup": lookup, "added": added, "error": error, "submitted": submitted, "oob": False}
-        if oob_rows:
-            ctx.update(rows_context(conn, {**DEFAULTS, "q": added}, oob=True, error=None))
+        if oob_rows:  # the rows for the new entry and the header counts, out of band
+            ctx.update(rows_context(conn, {**DEFAULTS, "q": added}, oob=True, error=None), header=header(conn))
         return fragment("add", ctx, status)
 
     @r.get("/dictionary", response_class=HTMLResponse)

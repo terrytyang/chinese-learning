@@ -6,7 +6,7 @@
   <div class="anchor zh">{{ c.char }}<div class="reading">{{ c.pinyin or "—" }}</div></div>
   <div class="items">
     {% if items %}<table>
-      <thead><tr><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Origin</th><th>State</th><th></th></tr></thead>
+      <thead><tr><th class="w-item">Word</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th>Gloss</th><th class="w-origin">Origin</th><th class="w-state">State</th><th class="w-acts"></th></tr></thead>
       <tbody>{% for e in items %}{{ extra_row(P, e) }}{% endfor %}</tbody>
     </table>{% endif %}
     {{ add_form(P, c.char, true, "expand " ~ c.char ~ " into…") }}

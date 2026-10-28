@@ -13,8 +13,13 @@ FIELDS = ("title", "author", "period", "tags", "body")
 EMPTY = {"title": "", "author": "", "period": "", "tags": "诗词", "body": ""}
 
 
+PLACEHOLDER = "Fill in a title and the body; the file to be written appears here."
+
+
 def preview(conn, fields) -> str:
-    """The exact file content, or the parse error it would raise."""
+    """The exact file content, or the parse error it would raise; a placeholder until title and body are both present."""
+    if not fields["title"].strip() or not fields["body"].strip():
+        return PLACEHOLDER
     content, name = compose(conn, fields)
     try:
         texts.parse_text(content, name)

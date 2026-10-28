@@ -3,7 +3,7 @@ the dictionary page's Add all shown and Changed filter, and the lesson page."""
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import date
 
 import pytest
 
@@ -11,7 +11,7 @@ from chineselearning import db, lesson_files, lessons, progress
 from chineselearning.annotations import AnnotationError
 
 HX = {"HX-Request": "true"}
-TODAY = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+TODAY = date.today().isoformat()
 
 
 def connect(site):
