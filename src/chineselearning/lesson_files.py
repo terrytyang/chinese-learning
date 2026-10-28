@@ -1,4 +1,4 @@
-"""Lesson files data/lessons/<text id>-<lesson id>.json: export, write-through, and import on build."""
+"""Lesson files data/lessons/<text id>-<lesson id>.json (a vocabulary lesson: <lesson id>.json): export, write-through, and import on build."""
 
 import json
 import re
@@ -8,7 +8,7 @@ from . import lessons
 from .annotation_files import write_json
 from .annotations import AnnotationError
 
-NAME = re.compile(r"(\d+)-(\d+)\.json")
+NAME = re.compile(r"(?:(\d+)-)?(\d+)\.json")
 
 
 def export(conn, lesson_id) -> dict:
@@ -27,7 +27,16 @@ def export(conn, lesson_id) -> dict:
 
 
 def file_path(data_dir, text_id, lesson_id) -> Path:
-    return Path(data_dir) / "lessons" / f"{text_id}-{lesson_id}.json"
+    return Path(data_dir) / "lessons" / (f"{text_id}-{lesson_id}.json" if text_id is not None else f"{lesson_id}.json")
+
+
+def write_file(conn, lesson_id, data_dir):
+    """Rewrite one vocabulary lesson's file; a lesson that no longer exists loses its file."""
+    lesson = lessons.get(conn, lesson_id)
+    if lesson:
+        write_json(file_path(data_dir, lesson["text_id"], lesson_id), export(conn, lesson_id))
+    else:
+        file_path(data_dir, None, lesson_id).unlink(missing_ok=True)
 
 
 def write_files(conn, text_id, data_dir):
@@ -37,7 +46,7 @@ def write_files(conn, text_id, data_dir):
         write_json(file_path(data_dir, text_id, lesson_id), export(conn, lesson_id))
     for path in Path(data_dir, "lessons").glob(f"{text_id}-*.json"):
         match = NAME.fullmatch(path.name)
-        if match and int(match.group(2)) not in current:
+        if match and match.group(1) and int(match.group(2)) not in current:
             path.unlink()
 
 
@@ -46,11 +55,11 @@ def import_all(conn, data_dir):
     for path in sorted(Path(data_dir, "lessons").glob("*.json")):
         data = json.loads(path.read_text(encoding="utf-8"))
         try:
-            match = NAME.fullmatch(path.name)
             text_id, lesson_id = data.get("text_id"), data.get("lesson_id")
-            if not match or (int(match.group(1)), int(match.group(2))) != (text_id, lesson_id):
-                raise AnnotationError(f"the file name should be {text_id}-{lesson_id}.json")
-            if not conn.execute("SELECT 1 FROM text WHERE id = ?", (text_id,)).fetchone():
+            expected = file_path(data_dir, text_id, lesson_id).name  # a text lesson is <text>-<lesson>.json, a vocabulary lesson <lesson>.json
+            if path.name != expected:
+                raise AnnotationError(f"the file name should be {expected}")
+            if text_id is not None and not conn.execute("SELECT 1 FROM text WHERE id = ?", (text_id,)).fetchone():
                 raise AnnotationError(f"no text with id {text_id}")
             lessons.create(conn, text_id, data["name"], lesson_id)
             for char in data.get("characters", []):

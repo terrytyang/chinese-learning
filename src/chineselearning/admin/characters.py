@@ -4,7 +4,7 @@ from fastapi import Depends, Form, Request
 
 from .. import lessons
 from . import rows
-from .common import filters_of, level_bounds, select_character
+from .common import deselect, filters_of, level_bounds, select_character
 
 DEFAULTS = {"min": "1", "max": "7", "state": "learning", "missing": "1"}
 STATE_OPTIONS = (("learning", "unconfirmed or exposed"), ("any", "any"), ("unconfirmed", "unconfirmed"),
@@ -43,4 +43,4 @@ def routes(r, admin, connection):
 
     @r.post(PATH + "/{char}/remove")
     def remove(request: Request, text_id: int, lesson_id: int, char: str, conn=Depends(connection)):
-        return tab(request, conn, text_id, lesson_id, lambda: lessons.remove(conn, lesson_id, "characters", char), "add")
+        return tab(request, conn, text_id, lesson_id, lambda: deselect(conn, lesson_id, "characters", char), "add")

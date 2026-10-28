@@ -5,7 +5,7 @@ from fastapi import Depends, Form, Request
 from .. import annotations, lessons, progress, supplement
 from .. import pinyin as pinyin_
 from . import rows
-from .common import filters_of, in_dictionary, level_bounds, select_word
+from .common import deselect, filters_of, in_dictionary, level_bounds, released, select_word
 
 DEFAULTS = {"show": "unreviewed", "min": "1", "max": "7"}
 SHOW_OPTIONS = (("all", "all"), ("unreviewed", "not yet reviewed (auto / suggested)"), ("included", "in this lesson"), ("excluded", "not in this lesson"))
@@ -59,7 +59,7 @@ def routes(r, admin, connection):
     def include(request: Request, text_id: int, lesson_id: int, word: str, included: str = Form("", alias="in"), conn=Depends(connection)):
         """The row's checkbox: ticked selects the word for the lesson, unticked removes the selection."""
         lesson = admin.lesson(conn, text_id, lesson_id)
-        change = (lambda: select_word(conn, lesson_id, word)) if included else (lambda: lessons.remove(conn, lesson_id, "words", word))
+        change = (lambda: select_word(conn, lesson_id, word)) if included else (lambda: deselect(conn, lesson_id, "words", word))
         return tab(request, conn, text_id, lesson, change, "shown")
 
     @r.post(PATH + "/{word}/save")
@@ -75,7 +75,11 @@ def routes(r, admin, connection):
     def delete(request: Request, text_id: int, lesson_id: int, word: str, conn=Depends(connection)):
         """Drops the text fact (and with it every lesson's selection of the word)."""
         lesson = admin.lesson(conn, text_id, lesson_id)
-        return tab(request, conn, text_id, lesson, lambda: annotations.remove(conn, text_id, "words", word), "shown")
+
+        def change():
+            annotations.remove(conn, text_id, "words", word)
+            released(conn, "word", word)
+        return tab(request, conn, text_id, lesson, change, "shown")
 
     @r.post(PATH + "/new")
     def new(

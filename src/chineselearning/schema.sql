@@ -44,10 +44,12 @@ CREATE TABLE text_word (          -- a word present in the text; always a dictio
   PRIMARY KEY (text_id, surface)
 );
 
--- Lessons: additive layers over a text (data/lessons/<text id>-<lesson id>.json). Ids are fixed by the file.
+-- Lessons: additive layers over a text (data/lessons/<text id>-<lesson id>.json), or vocabulary lessons with no text
+-- (text_id null, data/lessons/<lesson id>.json). Ids are fixed by the file. Names are unique per text and unique among
+-- vocabulary lessons; the constraint covers the first (NULLs are distinct), lessons._check_name both.
 CREATE TABLE lesson (
   id INTEGER PRIMARY KEY,
-  text_id INTEGER NOT NULL REFERENCES text(id) ON DELETE CASCADE,
+  text_id INTEGER REFERENCES text(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   UNIQUE (text_id, name)
 );

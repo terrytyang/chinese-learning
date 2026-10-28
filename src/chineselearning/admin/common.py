@@ -58,6 +58,18 @@ def select_word(conn, lesson_id, surface):
     progress.expose(conn, "word", surface.strip())
 
 
+def released(conn, kind, key):
+    """After a removal: an automatic exposure that no lesson supports any more returns to unconfirmed."""
+    if not lessons.held(conn, kind, key):
+        progress.release(conn, kind, key)
+
+
+def deselect(conn, lesson_id, kind, key, *rest):
+    """Removing from a lesson (`kind` as lessons.remove takes it), with the symmetric state rule."""
+    lessons.remove(conn, lesson_id, kind, key, *rest)
+    released(conn, "character" if kind == "characters" else "word", key)
+
+
 def tab_counts(conn, text_id, lesson) -> dict:
     """The numbers in the tab labels; Words in text is included/total."""
     content = lessons.load(conn, lesson["id"])

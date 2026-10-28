@@ -27,7 +27,8 @@ def state_of(conn, kind, key, learner_id=LEARNER) -> str:
 def set_state(conn, kind, key, state, origin, learner_id=LEARNER, changed_at=None) -> bool:
     """Upsert the row with its origin; `unconfirmed` deletes it. Returns whether anything changed.
 
-    `changed_at` defaults to now (an import passes the file's date). A row whose state is already `state` is left as it is.
+    `changed_at` defaults to now (an import passes the file's date). A row already in `state` with the same origin is left as
+    it is; with another origin, its origin and date change (a page click on the lit button turns an `auto` row `manual`).
     """
     key = (key or "").strip()
     if kind not in KINDS or not key:
@@ -38,7 +39,8 @@ def set_state(conn, kind, key, state, origin, learner_id=LEARNER, changed_at=Non
         raise ProgressError("state must be unconfirmed, exposed, recognized or mastered")
     if origin not in ORIGINS:
         raise ProgressError("origin must be auto, manual or import")
-    if state_of(conn, kind, key, learner_id) == state:
+    row = conn.execute("SELECT state, origin FROM progress.progress WHERE learner_id = ? AND kind = ? AND key = ?", (learner_id, kind, key)).fetchone()
+    if (row[0] if row else "unconfirmed") == state and (row is None or row[1] == origin):
         return False
     if state == "unconfirmed":
         conn.execute("DELETE FROM progress.progress WHERE learner_id = ? AND kind = ? AND key = ?", (learner_id, kind, key))
@@ -53,3 +55,9 @@ def set_state(conn, kind, key, state, origin, learner_id=LEARNER, changed_at=Non
 def expose(conn, kind, key, learner_id=LEARNER) -> bool:
     """Adding to a lesson: unconfirmed becomes exposed (origin `auto`); every other state stays."""
     return state_of(conn, kind, key, learner_id) == "unconfirmed" and set_state(conn, kind, key, "exposed", "auto", learner_id)
+
+
+def release(conn, kind, key, learner_id=LEARNER) -> bool:
+    """Removing from the last lesson that held it: an automatic `exposed` goes back to unconfirmed; anything else stays."""
+    row = conn.execute("SELECT 1 FROM progress.progress WHERE learner_id = ? AND kind = ? AND key = ? AND state = 'exposed' AND origin = 'auto'", (learner_id, kind, key)).fetchone()
+    return bool(row) and set_state(conn, kind, key, "unconfirmed", "auto", learner_id)
