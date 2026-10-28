@@ -52,6 +52,8 @@ student. Runs only inside the dev container, never on the internet. Read
   `.sql` files, not Python objects.
 - Don't add options, abstractions, or features the brief didn't ask for. Ask
   before adding a dependency.
+- A dev server started to verify a change is stopped before the work is
+  reported done; never leave a process holding port 8000.
 - Docs are short and state decisions, not deferrals. Record a changed decision as
   one line in `docs/design.md`'s decision log; don't write changelogs elsewhere.
 - Classical texts rarely contain modern HSK words (枫桥夜泊 contains none); don't

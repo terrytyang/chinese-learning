@@ -25,8 +25,8 @@ def test_supplement_loads_fifteen_characters_with_derived_levels(built):
     ti = db.lookup_character(conn, "啼")
     assert (ti["id"], ti["pinyin"], ti["readings"], ti["gloss"], ti["hsk_level"]) == (ord("啼"), "tí", ["tí"], "cry, crow (of birds), weep", 7)
     assert (ti["hsk_edition"], ti["source"], ti["traditional"], ti["meanings"], ti["word_level"], ti["pos"]) == ("none", "supplement", None, [], None, None)
-    assert db.lookup_character(conn, "魏")["readings"] == ["Wèi", "wéi", "wēi"]  # the file's reading first, then pypinyin's others
-    assert db.lookup_character(conn, "刘")["readings"] == ["Liú"]
+    assert db.lookup_character(conn, "魏")["readings"] == ["wèi", "wéi", "wēi"]  # the file's reading first, then pypinyin's others
+    assert db.lookup_character(conn, "刘")["readings"] == ["liú"]
     found = db.lookup_characters(conn, "银啼龘")
     assert (found[1]["found"], found[1]["source"]) == (True, "supplement") and found[2] == {"char": "龘", "found": False}
     assert db.lookup_word(conn, "银行")["source"] == "hsk" and db.lookup_word(conn, "寒山寺") is None and db.lookup_character(conn, "龘") is None
