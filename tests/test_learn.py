@@ -119,7 +119,7 @@ def test_reader_omits_mastered_from_lists_unless_shown(site):
     assert '<td class="word">寒山寺</td>' in shown and '<td class="char">愁</td>' in shown
 
 
-def test_learn_index_lists_texts_and_lessons_with_counts(site):
+def test_learn_index_lists_texts_and_lessons_with_counts(site, baseline):
     intake(connect(site), 1, site.data)
     assert site.client.post("/texts/1/lessons", data={"name": "Level 1"}).status_code == 200
     assert site.client.post("/texts/1/lessons/2/characters/add", data={"chars": ["月"]}).status_code == 200
@@ -129,7 +129,7 @@ def test_learn_index_lists_texts_and_lessons_with_counts(site):
     page = site.client.get("/learn").text
     assert "<th>unconfirmed / exposed / recognized / mastered</th>" in page
     texts = re.findall(r'<tr class="text">.*?<a href="/learn/(\d+)">(.*?)</a> <a class="original" href="/learn/\d+">text only</a>.*?<td class="unique">(\d+)</td>.*?<td class="shares">(.*?)</td>', page, re.S)
-    assert [t[0] for t in texts] == ["1", "2", "3", "4", "5"] and texts[0][1:] == ("枫桥夜泊", "28", "1 / 25 / 1 / 1")
+    assert [t[0] for t in texts] == [str(i) for i in baseline.text_ids] and texts[0][1:] == ("枫桥夜泊", "28", "1 / 25 / 1 / 1")
     owned = re.findall(r'<tr class="lesson">.*?<a href="/learn/(\d+)/(\d+)">(.*?)</a>.*?<td class="unique">(\d+)</td>.*?<td class="shares">(.*?)</td>', page, re.S)
     assert owned == [("1", "1", "Learn 枫桥夜泊", "28", "1 / 25 / 1 / 1"), ("1", "2", "Level 1", "1", "0 / 0 / 0 / 1")]
     conn = connect(site)

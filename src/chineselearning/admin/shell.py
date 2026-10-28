@@ -29,7 +29,8 @@ def routes(r, admin, connection):
     @r.get("/texts", response_class=HTMLResponse)
     def index(request: Request, tag: str = "", author: str = "", period: str = "", conn=Depends(connection)):
         rows = [dict(t, lessons=lessons.for_text(conn, t["id"])) for t in db.list_texts(conn, tag=tag, author=author, period=period)]
-        context = {"texts": rows, "options": db.filter_options(conn), "selected": {"tag": tag, "author": author, "period": period}}
+        context = {"texts": rows, "options": db.filter_options(conn), "selected": {"tag": tag, "author": author, "period": period},
+                   "vocabulary": lessons.vocabulary(conn), "error": None}
         return admin.templates.TemplateResponse(request, "texts.html", context)
 
     @r.get("/api/characters")

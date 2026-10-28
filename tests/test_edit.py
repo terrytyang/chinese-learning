@@ -39,7 +39,7 @@ def row_of(html, row_id):
 
 def add_text_6(site):
     """A text with a character the dictionary lacks (龘); intake refuses it, the page still shows it."""
-    (site.data / "texts" / "006-龘.md").write_text("id: 6\ntitle: 龘\ntags: 诗词\n\n龘飞\n", encoding="utf-8")
+    (site.data / "texts" / "099-龘.md").write_text("id: 99\ntitle: 龘\ntags: 诗词\n\n龘飞\n", encoding="utf-8")
     db.build(site.db, site.data)
 
 
@@ -56,14 +56,14 @@ def test_characters_tab_shows_dictionary_data_for_supplement_characters(site):
 
 def test_character_the_dictionary_lacks_is_flagged_and_filtered(site):
     add_text_6(site)
-    assert post(site, "/texts/6/lessons", name="A").status_code == 200
-    assert post(site, "/texts/6/lessons/1/characters/add", chars=["龘"]).status_code == 200
-    page = get(site, "/texts/6/lessons/1/characters").text
+    assert post(site, "/texts/99/lessons", name="A").status_code == 200
+    assert post(site, "/texts/99/lessons/1/characters/add", chars=["龘"]).status_code == 200
+    page = get(site, "/texts/99/lessons/1/characters").text
     row = row_of(page, "char-龘")
     assert '<span class="lvl l0">n/a</span>' in row and "not in the dictionary — add it to data/supplement.tsv" in row
-    assert "2 characters · 1 not in HSK (龘) · 1 without a gloss" in site.client.get("/texts/6").text
-    assert post(site, "/texts/6/lessons/1/characters/龘/remove").status_code == 200
-    shown = lambda **params: re.findall(r'name="chars" value="(.)"', get(site, "/texts/6/lessons/1/characters", **params).text)  # noqa: E731
+    assert "2 characters · 1 not in HSK (龘) · 1 without a gloss" in site.client.get("/texts/99").text
+    assert post(site, "/texts/99/lessons/1/characters/龘/remove").status_code == 200
+    shown = lambda **params: re.findall(r'name="chars" value="(.)"', get(site, "/texts/99/lessons/1/characters", **params).text)  # noqa: E731
     assert shown() == ["龘", "飞"] and shown(min=1, max=7, state="learning") == ["飞"] and shown(min=1, max=7, state="learning", missing=1) == ["龘", "飞"]
 
 
@@ -154,12 +154,12 @@ def test_supplement_word_level_shows_everywhere(site, baseline, probe):
 
 def test_reading_of_a_character_the_dictionary_lacks_is_typed(site):
     add_text_6(site)
-    edit = get(site, "/texts/6/text/edit").text
+    edit = get(site, "/texts/99/text/edit").text
     assert '<input name="p0" aria-label="Reading" placeholder="pinyin" value="">' in edit and '<span class="fixed"></span><span>飞</span>' in edit
-    assert post(site, "/texts/6/text", p0="da2").status_code == 200
-    assert "<ruby>龘<rt>dá</rt></ruby>" in get(site, "/texts/6/text").text
-    assert json.loads((site.data / "annotations" / "6.json").read_text(encoding="utf-8"))["readings"] == [{"position": 0, "char": "龘", "pinyin": "dá", "origin": "manual"}]
-    assert 'name="p0" aria-label="Reading" placeholder="pinyin" value="dá"' in get(site, "/texts/6/text/edit").text
-    r = post(site, "/texts/6/text", p0=" ")
+    assert post(site, "/texts/99/text", p0="da2").status_code == 200
+    assert "<ruby>龘<rt>dá</rt></ruby>" in get(site, "/texts/99/text").text
+    assert json.loads((site.data / "annotations" / "99.json").read_text(encoding="utf-8"))["readings"] == [{"position": 0, "char": "龘", "pinyin": "dá", "origin": "manual"}]
+    assert 'name="p0" aria-label="Reading" placeholder="pinyin" value="dá"' in get(site, "/texts/99/text/edit").text
+    r = post(site, "/texts/99/text", p0=" ")
     assert r.status_code == 422 and "a reading for position 0 “龘” is required" in r.text and 'name="p0"' in r.text
     assert '<span class="fixed"></span><span>枫</span>' in get(site, "/texts/1/text/edit").text  # a supplement character with one reading is fixed

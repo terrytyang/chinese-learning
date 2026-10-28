@@ -9,14 +9,15 @@ def test_health(client):
     assert client.get("/health").json() == {"status": "ok"}
 
 
-def test_texts_list_and_filters(client):
+def test_texts_list_and_filters(client, baseline):
     page = client.get("/texts").text
-    assert count(page) == 5 and "枫桥夜泊" in page and "桃花源记" in page
-    assert count(client.get("/texts", params={"tag": "诗词"}).text) == 4
-    assert count(client.get("/texts", params={"author": "李白"}).text) == 1
-    assert count(client.get("/texts", params={"period": "东晋"}).text) == 1
+    n = lambda cond: sum(1 for t in baseline.texts if cond(t))  # noqa: E731
+    assert count(page) == len(baseline.texts) and "枫桥夜泊" in page and "桃花源记" in page
+    assert count(client.get("/texts", params={"tag": "诗词"}).text) == n(lambda t: "诗词" in t.tags) >= 4
+    assert count(client.get("/texts", params={"author": "李白"}).text) == n(lambda t: t.author == "李白") >= 1
+    assert count(client.get("/texts", params={"period": "东晋"}).text) == n(lambda t: t.period == "东晋") == 1
     assert count(client.get("/texts", params={"tag": "诗词", "period": "东晋"}).text) == 0
-    assert count(client.get("/texts", params={"tag": "", "author": "", "period": ""}).text) == 5
+    assert count(client.get("/texts", params={"tag": "", "author": "", "period": ""}).text) == len(baseline.texts)
 
 
 def test_text_1_flags_missing_characters_and_finds_no_words(client):

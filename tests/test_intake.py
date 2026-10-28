@@ -113,28 +113,29 @@ def test_resolver_uses_stored_rows_then_words_then_primary(site):
 
 
 def test_intake_refuses_a_character_the_dictionary_lacks(site):
-    (site.data / "texts" / "006-龘.md").write_text("id: 6\ntitle: 龘\ntags: 诗词\n\n龘飞龘\n", encoding="utf-8")
+    (site.data / "texts" / "099-龘.md").write_text("id: 99\ntitle: 龘\ntags: 诗词\n\n龘飞龘\n", encoding="utf-8")
     db.build(site.db, site.data)
     conn = connect(site)
-    with pytest.raises(AnnotationError, match="text 6 has characters not in the dictionary: 龘; add them to data/supplement.tsv"):
-        intake(conn, 6, site.data)
-    assert not (site.data / "annotations" / "6.json").exists() and not list((site.data / "lessons").glob("6-*.json"))
+    with pytest.raises(AnnotationError, match="text 99 has characters not in the dictionary: 龘; add them to data/supplement.tsv"):
+        intake(conn, 99, site.data)
+    assert not (site.data / "annotations" / "99.json").exists() and not list((site.data / "lessons").glob("99-*.json"))
     supplement.add(conn, site.data, "龘", "da2", "dragons flying", "")
-    assert intake(conn, 6, site.data) == {"words": 0, "readings": 3, "lesson": 1}
-    assert [r["pinyin"] for r in facts(site, 6)["readings"]] == ["dá", "fēi", "dá"]
+    assert intake(conn, 99, site.data) == {"words": 0, "readings": 3, "lesson": 1}
+    assert [r["pinyin"] for r in facts(site, 99)["readings"]] == ["dá", "fēi", "dá"]
 
 
-def test_intake_new_picks_only_texts_without_facts_or_lesson(site, capsys):
+def test_intake_new_picks_only_texts_without_facts_or_lesson(site, capsys, baseline):
     conn = connect(site)
-    assert new_texts(conn) == [1, 2, 3, 4, 5]
+    assert new_texts(conn) == baseline.text_ids
     assert site.client.post("/texts/3/lessons", data={"name": "A"}).status_code == 200  # a lesson alone also excludes the text
     intake(conn, 1, site.data)
-    assert new_texts(conn) == [2, 4, 5]
+    rest = [i for i in baseline.text_ids if i not in (1, 3)]
+    assert new_texts(conn) == rest
     args = ["--db", str(site.db), "--data", str(site.data), "--progress", str(site.progress)]
     main(["intake", "--new", *args])
     out = capsys.readouterr().out
-    assert [line.split(":")[0] for line in out.splitlines()] == ["text 2", "text 4", "text 5"] and "readings 20, lesson 3" in out
-    assert new_texts(connect(site)) == [] and sorted(p.name for p in (site.data / "annotations").iterdir()) == ["1.json", "2.json", "4.json", "5.json"]
+    assert [line.split(":")[0] for line in out.splitlines()] == [f"text {i}" for i in rest] and "readings 20, lesson 3" in out  # text 2 (春晓) comes first
+    assert new_texts(connect(site)) == [] and sorted(p.name for p in (site.data / "annotations").iterdir()) == sorted(f"{i}.json" for i in baseline.text_ids if i != 3)
     main(["intake", "--new", *args])
     assert capsys.readouterr().out == "nothing to intake: every text has facts or a lesson\n"
     for argv in (["intake", *args], ["intake", "1", "--new", *args]):

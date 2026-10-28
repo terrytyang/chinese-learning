@@ -1,0 +1,4 @@
+{# The Changed filter's date control: the dates in the progress table (with counts) for "on", a date input for a comparison, kept hidden for "any". #}
+{% if filters.changed == "on" %}<select id="date" name="date" aria-label="Date">{% for day, n in dates %}<option value="{{ day }}"{% if day == filters.date %} selected{% endif %}>{{ day }} ({{ n }})</option>{% endfor %}</select>
+{%- elif filters.changed == "any" %}<input id="date" type="hidden" name="date" value="{{ filters.date }}">
+{%- else %}<input id="date" type="date" name="date" aria-label="Date" value="{{ filters.date }}">{% endif %}

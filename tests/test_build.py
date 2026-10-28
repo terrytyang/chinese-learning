@@ -7,7 +7,7 @@ from chineselearning import annotation_files, db, lesson_files, lessons
 
 def test_build_counts(built, baseline):
     path, counts = built
-    expected = {"character": baseline.hsk_characters + baseline.characters, "word": baseline.hsk_words + baseline.words, "text": 5, "tag": 2}
+    expected = {"character": baseline.hsk_characters + baseline.characters, "word": baseline.hsk_words + baseline.words, "text": len(baseline.texts), "tag": 2}
     assert {k: counts[k] for k in expected} == expected
 
 
@@ -19,11 +19,11 @@ def test_build_imports_texts_with_tags(built):
     assert conn.execute("PRAGMA foreign_keys").fetchone()[0] == 1
 
 
-def test_build_overwrites(tmp_path):
+def test_build_overwrites(tmp_path, baseline):
     path = tmp_path / "content.sqlite"
     path.write_bytes(b"garbage")
     db.build(path, "data")
-    assert sqlite3.connect(path).execute("SELECT count(*) FROM text").fetchone()[0] == 5
+    assert sqlite3.connect(path).execute("SELECT count(*) FROM text").fetchone()[0] == len(baseline.texts)
 
 
 def test_cli_build_prints_counts(tmp_path, capsys, baseline):
@@ -31,7 +31,7 @@ def test_cli_build_prints_counts(tmp_path, capsys, baseline):
 
     main(["build", "--db", str(tmp_path / "c.sqlite")])
     out = capsys.readouterr().out
-    assert f"character {baseline.hsk_characters + baseline.characters}, word {baseline.hsk_words + baseline.words}, text 5, tag 2" in out
+    assert f"character {baseline.hsk_characters + baseline.characters}, word {baseline.hsk_words + baseline.words}, text {len(baseline.texts)}, tag 2" in out
     assert f"{baseline.entries} supplement entries, {baseline.unglossed} without a gloss" in out
 
 
@@ -59,14 +59,14 @@ def test_master_shape(built, baseline):
     assert db.lookup_characters(conn, "龘") == [{"char": "龘", "found": False}]
 
 
-def test_committed_facts_and_lessons_load(tmp_path):
+def test_committed_facts_and_lessons_load(tmp_path, baseline):
     """The regenerated files in data/ build: a reading for every Han position of every text, the default lesson each, no character
     facts (the supplement covers 啼, 枫, 鸯, …), and every file exports byte-identical."""
     from chineselearning.texts import HAN
 
     path = tmp_path / "live.sqlite"
     counts = db.build(path, "data")
-    assert counts["lesson"] == 5 and counts["lesson_extra_word"] == 0 and counts["lesson_note"] == 0 and counts["text_character"] == 0
+    assert counts["lesson"] == len(baseline.texts) and counts["lesson_note"] == 0 and counts["text_character"] == 0  # one default lesson per text
     conn = db.connect(path, readonly=True)
     as_file = lambda data: json.dumps(data, ensure_ascii=False, indent=2) + "\n"  # noqa: E731
     for text in db.list_texts(conn):

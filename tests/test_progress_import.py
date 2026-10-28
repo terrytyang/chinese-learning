@@ -202,10 +202,10 @@ def test_cli_init_import_check_export_and_fresh_rebuild(site, monkeypatch, capsy
     out = capsys.readouterr().out
     assert f"build/content.sqlite: character {baseline.hsk_characters + baseline.characters}" in out and f"{baseline.entries} supplement entries" in out
     assert "files read: data/import/progress/hand.tsv\nentries: 2\nunconfirmed→mastered: 月\nunconfirmed→recognized: 银行, 银, 行\nunchanged: 0\n" in out
-    assert [line.split(":")[0] for line in out.splitlines() if line.startswith("text ")] == [f"text {i}" for i in range(1, 6)]
-    assert Path("build/content.sqlite").is_file() and Path("build/progress.sqlite").is_file() and len(list(Path("data/lessons").glob("*.json"))) == 5
+    assert [line.split(":")[0] for line in out.splitlines() if line.startswith("text ")] == [f"text {i}" for i in baseline.text_ids]
+    assert Path("build/content.sqlite").is_file() and Path("build/progress.sqlite").is_file() and len(list(Path("data/lessons").glob("*.json"))) == len(baseline.texts)
     conn = db.connect("build/content.sqlite", progress_path="build/progress.sqlite")
-    assert conn.execute("SELECT count(*) FROM lesson").fetchone()[0] == 5
+    assert conn.execute("SELECT count(*) FROM lesson").fetchone()[0] == len(baseline.texts)
     lesson = json.loads(Path("data/lessons/1-1.json").read_text(encoding="utf-8"))["characters"]
     assert len(lesson) == 27 and "月" not in lesson and "落" in lesson  # a mastered character stays out of the default lesson (行 is not in text 1)
     assert (progress.state_of(conn, "character", "月"), progress.state_of(conn, "character", "落"), progress.state_of(conn, "word", "银行")) == ("mastered", "exposed", "recognized")

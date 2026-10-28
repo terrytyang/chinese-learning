@@ -1,10 +1,17 @@
-"""Lessons: a named selection of a text's characters and words plus extra words and notes (design.md, layer 3).
+"""Lessons: a named selection of a text's characters and words plus extra words and notes, or a vocabulary lesson with no
+text whose members are any dictionary items (design.md, layer 3).
 
-`lesson_files` persists each lesson write-through to data/lessons/<text id>-<lesson id>.json.
+`lesson_files` persists each lesson write-through to data/lessons/<text id>-<lesson id>.json, or <lesson id>.json.
 """
+
+from datetime import datetime, timezone
 
 from . import pinyin as pinyin_
 from .annotations import MASTER, AnnotationError, body_of, char_in, clean, decode_master, origin_of, resolve_word, word_surface
+from .texts import HAN
+
+NO_EXTRA = "a vocabulary lesson's words are members; add it as a word"
+NO_ANCHOR = "a vocabulary lesson's notes have no anchor"
 
 TABLES = {
     "characters": ("lesson_character", "char = ?"),
@@ -24,6 +31,21 @@ def for_text(conn, text_id) -> list[dict]:
     return [dict(r) for r in conn.execute("SELECT id, text_id, name FROM lesson WHERE text_id = ? ORDER BY id", (text_id,))]
 
 
+def vocabulary(conn) -> list[dict]:
+    """The lessons with no text, newest first."""
+    return [dict(r) for r in conn.execute("SELECT id, text_id, name FROM lesson WHERE text_id IS NULL ORDER BY id DESC")]
+
+
+def default_name(conn) -> str:
+    """`Vocabulary <today>`, then `Vocabulary <today> (2)`, `(3)`… — the first not yet taken by a vocabulary lesson."""
+    base = f"Vocabulary {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+    taken = {r[0] for r in conn.execute("SELECT name FROM lesson WHERE text_id IS NULL")}
+    name, n = base, 2
+    while name in taken:
+        name, n = f"{base} ({n})", n + 1
+    return name
+
+
 def _require(conn, lesson_id) -> dict:
     lesson = get(conn, lesson_id)
     if lesson is None:
@@ -35,14 +57,15 @@ def _check_name(conn, text_id, name, lesson_id=None):
     name = clean(name)
     if not name:
         raise AnnotationError("a lesson name is required")
-    if conn.execute("SELECT 1 FROM lesson WHERE text_id = ? AND name = ? AND id IS NOT ?", (text_id, name, lesson_id)).fetchone():
+    if conn.execute("SELECT 1 FROM lesson WHERE text_id IS ? AND name = ? AND id IS NOT ?", (text_id, name, lesson_id)).fetchone():
         raise AnnotationError(f"a lesson named “{name}” already exists")
     return name
 
 
 def create(conn, text_id, name, lesson_id=None) -> int:
-    """A new lesson; the id is assigned here (or given, on import) and then fixed by the file."""
-    body_of(conn, text_id)
+    """A new lesson (a vocabulary lesson when `text_id` is None); the id is assigned here (or given, on import) and then fixed by the file."""
+    if text_id is not None:
+        body_of(conn, text_id)
     name = _check_name(conn, text_id, name)
     if lesson_id is not None and get(conn, lesson_id):
         raise AnnotationError(f"lesson id {lesson_id} is already taken")
@@ -70,16 +93,35 @@ def delete(conn, lesson_id):
 # --- selections and additions (duplicates are no-ops) ----------------------
 
 def add_character(conn, lesson_id, char):
-    char = char_in(body_of(conn, _require(conn, lesson_id)["text_id"]), char)
+    """A character of the text; in a vocabulary lesson, any character the dictionary has."""
+    text_id = _require(conn, lesson_id)["text_id"]
+    if text_id is not None:
+        char = char_in(body_of(conn, text_id), char)
+    else:
+        char = clean(char) or ""
+        if len(char) != 1 or not HAN.fullmatch(char):
+            raise AnnotationError(f"“{char}” is not a single character")
+        if not conn.execute("SELECT 1 FROM character WHERE char = ?", (char,)).fetchone():
+            raise AnnotationError(f"“{char}” is not in the dictionary")
     conn.execute("INSERT OR IGNORE INTO lesson_character (lesson_id, char) VALUES (?, ?)", (lesson_id, char))
 
 
 def add_word(conn, lesson_id, surface):
-    """Only a word the text already has as a fact can be selected."""
+    """Only a word the text already has as a fact can be selected; in a vocabulary lesson, any dictionary word (HSK or supplement)."""
     text_id, surface = _require(conn, lesson_id)["text_id"], word_surface(surface)
-    if not conn.execute("SELECT 1 FROM text_word WHERE text_id = ? AND surface = ?", (text_id, surface)).fetchone():
+    if text_id is None:
+        if not conn.execute("SELECT 1 FROM word WHERE simplified = ?", (surface,)).fetchone():
+            raise AnnotationError(f"“{surface}” is not a dictionary word")
+    elif not conn.execute("SELECT 1 FROM text_word WHERE text_id = ? AND surface = ?", (text_id, surface)).fetchone():
         raise AnnotationError(f"“{surface}” is not yet a word of the text; add it first")
     conn.execute("INSERT OR IGNORE INTO lesson_word (lesson_id, surface) VALUES (?, ?)", (lesson_id, surface))
+
+
+def held(conn, kind, key) -> bool:
+    """Whether any lesson, text or vocabulary, has the character or word (as a member or an extra word)."""
+    if kind == "character":
+        return bool(conn.execute("SELECT 1 FROM lesson_character WHERE char = ?", (key,)).fetchone())
+    return bool(conn.execute("SELECT 1 FROM lesson_word WHERE surface = ? UNION SELECT 1 FROM lesson_extra_word WHERE surface = ?", (key, key)).fetchone())
 
 
 def kind_of(anchor) -> str:
@@ -103,8 +145,11 @@ def characters_pinyin(conn, surface) -> str:
 def add_extra_word(conn, lesson_id, surface, anchor=None, gloss=None, pinyin=None, origin="manual", replace=False):
     """A word the lesson teaches beyond the text, linked to its dictionary row. `anchor`, when given, is a passage of the
     text; a one-character anchor makes it an expansion, which must contain that character. Pinyin is prefilled from the
-    dictionary; `gloss` is contextual."""
-    body = body_of(conn, _require(conn, lesson_id)["text_id"])
+    dictionary; `gloss` is contextual. A vocabulary lesson has none: its words are members."""
+    text_id = _require(conn, lesson_id)["text_id"]
+    if text_id is None:
+        raise AnnotationError(NO_EXTRA)
+    body = body_of(conn, text_id)
     surface, anchor, gloss, pinyin = word_surface(surface), clean(anchor), clean(gloss), pinyin_.to_marks(clean(pinyin))
     if anchor and anchor not in body:
         raise AnnotationError(f"“{anchor}” does not occur in the text")
@@ -117,16 +162,23 @@ def add_extra_word(conn, lesson_id, surface, anchor=None, gloss=None, pinyin=Non
 
 
 def add_note(conn, lesson_id, note, anchor=None, origin="manual") -> int:
-    """Returns the note's id (the existing one for a duplicate)."""
-    body, note, anchor = body_of(conn, _require(conn, lesson_id)["text_id"]), clean(note), clean(anchor)
+    """Returns the note's id (the existing one for a duplicate). A vocabulary lesson's notes have no anchor."""
+    note, anchor = clean(note), clean(anchor)
     if not note:
         raise AnnotationError("a note is required")
-    if anchor and anchor not in body:
-        raise AnnotationError(f"“{anchor}” does not occur in the text")
+    _check_anchor(conn, lesson_id, anchor)
     row = conn.execute("SELECT id FROM lesson_note WHERE lesson_id = ? AND anchor IS ? AND note = ?", (lesson_id, anchor, note)).fetchone()
     if row:
         return row[0]
     return conn.execute("INSERT INTO lesson_note (lesson_id, anchor, note, origin) VALUES (?, ?, ?, ?)", (lesson_id, anchor, note, origin_of(origin))).lastrowid
+
+
+def _check_anchor(conn, lesson_id, anchor):
+    text_id = _require(conn, lesson_id)["text_id"]
+    if anchor and text_id is None:
+        raise AnnotationError(NO_ANCHOR)
+    if anchor and anchor not in body_of(conn, text_id):
+        raise AnnotationError(f"“{anchor}” does not occur in the text")
 
 
 def remove(conn, lesson_id, kind, *key):
@@ -149,12 +201,10 @@ def update(conn, lesson_id, kind, key, fields):
         remove(conn, lesson_id, kind, *key)
         add_extra_word(conn, lesson_id, fields.get("surface"), key[1] or None, fields.get("gloss"), fields.get("pinyin"), "manual", replace=True)
     else:
-        body = body_of(conn, _require(conn, lesson_id)["text_id"])
         note, anchor = clean(fields.get("note")), clean(fields.get("anchor"))
         if not note:
             raise AnnotationError("a note is required")
-        if anchor and anchor not in body:
-            raise AnnotationError(f"“{anchor}” does not occur in the text")
+        _check_anchor(conn, lesson_id, anchor)
         conn.execute("UPDATE lesson_note SET anchor = ?, note = ?, origin = 'manual' WHERE lesson_id = ? AND id = ?", (anchor, note, lesson_id, *key))
 
 
@@ -163,7 +213,7 @@ def update(conn, lesson_id, kind, key, fields):
 def load(conn, lesson_id) -> dict:
     """The lesson's content for pages, in body order; characters carry the text's or the dictionary's gloss and the level, extra words their kind."""
     lesson = _require(conn, lesson_id)
-    body = body_of(conn, lesson["text_id"])
+    body = body_of(conn, lesson["text_id"]) if lesson["text_id"] is not None else ""  # a vocabulary lesson: no positions, members sorted by the page
     position = lambda s: body.find(s) if s else len(body)  # noqa: E731
     rows = lambda sql, *args: [dict(r) for r in conn.execute(sql, args)]  # noqa: E731
     characters = rows(

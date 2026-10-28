@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "admin/nav.html" import nav %}
+{% block title %}{{ lesson.name }}{% endblock %}
+{% block nav %}{{ nav("texts") }}{% endblock %}
+{% block content %}
+<div class="lesson-page">
+{% if lesson.text_id is not none %}
+  <p>This lesson belongs to <a href="/texts/{{ lesson.text_id }}?lesson={{ lesson.id }}" class="zh">{{ text.title }}</a></p>
+{% else %}
+  {% include "admin/lesson_header.html" %}
+  <div class="card">{% include "admin/lesson_members.html" %}</div>
+  <div class="card">{% include "admin/lesson_notes.html" %}</div>
+{% endif %}
+</div>
+{% endblock %}

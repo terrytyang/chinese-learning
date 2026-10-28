@@ -4,7 +4,7 @@ from fastapi import Depends, Form, Request
 
 from .. import annotations, lessons, progress, supplement
 from . import rows
-from .common import in_dictionary
+from .common import deselect, in_dictionary
 
 PATH = "/texts/{text_id}/lessons/{lesson_id}/"
 
@@ -83,4 +83,4 @@ def register(r, admin, connection, tab):
     @r.post(path + "/{word}/delete")
     def delete(request: Request, text_id: int, lesson_id: int, word: str, anchor: str = Form(""), conn=Depends(connection)):
         lesson = admin.lesson(conn, text_id, lesson_id)
-        return respond(request, conn, text_id, lesson, lambda: lessons.remove(conn, lesson_id, "extra_words", word, anchor.strip()), "add:")
+        return respond(request, conn, text_id, lesson, lambda: deselect(conn, lesson_id, "extra_words", word, anchor.strip()), "add:")

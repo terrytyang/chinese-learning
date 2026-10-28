@@ -80,6 +80,10 @@ td.gloss { max-width: 420px; }
 .import textarea { font-size: 18px; line-height: 1.8; }
 .import pre { margin: 0; white-space: pre-wrap; font-size: 14px; }
 .import .done { margin-bottom: 20px; }
+/* vocabulary lesson page and section */
+.lesson-page .head { align-items: center; }
+.lesson-page input.name { font-size: 22px; font-weight: 600; width: 22rem; }
+.vocabulary { margin: 0 0 1rem; padding-left: 1.2rem; }
 /* texts list */
 .filters label { margin-right: 1rem; }
 .count { color: #555; }
