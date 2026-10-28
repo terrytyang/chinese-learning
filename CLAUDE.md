@@ -10,6 +10,9 @@ student. Runs only inside the dev container, never on the internet. Read
 - `uv sync --locked` — install (runs automatically on container create)
 - `uv run pytest -q` — tests
 - `uv run chineselearning build` — rebuild `build/content.sqlite` from `data/`; always overwrites
+- `uv run chineselearning intake --new | <text id> [--force]` — facts and default lesson for texts
+- `uv run chineselearning import-progress [--check]` / `export-progress` — learner state ↔ `data/`
+- `uv run chineselearning init [--fresh]` — day-0: build, import-progress, intake --new
 - `uv run chineselearning serve` — dev server on 0.0.0.0:8000
 - `python3 tools/derive_hsk.py` — regenerate `data/hsk.sql` from `hsk-original/` (rare)
 
@@ -17,7 +20,9 @@ student. Runs only inside the dev container, never on the internet. Read
 
 - `hsk-original/` — reference dataset. Read-only. The app never opens it.
 - `tools/` — one-off derivation scripts (may use pypinyin)
-- `data/` — source-controlled content: `hsk.sql` (generated), `texts/*.md` (hand-written)
+- `data/` — source-controlled content: `hsk.sql` (generated), `supplement.tsv`, `character-gloss.tsv`
+  (curated), `texts/*.md` (hand-written), `annotations/`, `lessons/` (written by the app),
+  `progress/` (exported state), `import/progress/` (raw documents and their standard files)
 - `src/chineselearning/` — the app: `sqlite3` + FastAPI + Jinja2 + htmx (vendored in `static/`)
 - `docs/mockups/` — agreed page designs; a brief that says "match the mockup" means this
 - `tests/` — pytest; tests build a real SQLite file from `data/` and query it
@@ -35,6 +40,9 @@ student. Runs only inside the dev container, never on the internet. Read
   → mastered. A content rebuild never touches it.
 - A single character is a character everywhere: never a `word` key, never a
   one-character surface in a word table. Its dictionary data is on `character`.
+- Every word a text or lesson refers to is a dictionary row (HSK or supplement);
+  adding one the dictionary lacks writes `data/supplement.tsv` first. Every UI
+  edit writes the file it belongs to as well as the database.
 - IDs are natural or fixed by the source files: `character.id` is the code point,
   `word.id` comes from `data/hsk.sql`, `text.id` from the file header. Anything
   that must survive a rebuild is exported to `data/`, never kept only in the DB.

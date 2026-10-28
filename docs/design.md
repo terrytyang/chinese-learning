@@ -44,6 +44,14 @@ Two flat tables, deliberately lossy. Rules are documented in `tools/derive_hsk.p
   `alt_readings` (JSON `[{pinyin, traditional, meanings}]` for other forms, null
   when there is one), `pos`, `frequency_rank`, `hsk_level`, `hsk_edition`.
 
+Both tables carry `source`: `hsk` for the generated rows, `supplement` for rows
+loaded at build from `data/supplement.tsv` — non-HSK vocabulary the admin
+curates (`item  pinyin  gloss  level`). A supplement character's level is 7 and a
+supplement word's is the highest level among its characters, unless the file
+says otherwise; `hsk_edition` is `none`. The supplement is edited in that file,
+by the admin page's add forms, and by `import-progress`; nowhere else. There is
+no "local word": every word a text or lesson refers to is a dictionary row.
+
 A single character is a character everywhere — progress, lesson selection,
 display; there is no word row for it. `hsk_edition` is `latest` (2026 list) or
 `old`. Level 7 is the combined 7–9 band. Readings are ordered by commonness
@@ -81,8 +89,8 @@ in `data/annotations/<text id>.json`:
 | Table | Meaning | Row |
 | --- | --- | --- |
 | `text_reading` | the reading of each Han character position, where known | `position`, `char`, `pinyin` |
-| `text_character` | facts about a character the master lacks or that this text uses unusually | `char`, `hsk_level` (nullable), `gloss` — its reading is its `text_reading` rows |
-| `text_word` | a word present in the text | `surface`, `word_id` (nullable → `word`), `pinyin`, `hsk_level` (unlinked only), `gloss` |
+| `text_character` | a character this text uses unusually | `char`, `gloss` (contextual, shown beside the dictionary's) |
+| `text_word` | a word present in the text | `surface`, `word_id` (→ `word`, never null), `pinyin` (contextual override), `gloss` (contextual) |
 
 Every row carries `origin`: `auto` (intake), `suggested` (an outside tool), or
 `manual` (admin entered or confirmed). A position with no reading row is
@@ -115,10 +123,10 @@ reject one-character surfaces. The assembled material derives each extra word's
 Lesson ids are assigned at creation and fixed by the file. Print and exercises
 are lesson-based.
 
-Rule for anything with `word_id` + `gloss`: the master entry, when linked,
-always supplies pinyin, level and dictionary meanings; the text's `gloss` is shown
-in addition, as the contextual explanation. `word_id` null with a `gloss` is a
-local word (寒山寺, 姑苏城). Both null is invalid.
+The dictionary row (HSK or supplement) always supplies pinyin, level and the
+general meaning; a text's or lesson's `gloss` is shown in addition, as the
+contextual sense (走 as "run" in a classical text). Adding a word the dictionary
+lacks, anywhere in the app, writes a supplement entry first and links it.
 
 Annotation and lesson files are persisted write-through: every admin save
 updates the database *and* rewrites the file. Files store surfaces, never
@@ -175,6 +183,23 @@ deletes the row; `changed_at` says when the current state was set.
 Attempts at exercises (cloze and later games) are logged in the same file:
 `attempt(learner_id, text_id, exercise, score, detail JSON, at)`.
 
+State is also reproducible from files. `chineselearning export-progress` writes
+`data/progress/<learner>.tsv` (`item  state  as_of`); `import-progress` reads
+that snapshot and every batch in `data/import/progress/*.tsv` (raw documents
+transformed once, by hand or an AI tool following `docs/prompts/progress-import.md`,
+with the state and date declared in the file — never the import time). For each
+item the candidates are its explicit rows, the rows of words containing it (a
+character takes a word's state by implication), and the current database row;
+the latest `as_of` wins, a tie goes to the lowest state. Unmatched items join
+the supplement. `--check` reports without writing; re-running is a no-op.
+
+### Day-0
+
+`chineselearning init [--fresh]` rebuilds everything from `data/` in the only
+order that works: `build` (content), `import-progress` (state, which the next
+step reads), `intake --new` (facts and a default lesson for any text lacking
+them). Every layer is recoverable from git.
+
 ## Modes
 
 **Admin**: `/texts` lists texts with tag/author/period filters. `/texts/{text}?lesson=`
@@ -226,6 +251,8 @@ real database from `data/` and query it.
 - 2026-10-25 Single-character items consolidated onto `character` (`meanings`, `alt_readings`, `pos`, `frequency_rank`, `word_level`); `word` holds multi-character items only. Primary form in columns, other forms in `alt_readings`; the old `readings` column on `word` is gone.
 - 2026-10-25 Learner states are `unconfirmed` (no row) → `exposed` → `recognized` → `mastered`; one row per key with `changed_at`, no history; adding to a lesson sets `exposed` from `unconfirmed`.
 - 2026-10-25 Default lesson is "Learn 〈title〉"; intake records every word, the default selection excludes recognized and mastered; UI labels are English, content Chinese.
+- 2026-10-27 `data/supplement.tsv`: curated non-HSK vocabulary loaded into the same tables with `source = 'supplement'`; "local word" removed; `text_character` is a contextual gloss only.
+- 2026-10-27 Progress import/export in one TSV format with declared timestamps; resolution latest-wins, tie to lowest, characters implied by words; `init` is the day-0 sequence.
 - 2026-10-26 `lesson_expansion` becomes `lesson_extra_word` with a nullable `anchor` and stored `pinyin`; a one-character anchor is an expansion, anything else a related word. Its key is a unique expression index because SQLite forbids `coalesce` in a PRIMARY KEY.
 - 2026-10-26 Only `tags` is editable from the app; author and period are edited in the text file.
 - 2026-10-26 Intake gives a character the master lacks pypinyin's reading (`auto`); pypinyin is a main dependency. Numbered pinyin is converted to tone marks wherever a reading is accepted.

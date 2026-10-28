@@ -23,6 +23,8 @@ This is deliberately lossy. Rules:
     containing the character (positional, equal-length forms only); may be null.
   * `gloss` comes from `data/character-gloss.tsv` (curated, char<TAB>gloss); a character
     missing from that file gets null. The SQL output is the complete master.
+  * `source` is 'hsk' for every row here; `build` adds `data/supplement.tsv` rows as
+    'supplement' (non-HSK vocabulary the admin curates), into the same tables.
   * Dropped: Wade-Giles, Bopomofo, Gwoyeu Romatzyh, numeric pinyin, radicals,
     classifiers, per-edition membership, import provenance.
   * IDs: character.id is the Unicode code point; word.id is the source entry id.
@@ -65,7 +67,8 @@ CREATE TABLE character (
   frequency_rank INTEGER,          -- as an item; lower is more common; null if not an item
   hsk_level INTEGER NOT NULL,      -- 1-7 as a character: lowest level of any item containing it
   word_level INTEGER,              -- 1-7 as an item in its own right; null if the syllabus never lists it alone
-  hsk_edition TEXT NOT NULL        -- 'latest' or 'old'
+  hsk_edition TEXT NOT NULL,       -- 'latest', 'old', or 'none' (supplement)
+  source TEXT NOT NULL DEFAULT 'hsk'  -- 'hsk' (this file) or 'supplement' (data/supplement.tsv, loaded at build)
 );
 CREATE TABLE word (                -- multi-character items only
   id INTEGER PRIMARY KEY,          -- source entry id, fixed by this file
@@ -77,7 +80,8 @@ CREATE TABLE word (                -- multi-character items only
   pos TEXT,                        -- comma-separated source part-of-speech codes
   frequency_rank INTEGER,          -- lower is more common
   hsk_level INTEGER NOT NULL,
-  hsk_edition TEXT NOT NULL
+  hsk_edition TEXT NOT NULL,       -- 'latest', 'old', or 'none' (supplement)
+  source TEXT NOT NULL DEFAULT 'hsk'  -- 'hsk' (this file) or 'supplement' (data/supplement.tsv, loaded at build)
 );
 CREATE INDEX word_hsk_level ON word (hsk_level);
 CREATE INDEX character_hsk_level ON character (hsk_level);
@@ -222,8 +226,8 @@ def load(characters, words, path=":memory:"):
         Path(path).unlink(missing_ok=True)
     db = sqlite3.connect(path)
     db.executescript(SCHEMA)
-    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:gloss,:meanings,:alt_readings,:pos,:frequency_rank,:hsk_level,:word_level,:hsk_edition)", characters)
-    db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:alt_readings,:pos,:frequency_rank,:hsk_level,:hsk_edition)", words)
+    db.executemany("INSERT INTO character VALUES (:id,:char,:traditional,:pinyin,:readings,:gloss,:meanings,:alt_readings,:pos,:frequency_rank,:hsk_level,:word_level,:hsk_edition,'hsk')", characters)
+    db.executemany("INSERT INTO word VALUES (:id,:simplified,:traditional,:pinyin,:meanings,:alt_readings,:pos,:frequency_rank,:hsk_level,:hsk_edition,'hsk')", words)
     db.commit()
     return db
 
