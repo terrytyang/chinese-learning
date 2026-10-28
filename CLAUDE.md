@@ -10,7 +10,7 @@ student. Runs only inside the dev container, never on the internet. Read
 - `uv sync --locked` — install (runs automatically on container create)
 - `uv run pytest -q` — tests
 - `uv run chineselearning build` — rebuild `build/content.sqlite` from `data/`; always overwrites
-- `uv run chineselearning intake --new | <text id> [--force]` — facts and default lesson for texts
+- `uv run chineselearning intake --new | <text id> [--force] | --reset <id>` — facts and default lesson for texts
 - `uv run chineselearning import-progress [--check]` / `export-progress` — learner state ↔ `data/`
 - `uv run chineselearning init [--fresh]` — day-0: build, import-progress, intake --new
 - `uv run chineselearning serve` — dev server on 0.0.0.0:8000

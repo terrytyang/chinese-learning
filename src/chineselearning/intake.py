@@ -1,5 +1,7 @@
 """One-time intake: facts with origin 'auto' and the default lesson (design.md, "Intake")."""
 
+from pathlib import Path
+
 from . import annotation_files, annotations, db, lesson_files, lessons, progress, readings
 from .annotations import AnnotationError
 
@@ -62,3 +64,26 @@ def intake(conn, text_id, data_dir, force=False, learner_id=progress.LEARNER) ->
     annotation_files.write_file(conn, text_id, data_dir)
     lesson_files.write_files(conn, text_id, data_dir)
     return counts
+
+
+def reset_plan(conn, text_id, data_dir) -> dict:
+    """What `reset` would delete: {table: rows} for the fact tables, `lessons`, and `files` (the annotation and lesson files that exist)."""
+    if db.get_text(conn, text_id) is None:
+        raise AnnotationError(f"no text with id {text_id}")
+    plan = {t: conn.execute(f"SELECT count(*) FROM {t} WHERE text_id = ?", (text_id,)).fetchone()[0] for t in FACT_TABLES}
+    plan["lessons"] = len(lessons.for_text(conn, text_id))
+    files = [annotation_files.file_path(data_dir, text_id)] + sorted(Path(data_dir, "lessons").glob(f"{text_id}-*.json"))
+    plan["files"] = [p for p in files if p.is_file()]
+    return plan
+
+
+def reset(conn, text_id, data_dir) -> dict:
+    """Delete every fact and lesson of the text, manual and suggested rows included, and their files; progress is untouched.
+    Returns the plan it carried out. The caller runs `intake` next."""
+    plan = reset_plan(conn, text_id, data_dir)
+    for t in FACT_TABLES + ("lesson",):  # the lesson tables cascade
+        conn.execute(f"DELETE FROM {t} WHERE text_id = ?", (text_id,))
+    conn.commit()
+    for path in plan["files"]:
+        path.unlink()
+    return plan

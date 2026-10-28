@@ -183,3 +183,40 @@ def test_intake_accepts_a_words_neutral_tone_reading(site):
     with pytest.raises(AnnotationError, match="the reading of “上” must be one of shàng, shǎng"):
         annotations.set_reading(conn, 9, 1, "上", "shang")
     annotations.set_reading(conn, 9, 1, "上", "shang", "suggested")
+
+
+def test_reset_deletes_facts_lessons_and_files_then_intakes_again(site, monkeypatch, capsys):
+    conn = connect(site)
+    intake(conn, 1, site.data)
+    annotations.set_reading(conn, 1, 0, "月", "yuè", "manual")
+    annotations.add_character(conn, 1, "啼", "chirp")
+    progress.set_state(conn, "character", "落", "mastered", "manual")
+    conn.commit()
+    assert site.client.post("/texts/1/lessons", data={"name": "Extra"}, headers=HX).status_code == 200
+    annotation_files_ = site.data / "annotations" / "1.json"
+    assert annotation_files_.is_file() and {p.name for p in (site.data / "lessons").glob("1-*.json")} == {"1-1.json", "1-2.json"}
+    monkeypatch.chdir(site.data.parent)
+    args = ["intake", "--reset", "1", "--db", str(site.db), "--data", str(site.data), "--progress", str(site.progress)]
+    monkeypatch.setattr("builtins.input", lambda prompt: "")
+    conn.close()  # the CLI opens its own connection
+    main(args)
+    out = capsys.readouterr().out
+    assert "text 1: deleting 28 text_reading, 1 text_character, 0 text_word, 2 lessons\n" in out and "files: " in out and "1.json, " in out and "1-2.json\n" in out
+    assert out.endswith("aborted, nothing changed\n") and annotation_files_.is_file() and len(list((site.data / "lessons").glob("1-*.json"))) == 2
+    conn = connect(site)
+    assert conn.execute("SELECT count(*) FROM text_character WHERE text_id = 1").fetchone()[0] == 1 and len(conn.execute("SELECT id FROM lesson WHERE text_id = 1").fetchall()) == 2
+    monkeypatch.setattr("builtins.input", lambda prompt: " 1 ")
+    conn.close()
+    main(args)
+    out = capsys.readouterr().out
+    assert "aborted, nothing changed" not in out and out.strip().endswith("text 1: words 0, readings 28, lesson 1")  # the freed id is reused
+    conn = connect(site)
+    assert conn.execute("SELECT count(*) FROM text_character WHERE text_id = 1").fetchone()[0] == 0
+    assert [tuple(r) for r in conn.execute("SELECT DISTINCT origin FROM text_reading WHERE text_id = 1")] == [("auto",)]
+    assert [tuple(r) for r in conn.execute("SELECT id, name FROM lesson WHERE text_id = 1")] == [(1, "Learn 枫桥夜泊")]
+    assert {p.name for p in (site.data / "lessons").glob("1-*.json")} == {"1-1.json"} and facts(site)["characters"] == []
+    assert progress.state_of(conn, "character", "落") == "mastered" and "落" not in lesson(site, 1, 1)["characters"]  # the manual row survives and still shapes the default lesson
+    with pytest.raises(SystemExit, match="intake failed: no text with id 99"):
+        main(["intake", "--reset", "99", "--db", str(site.db), "--data", str(site.data), "--progress", str(site.progress)])
+    with pytest.raises(SystemExit):
+        main(["intake", "--reset", "--new", "--db", str(site.db), "--data", str(site.data), "--progress", str(site.progress)])

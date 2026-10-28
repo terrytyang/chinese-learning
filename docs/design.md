@@ -164,7 +164,8 @@ to re-ignore on every view. Intake refuses to run on a text that already has
 facts or lessons unless forced, and forcing redoes only `auto` rows; `build`
 never runs it. A character the dictionary lacks is an error naming it: it goes into
 `data/supplement.tsv` first. `intake --new` runs intake for every text with no facts and
-no lesson.
+no lesson. `intake --reset <id>` deletes a text's facts and lessons, manual rows included, and
+their files, after the id is typed to confirm, then runs intake again; progress is untouched.
 
 Judgment — which matches are real words here, which single characters deserve
 expansion, contextual glosses, non-default readings — comes from outside the
