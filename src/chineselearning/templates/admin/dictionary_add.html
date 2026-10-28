@@ -8,4 +8,4 @@
   <form class="local" hx-post="/dictionary/add">{{ err("add") }}<input type="hidden" name="item" value="{{ lookup.item }}"><span><span class="zh">{{ lookup.item }}</span> is not in the dictionary.</span> <input name="pinyin" placeholder="pinyin" value="{{ keep('add', 'pinyin') or lookup.pinyin }}"> <input name="gloss" placeholder="gloss" value="{{ keep('add', 'gloss') }}"> <select name="level" aria-label="Level"><option value="">derived</option>{{ levels(keep('add', 'level')) }}</select> <button class="primary">Add to supplement</button></form>
   {% endif %}
 </div>
-{% if oob %}{% include "admin/dictionary_rows.html" %}{% endif %}
+{% if oob %}{% include "admin/dictionary_rows.html" %}<span id="counts" class="muted" hx-swap-oob="true">{{ header }}</span>{% endif %}

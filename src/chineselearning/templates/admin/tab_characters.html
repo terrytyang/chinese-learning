@@ -3,11 +3,11 @@
 <div class="sec">In this lesson · {{ study | length }} <span class="hint">— characters the student works on in this lesson; adding one marks it exposed if it was unconfirmed. Pinyin comes from the text above</span></div>
 {% if study %}
 <table>
-  <thead><tr><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th><th></th></tr></thead>
+  <thead><tr><th class="w-item">Char</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th>Gloss</th><th class="w-state">State</th><th class="w-acts"></th></tr></thead>
   <tbody>
   {% for c in study %}
-    <tr id="char-{{ c.char }}"><td class="zh big">{{ c.char }}</td><td>{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td>
-      <td>{% if c.in_master %}{{ c.gloss or "" }}{% else %}<span class="muted">not in the dictionary — add it to data/supplement.tsv</span>{% endif %}</td>
+    <tr id="char-{{ c.char }}"><td class="zh big">{{ c.char }}</td><td class="py">{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td>
+      <td class="gloss">{% if c.in_master %}{{ c.gloss or "" }}{% else %}<span class="muted">not in the dictionary — add it to data/supplement.tsv</span>{% endif %}</td>
       <td>{{ states("character", c.char, c.state) }}</td>
       <td class="actions"><button hx-post="{{ P }}/{{ c.char }}/remove{{ q }}">Remove from lesson</button></td></tr>
   {% endfor %}
@@ -29,10 +29,10 @@
 <form id="chars-bulk" hx-post="{{ P }}/add{{ q }}">{{ err("add") }}
 {% if candidates %}
 <table>
-  <thead><tr><th></th><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th></tr></thead>
+  <thead><tr><th class="w-check"></th><th class="w-item">Char</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th>Gloss</th><th class="w-st">State</th></tr></thead>
   <tbody>
   {% for c in candidates %}
-    <tr><td><input type="checkbox" name="chars" value="{{ c.char }}" aria-label="Select"></td><td class="zh big">{{ c.char }}</td><td>{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td><td>{{ c.gloss or "" }}</td><td class="st">{{ c.state }}</td></tr>
+    <tr><td><input type="checkbox" name="chars" value="{{ c.char }}" aria-label="Select"></td><td class="zh big">{{ c.char }}</td><td class="py">{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td><td class="gloss">{{ c.gloss or "" }}</td><td class="st">{{ c.state }}</td></tr>
   {% endfor %}
   </tbody>
 </table>

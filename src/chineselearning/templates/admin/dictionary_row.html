@@ -6,6 +6,6 @@
   {%- if supplement %}<input name="pinyin" aria-label="Pinyin" value="{{ keep('edit', 'pinyin') or r.pinyin }}">{% else %}<span class="muted">{{ r.pinyin }}</span>{% endif %}
   {%- if supplement %} <select name="level" aria-label="Level">{% if r.kind == "word" %}<option value=""{% if not form_level %} selected{% endif %}>derived</option>{% endif %}{{ levels(form_level) }}</select>{% else %} {{ lvl(r.level) }}{% endif %}
   {{ pill(r.source) }} <input name="gloss" aria-label="Gloss" value="{{ keep('edit', 'gloss') or r.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}">Cancel</button></form></td>
-{%- else %}<td>{{ r.pinyin }}</td><td>{{ lvl(r.level) }}</td><td>{{ pill(r.source) }}</td><td class="gloss">{% if r.gloss %}{{ r.gloss }}{% else %}<span class="muted"><i>no gloss yet</i></span>{% endif %}</td>{% endif %}
+{%- else %}<td class="py">{{ r.pinyin }}</td><td>{{ lvl(r.level) }}</td><td>{{ pill(r.source) }}</td><td class="gloss">{% if r.gloss %}{{ r.gloss }}{% else %}<span class="muted"><i>no gloss yet</i></span>{% endif %}</td>{% endif %}
 <td><form class="states" hx-post="/dictionary/state"><input type="hidden" name="item" value="{{ r.item }}">{{ state_buttons(r.state) }}</form>{{ err("state") }}</td>
 <td class="actions">{% if not editing and not (r.kind == "word" and r.source == "hsk") %}<button hx-get="{{ P }}?edit=1">Edit</button>{% endif %}{% if not editing %}{{ err("edit") }}{% endif %}</td></tr>

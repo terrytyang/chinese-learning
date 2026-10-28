@@ -61,7 +61,7 @@ def annotate_text_1(site):
 def test_round_trip_page_file_and_rebuild(site, tmp_path, baseline):
     annotate_text_1(site)
     page = site.client.get("/texts/1").text
-    assert "<td>忧愁</td>" in page and "<ruby>乌<rt>wù</rt></ruby>" in page
+    assert '<td class="gloss">忧愁</td>' in page and "<ruby>乌<rt>wù</rt></ruby>" in page
     words = site.client.get("/texts/1/lessons/1/words", params={"show": "all"}).text
     assert "苏州城外的寺庙" in words and "hán shān sì" in words
     assert site.file.read_text(encoding="utf-8") == EXPECTED_FILE

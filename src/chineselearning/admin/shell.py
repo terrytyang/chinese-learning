@@ -3,7 +3,7 @@
 from fastapi import Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, lessons, texts
+from .. import db, drift, lessons, texts
 from ..annotations import AnnotationError, clean
 from . import text_block
 
@@ -30,7 +30,7 @@ def routes(r, admin, connection):
     def index(request: Request, tag: str = "", author: str = "", period: str = "", conn=Depends(connection)):
         rows = [dict(t, lessons=lessons.for_text(conn, t["id"])) for t in db.list_texts(conn, tag=tag, author=author, period=period)]
         context = {"texts": rows, "options": db.filter_options(conn), "selected": {"tag": tag, "author": author, "period": period},
-                   "vocabulary": lessons.vocabulary(conn), "error": None}
+                   "vocabulary": lessons.vocabulary(conn), "error": None, "drift": admin.drift(conn)}
         return admin.templates.TemplateResponse(request, "texts.html", context)
 
     @r.get("/api/characters")
@@ -72,7 +72,9 @@ def routes(r, admin, connection):
             new = (current if wanted in current else [*current, wanted]) if action == "add" else [t for t in current if t != wanted]
             if not new:
                 raise AnnotationError("a text needs at least one tag")
-            parsed = texts.write_header(texts.path_for(admin.data_dir / "texts", text_id), tags=", ".join(new))
+            path = texts.path_for(admin.data_dir / "texts", text_id)
+            parsed = texts.write_header(path, tags=", ".join(new))
+            drift.touch(conn, admin.data_dir, path)
             db.update_text_tags(conn, text_id, parsed.tags)
 
         _, message = admin.mutate(conn, text_id, change, write=False)

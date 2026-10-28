@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "admin/nav.html" import nav %}
+{% from "admin/nav.html" import nav with context %}
 {% block title %}{{ text.title }}{% endblock %}
 {% block nav %}{{ nav("texts") }}{% endblock %}
 {% block content %}

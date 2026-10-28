@@ -5,10 +5,10 @@
 <div class="sec"{% if loop.first %} style="margin-top: 0"{% endif %}>{{ label }} · {{ rows | length }}</div>
 {% if rows %}
 <table>
-  <thead><tr><th>Item</th><th>Pinyin</th><th>Level</th><th>Source</th><th>Gloss</th><th>State</th><th></th></tr></thead>
+  <thead><tr><th class="w-item">Item</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th class="w-source">Source</th><th>Gloss</th><th class="w-st">State</th><th class="w-act"></th></tr></thead>
   <tbody>
   {% for r in rows %}
-    <tr id="member-{{ r.item }}"><td class="zh {{ 'big' if kind == 'character' else 'word' }}">{{ r.item }}</td><td>{{ r.pinyin }}</td><td>{{ lvl(r.level) }}</td><td>{{ pill(r.source) }}</td><td class="gloss">{% if r.gloss %}{{ r.gloss }}{% else %}<span class="muted"><i>no gloss yet</i></span>{% endif %}</td><td class="st">{{ r.state }}</td>
+    <tr id="member-{{ r.item }}"><td class="zh {{ 'big' if kind == 'character' else 'word' }}">{{ r.item }}</td><td class="py">{{ r.pinyin }}</td><td>{{ lvl(r.level) }}</td><td>{{ pill(r.source) }}</td><td class="gloss">{% if r.gloss %}{{ r.gloss }}{% else %}<span class="muted"><i>no gloss yet</i></span>{% endif %}</td><td class="st">{{ r.state }}</td>
       <td class="actions"><button hx-post="{{ lesson_base }}/remove" hx-vals='{{ {"item": r.item} | tojson }}'>Remove</button></td></tr>
   {% endfor %}
   </tbody>

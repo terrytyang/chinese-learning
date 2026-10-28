@@ -3,7 +3,7 @@
 <div class="sec">Related words <span class="hint">— a word that does not appear in the text as written but is closely tied to a passage of it (夜半 → 半夜, 姑苏 → 苏州), or to the text as a whole (the author). Anchor is the passage, if any. These belong to the lesson.</span></div>
 {% if related %}
 <table>
-  <thead><tr><th>Anchor</th><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Origin</th><th>State</th><th></th></tr></thead>
+  <thead><tr><th class="w-item">Anchor</th><th class="w-item">Word</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th>Gloss</th><th class="w-origin">Origin</th><th class="w-state">State</th><th class="w-acts"></th></tr></thead>
   <tbody>{% for e in related %}{{ extra_row(P, e, true) }}{% endfor %}</tbody>
 </table>
 {% else %}<p class="empty">None</p>{% endif %}

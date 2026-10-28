@@ -1,4 +1,4 @@
-import shutil
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -6,24 +6,19 @@ import pytest
 from fastapi.testclient import TestClient
 from opencc import OpenCC
 
-from chineselearning import db, supplement, texts
+from chineselearning import db, supplement, texts, ui_check
 from chineselearning.web import create_app
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
+sys.path.insert(0, str(Path(__file__).resolve().parent))  # tests/ui_manifest.py, shared with `chineselearning ui-check`
 HSK_CHARACTERS, HSK_WORDS = 3034, 9899  # from hsk.sql, which changes only by re-derivation
 PROBE_WORDS = ("月霜", "山月", "江枫")  # candidates for `probe`: characters of text 1, so the first one anchors an expansion there
 
 
 def copy_data(target):
     """A private copy of data/ without the owner's annotation, lesson and progress files, so tests never depend on curation state."""
-    shutil.copytree(DATA_DIR, target)
-    for folder in ("annotations", "lessons"):
-        shutil.rmtree(target / folder, ignore_errors=True)
-    for folder in ("progress", "import/progress"):
-        for file in (target / folder).glob("*.tsv"):
-            file.unlink()
-    return target
+    return ui_check.copy_data(DATA_DIR, target, curation=False)
 
 
 @pytest.fixture(scope="session")

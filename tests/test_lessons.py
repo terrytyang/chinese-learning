@@ -106,7 +106,7 @@ def test_lesson_selection_and_links(site):
     assert post(site, "lessons/2/characters/add", chars=["月"]).status_code == 200
     assert json.loads(lesson_file(site, 1, 2).read_text(encoding="utf-8"))["characters"] == ["月"]
     assert json.loads(lesson_file(site, 1, 1).read_text(encoding="utf-8"))["characters"] == []
-    assert "<td>moon, month</td>" in tab(site, "2/characters").split('id="char-月"')[1].split("</tr>")[0]
+    assert '<td class="gloss">moon, month</td>' in tab(site, "2/characters").split('id="char-月"')[1].split("</tr>")[0]
     assert '<a href="/texts/1?lesson=1">A</a> <a href="/texts/1?lesson=2">B</a>' in site.client.get("/texts").text
     filtered = tab(site, "2/characters", min=3, max=7, state="any")
     assert 'hx-post="/texts/1/lessons/2/characters/progress?min=3&amp;max=7&amp;state=any"' in filtered

@@ -7,6 +7,8 @@ tab); `#` starts a comment. A gloss is non-empty with no tab or newline; the pro
 
 from pathlib import Path
 
+from . import drift
+
 FILE = "character-gloss.tsv"
 
 
@@ -69,3 +71,4 @@ def update(conn, data_dir, char, gloss):
     conn.execute("UPDATE character SET gloss = ? WHERE char = ?", (gloss, char))
     lines[at] = f"{char}\t{gloss}"
     path.write_text("\n".join(lines), encoding="utf-8")
+    drift.touch(conn, data_dir, path)

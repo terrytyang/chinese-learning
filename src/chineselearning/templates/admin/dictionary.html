@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% from "admin/nav.html" import nav %}
+{% from "admin/nav.html" import nav with context %}
 {% from "admin/macros.html" import levels with context %}
 {% block title %}Dictionary{% endblock %}
 {% block nav %}{{ nav("dictionary") }}{% endblock %}
 {% block content %}
 <div class="dict">
-  <div class="head"><h1>Dictionary</h1><span class="muted">{{ header }}</span></div>
+  <div class="head"><h1>Dictionary</h1><span id="counts" class="muted">{{ header }}</span></div>
   {# Filters live in the URL: every input fetches the rows, whose response pushes /dictionary?… (the Changed operator also swaps its date control). #}
   <form id="filters" class="filters card" hx-get="/dictionary/rows" hx-trigger="input delay:300ms" hx-target="#rows" hx-swap="outerHTML">
     <input id="q" class="zh" name="q" aria-label="Search" placeholder="character, word, pinyin or gloss" value="{{ filters.q }}">

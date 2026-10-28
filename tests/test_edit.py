@@ -48,9 +48,9 @@ def test_characters_tab_shows_dictionary_data_for_supplement_characters(site):
     assert facts(site)["characters"] == []
     page = get(site, "/texts/1/lessons/1/characters").text
     row = row_of(page, "char-啼")
-    assert '<span class="lvl l7">7–9</span>' in row and "<td>cry, crow (of birds), weep</td>" in row and 'name="gloss"' not in row and "/facts" not in page
+    assert '<span class="lvl l7">7–9</span>' in row and '<td class="gloss">cry, crow (of birds), weep</td>' in row and 'name="gloss"' not in row and "/facts" not in page
     row = row_of(page, "char-月")
-    assert '<span class="lvl l1">1</span>' in row and "<td>moon, month</td>" in row
+    assert '<span class="lvl l1">1</span>' in row and '<td class="gloss">moon, month</td>' in row
     assert post(site, "/texts/1/lessons/1/characters/啼/facts", gloss="chirp").status_code == 404
 
 
@@ -77,11 +77,11 @@ def test_edit_supplement_word_pinyin_and_gloss_are_contextual(site):
     assert post(site, "/texts/1/lessons/1/words/寒山寺/save", pinyin="Han2 Shan1 Si4", gloss="苏州的寺").status_code == 200
     assert facts(site)["words"] == [{"surface": "寒山寺", "pinyin": "Hán Shān Sì", "gloss": "苏州的寺", "origin": "manual"}]
     row = row_of(get(site, "/texts/1/lessons/1/words", show="all").text, "word-寒山寺")
-    assert '<td class="zh word">寒山寺</td><td>Hán Shān Sì</td><td><span class="lvl l4">4</span></td><td>苏州的寺</td>' in row
+    assert '<td class="zh word">寒山寺</td><td class="py">Hán Shān Sì</td><td><span class="lvl l4">4</span></td><td class="gloss">苏州的寺</td>' in row
     assert post(site, "/texts/1/lessons/1/words/寒山寺/save", pinyin="hán shān sì", gloss="").status_code == 200  # the dictionary's own reading and gloss: no override
     assert facts(site)["words"] == [{"surface": "寒山寺", "pinyin": None, "gloss": None, "origin": "manual"}]
     row = row_of(get(site, "/texts/1/lessons/1/words", show="all").text, "word-寒山寺")
-    assert '<td>hán shān sì</td><td><span class="lvl l4">4</span></td><td><span class="muted">寺</span></td>' in row
+    assert '<td class="py">hán shān sì</td><td><span class="lvl l4">4</span></td><td class="gloss"><span class="muted">寺</span></td>' in row
     assert supplement_text(site).endswith("寒山寺\t\t寺\t4\n")  # the page never edits the supplement
 
 
@@ -96,7 +96,7 @@ def test_edit_linked_word_has_no_level_field_and_no_pinyin_override(site):
     assert post(site, "/texts/5/lessons/1/words/桃花/save", gloss="春天的花", pinyin="tao2 hua1 x").status_code == 200
     assert stored()["pinyin"] == "táo huā x"
     row = row_of(get(site, "/texts/5/lessons/1/words", show="all").text, "word-桃花")
-    assert '<span class="lvl l5">5</span>' in row and "<td>春天的花</td>" in row  # the dictionary's level still shows
+    assert '<span class="lvl l5">5</span>' in row and '<td class="gloss">春天的花</td>' in row  # the dictionary's level still shows
 
 
 def test_edit_extra_word_keeps_anchor(site, probe):
@@ -142,10 +142,10 @@ def test_supplement_word_level_shows_everywhere(site, baseline, probe):
     assert supplement_text(site).endswith(f"寒山寺\t\t寺\t\n{probe.word}\t{probe.pinyin}\ttest\t2\n")
     assert db.connect(site.db).execute("SELECT word_id FROM text_word WHERE surface = '寒山寺'").fetchone()[0] == supplement.WORD_ID_BASE + baseline.lines
     words = get(site, "/texts/1/lessons/1/words", show="all").text
-    assert '<td class="zh word">寒山寺</td><td>hán shān sì</td><td><span class="lvl l7">7–9</span></td>' in words
+    assert '<td class="zh word">寒山寺</td><td class="py">hán shān sì</td><td><span class="lvl l7">7–9</span></td>' in words
     expansions = get(site, "/texts/1/lessons/1/expansions").text
-    assert f'<td class="zh word">{probe.word}</td><td>{probe.pinyin}</td><td><span class="lvl l2">2</span></td>' in expansions
-    assert '<td class="zh word">月亮</td><td>yuè liang</td><td><span class="lvl l3">3</span></td>' in expansions
+    assert f'<td class="zh word">{probe.word}</td><td class="py">{probe.pinyin}</td><td><span class="lvl l2">2</span></td>' in expansions
+    assert '<td class="zh word">月亮</td><td class="py">yuè liang</td><td><span class="lvl l3">3</span></td>' in expansions
     assert '<td class="word">寒山寺</td><td>hán shān sì</td><td>7–9</td><td>寺</td>' in site.client.get("/learn/1/1", params={"words": 1}).text
     db.build(site.db, site.data)
     rows = db.connect(site.db).execute("SELECT e.surface, w.hsk_level, w.source FROM lesson_extra_word e JOIN word w ON w.id = e.word_id ORDER BY e.surface")

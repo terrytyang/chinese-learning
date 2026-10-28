@@ -6,6 +6,7 @@ from pathlib import Path
 
 from opencc import OpenCC
 
+from . import drift
 from .progress import LEARNER, ORIGINS, STATES
 
 COLUMNS = ("item", "state", "as_of", "pinyin", "gloss", "level", "origin")
@@ -105,4 +106,5 @@ def export(conn, data_dir, learner_id=LEARNER) -> Path:
     path = Path(data_dir) / "progress" / f"{slug(row[0])}.tsv"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("# source: export\nitem\tstate\tas_of\torigin\n" + "".join(f"{key}\t{state}\t{date}\t{origin}\n" for key, state, date, origin in rows), encoding="utf-8")
+    drift.touch(conn, data_dir, path)
     return path

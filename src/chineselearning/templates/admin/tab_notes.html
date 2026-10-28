@@ -4,10 +4,10 @@
 <div class="sec"{% if not anchored %} style="margin-top: 0"{% endif %}>Notes</div>
 {% if notes %}
 <table>
-  <thead><tr>{% if anchored %}<th>Anchor</th>{% endif %}<th>Note</th><th>Origin</th><th></th></tr></thead>
+  <thead><tr>{% if anchored %}<th class="w-item">Anchor</th>{% endif %}<th>Note</th><th class="w-origin">Origin</th><th class="w-act"></th></tr></thead>
   <tbody>
   {% for n in notes %}
-    <tr id="note-{{ n.id }}">{% if anchored %}<td class="zh">{{ n.anchor or "—" }}</td>{% endif %}<td>{{ n.note }}</td><td>{{ pill(n.origin) }}</td><td class="actions"><button hx-post="{{ P }}/{{ n.id }}/delete">Delete</button></td></tr>
+    <tr id="note-{{ n.id }}">{% if anchored %}<td class="zh">{{ n.anchor or "—" }}</td>{% endif %}<td class="note">{{ n.note }}</td><td>{{ pill(n.origin) }}</td><td class="actions"><button hx-post="{{ P }}/{{ n.id }}/delete">Delete</button></td></tr>
   {% endfor %}
   </tbody>
 </table>

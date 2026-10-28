@@ -123,7 +123,8 @@ def routes(r, admin, connection):
         """The shell: the header counts, the filter form, the rows for the URL's filters, the add card."""
         filters, _ = filters_of(request, DEFAULTS, checkboxes=("nogloss",))
         ctx = {**rows_context(conn, filters), **date_context(conn, filters), "header": header(conn), "kind_options": KIND_OPTIONS,
-               "source_options": SOURCE_OPTIONS, "state_options": STATE_OPTIONS, "changed_options": CHANGED_OPTIONS, "lookup": None, "added": None}
+               "source_options": SOURCE_OPTIONS, "state_options": STATE_OPTIONS, "changed_options": CHANGED_OPTIONS, "lookup": None, "added": None,
+               "drift": admin.drift(conn)}
         return templates.TemplateResponse(request, "admin/dictionary.html", ctx)
 
     def row(request, conn, item, status=200, editing=False, error=None, submitted=None):
@@ -138,8 +139,8 @@ def routes(r, admin, connection):
 
     def add_card(request, conn, status=200, lookup=None, added=None, error=None, submitted=None, oob_rows=False):
         ctx = {"request": request, "lookup": lookup, "added": added, "error": error, "submitted": submitted, "oob": False}
-        if oob_rows:
-            ctx.update(rows_context(conn, {**DEFAULTS, "q": added}, oob=True, error=None))
+        if oob_rows:  # the rows for the new entry and the header counts, out of band
+            ctx.update(rows_context(conn, {**DEFAULTS, "q": added}, oob=True, error=None), header=header(conn))
         return fragment("add", ctx, status)
 
     @r.get("/dictionary", response_class=HTMLResponse)

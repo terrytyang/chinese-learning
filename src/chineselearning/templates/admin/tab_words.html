@@ -14,12 +14,12 @@
 {{ err("shown") }}
 {% if words %}
 <table>
-  <thead><tr><th>In</th><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Origin</th><th>State</th><th></th></tr></thead>
+  <thead><tr><th class="w-check">In</th><th class="w-item">Word</th><th class="w-py">Pinyin</th><th class="w-level">Level</th><th>Gloss</th><th class="w-origin">Origin</th><th class="w-state">State</th><th class="w-acts"></th></tr></thead>
   <tbody>
   {% for w in words %}{% set fk = "edit:" ~ w.surface %}
     <tr id="word-{{ w.surface }}"><td><input type="checkbox" name="in" value="1" aria-label="Include in lesson"{% if w.selected %} checked{% endif %} hx-post="{{ P }}/{{ w.surface }}/include{{ q }}"></td><td class="zh word">{{ w.surface }}</td>
       {%- if editing == w.surface %}<td colspan="3"><form class="inline" hx-post="{{ P }}/{{ w.surface }}/save{{ q }}">{{ err(fk) }}<input name="pinyin" aria-label="Pinyin" value="{{ keep(fk, 'pinyin') or w.pinyin or '' }}"> <input name="gloss" aria-label="Gloss" value="{{ keep(fk, 'gloss') or w.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}{{ q }}">Cancel</button></form></td>
-      {%- else %}<td>{{ w.pinyin or "" }}</td><td>{{ lvl(w.hsk_level) }}</td>{{ gloss_cell(w) }}{% endif %}
+      {%- else %}<td class="py">{{ w.pinyin or "" }}</td><td>{{ lvl(w.hsk_level) }}</td>{{ gloss_cell(w) }}{% endif %}
       <td>{{ pill(w.origin) }}</td><td>{{ states("word", w.surface, w.state) }}</td>
       <td class="actions"><button hx-get="{{ edit_url(P, w.surface) }}">Edit</button> <button hx-post="{{ P }}/{{ w.surface }}/delete{{ q }}">Delete</button></td></tr>
   {% endfor %}

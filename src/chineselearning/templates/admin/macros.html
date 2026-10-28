@@ -36,14 +36,14 @@
 {%- endmacro %}
 {# The text's gloss, else the dictionary's first meanings. #}
 {% macro gloss_cell(a) -%}
-<td>{% if a.gloss %}{{ a.gloss }}{% else %}<span class="muted">{{ a.meanings[:3] | join("; ") }}</span>{% endif %}</td>
+<td class="gloss">{% if a.gloss %}{{ a.gloss }}{% else %}<span class="muted">{{ a.meanings[:3] | join("; ") }}</span>{% endif %}</td>
 {%- endmacro %}
 {# An extra word's row, or its inline edit; `with_anchor` adds the anchor column (Related words). #}
 {% macro extra_row(P, e, with_anchor=false) -%}
 {% set fk = "edit:" ~ e.key -%}
 <tr id="extra-{{ e.key }}">{% if with_anchor %}<td class="zh">{{ e.anchor or "—" }}</td>{% endif %}<td class="zh word">{{ e.surface }}</td>
 {%- if editing == e.key %}<td colspan="3"><form class="inline" hx-post="{{ P }}/{{ e.surface }}/save{{ q }}">{{ err(fk) }}<input type="hidden" name="anchor" value="{{ e.anchor or '' }}"><input type="hidden" name="surface" value="{{ e.surface }}"><input name="pinyin" aria-label="Pinyin" value="{{ keep(fk, 'pinyin') or e.pinyin or '' }}"> <input name="gloss" aria-label="Gloss" value="{{ keep(fk, 'gloss') or e.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}{{ q }}">Cancel</button></form></td>
-{%- else %}<td>{{ e.pinyin or "" }}</td><td>{{ lvl(e.hsk_level) }}</td>{{ gloss_cell(e) }}{% endif -%}
+{%- else %}<td class="py">{{ e.pinyin or "" }}</td><td>{{ lvl(e.hsk_level) }}</td>{{ gloss_cell(e) }}{% endif -%}
 <td>{{ pill(e.origin) }}</td><td>{{ states("word", e.surface, e.state) }}</td>
 <td class="actions"><button hx-get="{{ edit_url(P, e.key) }}">Edit</button> <button hx-post="{{ P }}/{{ e.surface }}/delete{{ q }}" hx-vals='{{ {"anchor": e.anchor or ""} | tojson }}'>Delete</button></td></tr>
 {%- endmacro %}

@@ -4,7 +4,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import annotation_files, gloss_file, lesson_files, supplement
+from . import annotation_files, drift, gloss_file, lesson_files, supplement
 from . import texts as text_files
 from .texts import HAN, HAN_RUN
 
@@ -49,6 +49,7 @@ def build(db_path, data_dir) -> dict[str, int]:
             insert_text(conn, t)
         annotation_files.import_all(conn, data_dir)
         lesson_files.import_all(conn, data_dir)
+        drift.store(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
     conn.close()
     return {**counts, "supplement": entries, "supplement_unglossed": unglossed}

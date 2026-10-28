@@ -71,7 +71,7 @@ def routes(r, admin, connection):
         rows = members(conn, lesson_id) if lesson["text_id"] is None else []
         ctx = {**base(request, conn, lesson), "text": db.get_text(conn, lesson["text_id"]) if lesson["text_id"] is not None else None,
                "members": rows, "mark_options": MARK_OPTIONS, "marked": None, "notes": lessons.load(conn, lesson_id)["notes"],
-               "counts": {"characters": sum(m["kind"] == "character" for m in rows), "words": sum(m["kind"] == "word" for m in rows)}}
+               "counts": {"characters": sum(m["kind"] == "character" for m in rows), "words": sum(m["kind"] == "word" for m in rows)}, "drift": admin.drift(conn)}
         return templates.TemplateResponse(request, "admin/lesson_page.html", ctx)
 
     @r.post("/lessons", response_class=HTMLResponse)

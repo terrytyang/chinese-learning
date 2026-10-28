@@ -4,7 +4,7 @@ text whose members are any dictionary items (design.md, layer 3).
 `lesson_files` persists each lesson write-through to data/lessons/<text id>-<lesson id>.json, or <lesson id>.json.
 """
 
-from datetime import datetime, timezone
+from datetime import date
 
 from . import pinyin as pinyin_
 from .annotations import MASTER, AnnotationError, body_of, char_in, clean, decode_master, origin_of, resolve_word, word_surface
@@ -38,7 +38,7 @@ def vocabulary(conn) -> list[dict]:
 
 def default_name(conn) -> str:
     """`Vocabulary <today>`, then `Vocabulary <today> (2)`, `(3)`… — the first not yet taken by a vocabulary lesson."""
-    base = f"Vocabulary {datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
+    base = f"Vocabulary {date.today().isoformat()}"  # the local date: the name is for the owner, not for changed_at
     taken = {r[0] for r in conn.execute("SELECT name FROM lesson WHERE text_id IS NULL")}
     name, n = base, 2
     while name in taken:
