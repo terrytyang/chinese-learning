@@ -22,39 +22,43 @@ def test_default_learner_and_unconfirmed_state(site):
 
 def test_set_state_upserts_and_unconfirmed_deletes(site):
     conn = connect(site)
-    assert progress.set_state(conn, "character", "月", "recognized") is True
-    assert progress.set_state(conn, "character", "月", "recognized") is False
-    assert progress.set_state(conn, "character", "月", "mastered") is True
-    assert progress.set_state(conn, "word", "寒山寺", "exposed") is True
+    assert progress.set_state(conn, "character", "月", "recognized", "manual") is True
+    assert progress.set_state(conn, "character", "月", "recognized", "manual") is False
+    assert progress.set_state(conn, "character", "月", "mastered", "manual") is True
+    assert progress.set_state(conn, "word", "寒山寺", "exposed", "manual") is True
     conn.commit()
     rows = conn.execute("SELECT kind, key, state, changed_at FROM progress.progress ORDER BY kind, key").fetchall()
     assert [(r["kind"], r["key"], r["state"]) for r in rows] == [("character", "月", "mastered"), ("word", "寒山寺", "exposed")]
+    assert [r[0] for r in conn.execute("SELECT origin FROM progress.progress ORDER BY kind")] == ["manual", "manual"]
     assert all(re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", r["changed_at"]) for r in rows)
     assert progress.state_of(conn, "character", "月") == "mastered"
     assert progress.current(conn) == {("character", "月"): "mastered", ("word", "寒山寺"): "exposed"}
-    assert progress.set_state(conn, "character", "月", "unconfirmed") is True
-    assert progress.set_state(conn, "character", "月", "unconfirmed") is False
+    assert progress.set_state(conn, "character", "月", "unconfirmed", "manual") is True
+    assert progress.set_state(conn, "character", "月", "unconfirmed", "manual") is False
     assert conn.execute("SELECT count(*) FROM progress.progress").fetchone()[0] == 1 and progress.state_of(conn, "character", "月") == "unconfirmed"
     with pytest.raises(ProgressError, match="state must be"):
-        progress.set_state(conn, "character", "月", "unrecognized")
+        progress.set_state(conn, "character", "月", "unrecognized", "manual")
+    with pytest.raises(ProgressError, match="origin must be auto, manual or import"):
+        progress.set_state(conn, "character", "月", "mastered", "page")
     with pytest.raises(ProgressError, match="no such"):
-        progress.set_state(conn, "sentence", "月", "mastered")
+        progress.set_state(conn, "sentence", "月", "mastered", "manual")
     with pytest.raises(ProgressError, match="a single character is a character; add it in Characters"):
-        progress.set_state(conn, "word", "月", "mastered")
+        progress.set_state(conn, "word", "月", "mastered", "manual")
     assert progress.current(conn) == {("word", "寒山寺"): "exposed"}
 
 
 def test_expose_only_lifts_unconfirmed(site):
     conn = connect(site)
     assert progress.expose(conn, "character", "月") is True and progress.state_of(conn, "character", "月") == "exposed"
+    assert conn.execute("SELECT origin FROM progress.progress WHERE key = '月'").fetchone()[0] == "auto"
     assert progress.expose(conn, "character", "月") is False
-    progress.set_state(conn, "character", "落", "mastered")
+    progress.set_state(conn, "character", "落", "mastered", "manual")
     assert progress.expose(conn, "character", "落") is False and progress.state_of(conn, "character", "落") == "mastered"
 
 
 def test_adding_to_a_lesson_sets_exposed_and_nothing_else_does(site):
     conn = connect(site)
-    progress.set_state(conn, "character", "月", "mastered")
+    progress.set_state(conn, "character", "月", "mastered", "manual")
     conn.commit()
     assert site.client.post("/texts/1/lessons", data={"name": "A"}).status_code == 200
     assert site.client.post("/texts/1/lessons/1/characters/add", data={"chars": ["月", "落"]}).status_code == 200
@@ -75,7 +79,7 @@ def test_adding_to_a_lesson_sets_exposed_and_nothing_else_does(site):
 
 def test_build_leaves_progress_untouched(site):
     conn = connect(site)
-    progress.set_state(conn, "character", "月", "mastered")
+    progress.set_state(conn, "character", "月", "mastered", "manual")
     conn.commit()
     conn.close()
     before = site.progress.read_bytes()

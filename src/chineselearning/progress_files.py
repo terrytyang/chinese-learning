@@ -6,9 +6,10 @@ from pathlib import Path
 
 from opencc import OpenCC
 
-from .progress import LEARNER, STATES
+from .progress import LEARNER, ORIGINS, STATES
 
-COLUMNS = ("item", "state", "as_of", "pinyin", "gloss", "level")
+COLUMNS = ("item", "state", "as_of", "pinyin", "gloss", "level", "origin")
+REQUIRED = COLUMNS[:3]  # the column header names these, then any of the rest in this order
 HEADER_KEYS = ("source", "as_of", "state")
 LINE_STATES = STATES[1:]  # a file never says "unconfirmed"
 DATE = re.compile(r"\d{4}-\d\d-\d\d")
@@ -27,6 +28,7 @@ class Entry:
     pinyin: str
     gloss: str
     level: str
+    origin: str  # auto | manual | import (blank in the file = import)
     file: str  # the file's name, for the report
     line: int
     original: str | None = None  # the traditional form the item was converted from
@@ -42,7 +44,7 @@ class Entry:
 
 def read(path) -> list[Entry]:
     """Every data line of a standard file; header values fill blank columns. Any violation is a ProgressFileError naming the line."""
-    path, header, entries, columns = Path(path), {}, [], False
+    path, header, entries, columns = Path(path), {}, [], None
     for number, line in enumerate(path.read_text(encoding="utf-8").split("\n"), 1):
         where = f"{path}:{number}"
         if "?" in line:
@@ -61,12 +63,14 @@ def read(path) -> list[Entry]:
             header[key] = value
             continue
         fields = [f.strip() for f in line.split("\t")]
-        if not columns:
-            if len(fields) < 3 or fields != list(COLUMNS[: len(fields)]):
-                raise ProgressFileError(f"{where}: expected the column header: {' '.join(COLUMNS)}")
-            columns = True
+        if columns is None:
+            rest = [c for c in COLUMNS[3:] if c in fields]
+            if fields != list(REQUIRED) + rest:
+                raise ProgressFileError(f"{where}: expected the column header: {' '.join(REQUIRED)}, then any of {' '.join(COLUMNS[3:])} in that order")
+            columns = fields
             continue
-        item, state, as_of, pinyin, gloss, level = (fields + [""] * 6)[:6]
+        values = dict(zip(columns, fields + [""] * len(columns)))
+        item, state, as_of, pinyin, gloss, level, origin = (values.get(c, "") for c in COLUMNS)
         if not item:
             raise ProgressFileError(f"{where}: blank item")
         if state and state not in LINE_STATES:
@@ -79,9 +83,11 @@ def read(path) -> list[Entry]:
             raise ProgressFileError(f"{where}: as_of must be a date (YYYY-MM-DD), not “{as_of}”")
         if level and (not level.isdigit() or not 1 <= int(level) <= 7):
             raise ProgressFileError(f"{where}: level must be 1 to 7, not “{level}”")
+        if origin and origin not in ORIGINS:
+            raise ProgressFileError(f"{where}: origin must be auto, manual or import, not “{origin}”")
         simplified = _T2S.convert(item)
-        entries.append(Entry(simplified, None if state == "none" else state, as_of, pinyin, gloss, level, path.name, number, item if simplified != item else None))
-    if not columns:
+        entries.append(Entry(simplified, None if state == "none" else state, as_of, pinyin, gloss, level, origin or "import", path.name, number, item if simplified != item else None))
+    if columns is None:
         raise ProgressFileError(f"{path}: no column header")
     return entries
 
@@ -91,12 +97,12 @@ def slug(name) -> str:
 
 
 def export(conn, data_dir, learner_id=LEARNER) -> Path:
-    """Write data/progress/<learner slug>.tsv: `item state as_of` by key, as_of being the date part of changed_at."""
+    """Write data/progress/<learner slug>.tsv: `item state as_of origin` by key, as_of being the date part of changed_at."""
     row = conn.execute("SELECT name FROM progress.learner WHERE id = ?", (learner_id,)).fetchone()
     if row is None:
         raise ProgressFileError(f"no learner with id {learner_id}")
-    rows = conn.execute("SELECT key, state, substr(changed_at, 1, 10) FROM progress.progress WHERE learner_id = ? ORDER BY key", (learner_id,))
+    rows = conn.execute("SELECT key, state, substr(changed_at, 1, 10), origin FROM progress.progress WHERE learner_id = ? ORDER BY key", (learner_id,))
     path = Path(data_dir) / "progress" / f"{slug(row[0])}.tsv"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("# source: export\nitem\tstate\tas_of\n" + "".join(f"{key}\t{state}\t{date}\n" for key, state, date in rows), encoding="utf-8")
+    path.write_text("# source: export\nitem\tstate\tas_of\torigin\n" + "".join(f"{key}\t{state}\t{date}\t{origin}\n" for key, state, date, origin in rows), encoding="utf-8")
     return path

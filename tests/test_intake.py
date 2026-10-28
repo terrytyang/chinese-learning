@@ -28,7 +28,7 @@ def lesson(site, text_id=1, lesson_id=1):
 
 def test_intake_text_1_readings_facts_and_default_lesson(site):
     conn = connect(site)
-    progress.set_state(conn, "character", "月", "mastered")
+    progress.set_state(conn, "character", "月", "mastered", "manual")
     conn.commit()
     assert intake(conn, 1, site.data) == {"words": 0, "readings": 28, "lesson": 1}
     body = db.get_text(conn, 1)["body"]
@@ -47,10 +47,10 @@ def test_intake_text_1_readings_facts_and_default_lesson(site):
 
 def test_default_selection_excludes_recognized_and_mastered(site):
     conn = connect(site)
-    progress.set_state(conn, "character", "月", "mastered")
-    progress.set_state(conn, "character", "落", "recognized")
-    progress.set_state(conn, "character", "乌", "exposed")
-    progress.set_state(conn, "word", "桃花", "recognized")
+    progress.set_state(conn, "character", "月", "mastered", "manual")
+    progress.set_state(conn, "character", "落", "recognized", "manual")
+    progress.set_state(conn, "character", "乌", "exposed", "manual")
+    progress.set_state(conn, "word", "桃花", "recognized", "manual")
     conn.commit()
     intake(conn, 1, site.data)
     chars = lesson(site)["characters"]

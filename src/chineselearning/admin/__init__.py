@@ -36,7 +36,7 @@ def router(templates, connection, data_dir) -> APIRouter:
         if tab not in TABS:
             raise HTTPException(status_code=404)
         lesson = admin.lesson(conn, text_id, lesson_id)
-        change = lambda: progress.set_state(conn, kind, key, state)  # noqa: E731
+        change = lambda: progress.set_state(conn, kind, key, state, "manual")  # noqa: E731
         return admin.tab_mutate(request, conn, text_id, lesson, tab, change, f"state:{kind}:{key}", write=False, editing=request.query_params.get("edit") or None)
 
     return r

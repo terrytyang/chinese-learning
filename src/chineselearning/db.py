@@ -25,6 +25,8 @@ def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
         Path(progress_path).parent.mkdir(parents=True, exist_ok=True)
         conn.execute("ATTACH DATABASE ? AS progress", (str(Path(progress_path).resolve()),))
         conn.executescript(PROGRESS_SCHEMA_PATH.read_text(encoding="utf-8"))
+        if "origin" not in [r[1] for r in conn.execute("PRAGMA progress.table_info(progress)")]:  # a file from before origin existed
+            conn.execute("ALTER TABLE progress.progress ADD COLUMN origin TEXT NOT NULL DEFAULT 'import'")
         conn.execute("INSERT INTO progress.learner (id, name) SELECT 1, 'Student' WHERE NOT EXISTS (SELECT 1 FROM progress.learner)")
         conn.commit()
     return conn
