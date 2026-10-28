@@ -1,0 +1,20 @@
+{% from "admin/macros.html" import err, lvl, pill with context %}
+{# The members in the dictionary page's row style, Remove per row, and "Mark all as" under them. #}
+<div id="members" hx-target="#members" hx-swap="outerHTML">
+{% for kind, label in (("character", "Characters"), ("word", "Words")) %}{% set rows = members | selectattr("kind", "equalto", kind) | list %}
+<div class="sec"{% if loop.first %} style="margin-top: 0"{% endif %}>{{ label }} · {{ rows | length }}</div>
+{% if rows %}
+<table>
+  <thead><tr><th>Item</th><th>Pinyin</th><th>Level</th><th>Source</th><th>Gloss</th><th>State</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr id="member-{{ r.item }}"><td class="zh {{ 'big' if kind == 'character' else 'word' }}">{{ r.item }}</td><td>{{ r.pinyin }}</td><td>{{ lvl(r.level) }}</td><td>{{ pill(r.source) }}</td><td class="gloss">{% if r.gloss %}{{ r.gloss }}{% else %}<span class="muted"><i>no gloss yet</i></span>{% endif %}</td><td class="st">{{ r.state }}</td>
+      <td class="actions"><button hx-post="{{ lesson_base }}/remove" hx-vals='{{ {"item": r.item} | tojson }}'>Remove</button></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">None</p>{% endif %}
+{% endfor %}
+<form class="inline" hx-post="{{ lesson_base }}/mark">{{ err("mark") }}<span>Mark all as</span> <select name="state" aria-label="State">{% for s in mark_options %}<option value="{{ s }}"{% if s == "recognized" %} selected{% endif %}>{{ s }}</option>{% endfor %}</select> <button class="primary">Mark</button> <span class="hint">raises items below this state; higher states are kept</span></form>
+{% if marked %}<p class="muted">{{ marked.raised }} raised to {{ marked.state }}, {{ marked.kept }} already there</p>{% endif %}
+</div>

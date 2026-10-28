@@ -1,0 +1,6 @@
+{% from "admin/macros.html" import keep, err with context %}
+{# The name, edited in place, and the member counts. #}
+<div id="header" class="head" hx-target="#header" hx-swap="outerHTML">
+  <form class="inline" hx-post="{{ lesson_base }}/name">{{ err("name") }}<input class="name" name="name" aria-label="Lesson name" value="{{ keep('name', 'name') or lesson.name }}"> <button>Rename</button></form>
+  <span class="muted">{{ counts.characters }} characters · {{ counts.words }} words</span>
+</div>

@@ -187,3 +187,63 @@ def test_changed_filter_and_the_dates_endpoint(site):
     assert r.status_code == 200 and r.text == '<input id="date" type="date" name="date" aria-label="Date" value="2026-10-01">'
     assert get(site, "/dictionary/changed-dates", changed="any", date="2026-10-01").text == '<input id="date" type="hidden" name="date" value="2026-10-01">'
     assert get(site, "/dictionary/changed-dates", changed="on").text.startswith('<select id="date" name="date" aria-label="Date"><option value="2026-10-15">2026-10-15 (1)</option>')
+
+
+def members_of(html):
+    return re.findall(r'<tr id="member-(.*?)"', html)
+
+
+def test_lesson_page_members_remove_rename_mark_and_notes(site):
+    conn = connect(site)
+    assert post(site, "/dictionary/add-to-lesson", lesson="new", q="乌", kind="all", source="all", min="1", max="7", state="any").status_code == 200
+    lesson = lessons.vocabulary(conn)[0]
+    base = f"/lessons/{lesson['id']}"
+    page = site.client.get(base).text
+    assert f"<title>Vocabulary {TODAY} · Chinese Learning</title>" in page and 'class="on"' in page.split("<nav")[1].split("Learn")[0]  # Texts is current
+    assert f'<input class="name" name="name" aria-label="Lesson name" value="Vocabulary {TODAY}">' in page and "2 characters · 3 words" in page
+    assert members_of(page) == ["乌", "鸦", "乌黑", "乌云", "乌鸦"]  # by level then item: 乌黑 (6) is the lowest word; the tables split characters from words
+    row = page.split('<tr id="member-乌鸦"')[1].split("</tr>")[0]
+    assert "wū yā" in row and '<span class="pill supplement">supplement</span>' in row and '<td class="st">exposed</td>' in row and 'hx-post="' + base + '/remove"' in row
+    assert "Mark all as" in page and '<option value="recognized" selected>recognized</option>' in page and "raises items below this state; higher states are kept" in page
+    assert '<th>Anchor</th>' not in page and 'name="anchor"' not in page and f'hx-post="{base}/notes/add"' in page
+    r = post(site, base + "/remove", item="乌黑")
+    assert r.status_code == 200 and r.text.startswith('<div id="members"') and members_of(r.text) == ["乌", "鸦", "乌云", "乌鸦"]
+    assert progress.state_of(conn, "word", "乌黑") == "unconfirmed" and json.loads((site.data / "lessons" / f"{lesson['id']}.json").read_text(encoding="utf-8"))["words"] == ["乌云", "乌鸦"]
+    progress.set_state(conn, "character", "鸦", "mastered", "manual")
+    conn.commit()
+    r = post(site, base + "/mark", state="recognized")
+    assert r.status_code == 200 and "3 raised to recognized, 1 already there" in r.text and r.text.count('<td class="st">recognized</td>') == 3 and '<td class="st">mastered</td>' in r.text
+    assert {k: (s, o) for k, s, o in conn.execute("SELECT key, state, origin FROM progress.progress")} == {"乌": ("recognized", "manual"), "鸦": ("mastered", "manual"), "乌云": ("recognized", "manual"), "乌鸦": ("recognized", "manual")}
+    assert "0 raised to recognized, 4 already there" in post(site, base + "/mark", state="recognized").text
+    assert post(site, base + "/mark", state="learned").status_code == 422
+    r = post(site, base + "/name", name="Birds")
+    assert r.status_code == 200 and r.text.startswith('<div id="header"') and 'value="Birds"' in r.text and "2 characters · 2 words" in r.text
+    assert lessons.get(conn, lesson["id"])["name"] == "Birds" and json.loads((site.data / "lessons" / f"{lesson['id']}.json").read_text(encoding="utf-8"))["name"] == "Birds"
+    lessons.create(conn, None, "Other")
+    conn.commit()
+    r = post(site, base + "/name", name="Other")
+    assert r.status_code == 422 and 'class="error">a lesson named “Other” already exists</p>' in r.text and 'value="Other"' in r.text
+    r = post(site, base + "/notes/add", note="crows and such")
+    assert r.status_code == 200 and r.text.startswith('<div id="notes"') and "crows and such" in r.text and "<th>Anchor</th>" not in r.text
+    assert post(site, base + "/notes/add", note=" ").status_code == 422
+    note_id = conn.execute("SELECT id FROM lesson_note WHERE lesson_id = ?", (lesson["id"],)).fetchone()[0]
+    assert "crows and such" not in post(site, base + f"/notes/{note_id}/delete").text
+    assert json.loads((site.data / "lessons" / f"{lesson['id']}.json").read_text(encoding="utf-8"))["notes"] == []
+    assert site.client.get("/lessons/999").status_code == 404 and post(site, "/lessons/999/remove", item="乌").status_code == 404
+
+
+def test_a_text_lesson_links_to_its_text_and_texts_lists_vocabulary(site):
+    conn = connect(site)
+    text_lesson = lessons.create(conn, 1, "T")
+    conn.commit()
+    page = site.client.get(f"/lessons/{text_lesson}").text
+    assert f'This lesson belongs to <a href="/texts/1?lesson={text_lesson}" class="zh">枫桥夜泊</a>' in page and 'id="members"' not in page
+    assert post(site, f"/lessons/{text_lesson}/mark", state="recognized").status_code == 404
+    page = site.client.get("/texts").text
+    assert '<div id="vocabulary"' in page and "Vocabulary lessons · 0" in page and 'hx-post="/lessons">New lesson</button>' in page
+    r = post(site, "/lessons")
+    assert r.status_code == 200 and r.text.startswith('<div id="vocabulary"') and f'<li><a href="/lessons/{text_lesson + 1}">Vocabulary {TODAY}</a></li>' in r.text
+    assert (site.data / "lessons" / f"{text_lesson + 1}.json").is_file()
+    r = post(site, "/lessons")
+    assert r.text.index(f"Vocabulary {TODAY} (2)") < r.text.index(f'>Vocabulary {TODAY}<') and "Vocabulary lessons · 2" in r.text  # newest first
+    assert f'<a href="/lessons/{text_lesson + 2}">Vocabulary {TODAY} (2)</a>' in site.client.get("/texts").text

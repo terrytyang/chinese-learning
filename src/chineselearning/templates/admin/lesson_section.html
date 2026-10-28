@@ -1,0 +1,6 @@
+{# The vocabulary lessons on /texts, newest first, and the New lesson button (default name). #}
+<div id="vocabulary" hx-target="#vocabulary" hx-swap="outerHTML">
+  <div class="row"><div class="sec">Vocabulary lessons · {{ vocabulary | length }} <span class="hint">— gathered on the dictionary page with “Add all shown to”</span></div><span class="spacer"></span><button hx-post="/lessons">New lesson</button></div>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  {% if vocabulary %}<ul class="vocabulary">{% for l in vocabulary %}<li><a href="/lessons/{{ l.id }}">{{ l.name }}</a></li>{% endfor %}</ul>{% else %}<p class="empty">None</p>{% endif %}
+</div>
