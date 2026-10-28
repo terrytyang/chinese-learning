@@ -102,7 +102,14 @@ the body at its `position`; a body edit therefore fails the build until the
 text is re-intaken.
 
 **Lessons** are additive layers over a text — a named selection plus teaching
-additions — many per text, each in `data/lessons/<text id>-<lesson id>.json`:
+additions — many per text, each in `data/lessons/<text id>-<lesson id>.json`.
+A *vocabulary lesson* is a lesson with no text (`text_id` null, file
+`data/lessons/<lesson id>.json`): its characters and words are any dictionary
+items, gathered on the dictionary page by filtering and adding everything
+shown, then pruned on the lesson's own page; it has notes but no extra words,
+since every word in it is simply a member. Names are unique per text and
+unique among vocabulary lessons; a new vocabulary lesson is "Vocabulary 〈date〉",
+with " (2)" and so on for a second that day, and can be renamed.
 
 | Table | Row |
 | --- | --- |
@@ -117,7 +124,10 @@ with its facts. Intake creates the first lesson, "Learn 〈title〉", selecting 
 unique character and every text word whose state is unconfirmed or exposed; the
 admin then customises per lesson (drop a level, re-include mastered items).
 Adding a character or word to a lesson, by any route, sets `exposed` when its
-state is `unconfirmed`; nothing else changes state implicitly. A single
+state is `unconfirmed`; removing it, when that `exposed` is `auto` and no other
+lesson holds the item, returns it to `unconfirmed`. A lesson page's "Mark all
+as 〈state〉" raises every member below that state to it (`manual`, now) and
+leaves higher ones alone. Nothing else changes state implicitly. A single
 character is never a word: `text_word`, `lesson_word` and `lesson_extra_word`
 reject one-character surfaces. The assembled material derives each extra word's
 `kind`, `expansion` or `related`, from its anchor.
@@ -185,7 +195,7 @@ explain, can't write) → `mastered` (can also write). Setting `unconfirmed`
 deletes the row; `changed_at` says when the current state was set.
 
 Attempts at exercises (cloze and later games) are logged in the same file:
-`attempt(learner_id, text_id, exercise, score, detail JSON, at)`.
+`attempt(learner_id, lesson_id, exercise, score, detail JSON, at)`.
 
 State is also reproducible from files. `chineselearning export-progress` writes
 `data/progress/<learner>.tsv` (`item  state  as_of`); `import-progress` reads
@@ -270,6 +280,7 @@ real database from `data/` and query it.
 - 2026-10-28 A text imported from the page is written to `data/texts/` first, inserted as `build` inserts a file, and intaken; no rebuild, no redirect — a later `build` reproduces the same rows. `intake --reset` is the way to redo a text after its file is edited by hand.
 - 2026-10-28 A reading typed on the page must be one of the character's listed readings; one that comes from a dictionary word or a file (origin `auto` or `suggested`) may also be the neutral-tone form of one (地上 gives 上 `shang`), which intake otherwise fails on.
 - 2026-10-28 `character-gloss.tsv` is applied at build as well as baked by the derivation, so the dictionary page can edit an HSK character's gloss; HSK word meanings stay the master's and read-only. A blank `level` in the supplement means derived at load.
+- 2026-10-28 Vocabulary lessons: a lesson without a text, built on the dictionary page by "Add all shown to" and pruned on `/lessons/{id}`; same tables, same files (`<lesson id>.json`), same exposure rule, plus the symmetric rule that removal undoes an automatic exposure no other lesson supports. Attempts are keyed by lesson, not text.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.
