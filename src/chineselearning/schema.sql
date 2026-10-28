@@ -1,5 +1,9 @@
 -- Text layer (design.md layer 3). Repaved on every build; annotations are
 -- re-imported from data/annotations/<id>.json.
+CREATE TABLE meta (                -- build facts: data_fingerprint = {path: [size, mtime_ns]} of every file under data/ (drift.py)
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
 CREATE TABLE text (
   id INTEGER PRIMARY KEY,          -- from the file header
   title TEXT NOT NULL,

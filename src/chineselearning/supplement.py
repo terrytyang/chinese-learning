@@ -10,6 +10,7 @@ from pathlib import Path
 
 from opencc import OpenCC
 
+from . import drift
 from . import pinyin as pinyin_
 
 WORD_ID_BASE = 10_000_000
@@ -136,10 +137,18 @@ def load(conn, data_dir) -> tuple[int, int]:
     return count, unglossed
 
 
+def check_drift(conn, data_dir):
+    """The file must be the one the database was built from; a hand edit since then needs `build` first."""
+    files = drift.changed(conn, data_dir)
+    if FILE in files:
+        raise SupplementError(drift.message(files))
+
+
 def add(conn, data_dir, item, pinyin=None, gloss=None, level=None) -> int:
     """Append a line and insert its row; returns the row's id. The item must be absent from the dictionary."""
     e = entry(item, pinyin, gloss, level)
     check_new(conn, e)
+    check_drift(conn, data_dir)
     path = file_path(data_dir)
     text = path.read_text(encoding="utf-8") if path.is_file() else ""
     if text and not text.endswith("\n"):
@@ -147,6 +156,7 @@ def add(conn, data_dir, item, pinyin=None, gloss=None, level=None) -> int:
     row_id = insert(conn, e, text.count("\n"))
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text + format_line(e), encoding="utf-8")
+    drift.touch(conn, data_dir, path)
     return row_id
 
 
@@ -155,6 +165,7 @@ def update(conn, data_dir, item, pinyin=None, gloss=None, level=None):
     e = entry(item, pinyin, gloss, level)
     if source_of(conn, e["item"]) != "supplement":
         raise SupplementError(f"“{e['item']}” is not a supplement entry")
+    check_drift(conn, data_dir)
     path = file_path(data_dir)
     lines = path.read_text(encoding="utf-8").split("\n") if path.is_file() else []
     at = next((i for i, line in enumerate(lines) if (parse_line(line) or {}).get("item") == e["item"]), None)
@@ -168,3 +179,4 @@ def update(conn, data_dir, item, pinyin=None, gloss=None, level=None):
         conn.execute("UPDATE word SET pinyin = ?, meanings = ?, hsk_level = ? WHERE simplified = ?", (v["pinyin"], v["meanings"], v["hsk_level"], e["item"]))
     lines[at] = format_line(e).removesuffix("\n")
     path.write_text("\n".join(lines), encoding="utf-8")
+    drift.touch(conn, data_dir, path)

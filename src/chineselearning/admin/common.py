@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 from fastapi import HTTPException
 from fastapi.responses import HTMLResponse
 
-from .. import annotation_files, db, lesson_files, lessons, progress
+from .. import annotation_files, db, drift, lesson_files, lessons, progress
 from ..annotations import AnnotationError
 from ..gloss_file import GlossFileError
 from ..progress import ProgressError
@@ -87,6 +87,11 @@ class Admin:
         self.regions = {}  # a context key that marks the region -> builder(request, conn, text_id, lesson), for the shell
         self.tabs = {}  # tab -> builder(request, conn, text_id, lesson) -> the tab's rows and filters
 
+    def drift(self, conn) -> str | None:
+        """The banner's message when data/ has changed since the build, else None."""
+        files = drift.changed(conn, self.data_dir)
+        return drift.message(files) if files else None
+
     def text(self, conn, text_id) -> dict:
         row = db.get_text(conn, text_id)
         if row is None:
@@ -116,7 +121,7 @@ class Admin:
         for marker, build in self.regions.items():
             if marker not in ctx:
                 ctx = {**build(request, conn, text_id, lesson), **ctx}
-        return self.templates.TemplateResponse(request, "admin/shell.html", ctx, status_code=status)
+        return self.templates.TemplateResponse(request, "admin/shell.html", {**ctx, "drift": self.drift(conn)}, status_code=status)
 
     def tab_context(self, request, conn, text_id, lesson, tab, **state) -> dict:
         rows = self.tabs[tab](request, conn, text_id, lesson) if lesson else {}

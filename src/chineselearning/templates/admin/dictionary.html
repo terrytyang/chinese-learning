@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "admin/nav.html" import nav %}
+{% from "admin/nav.html" import nav with context %}
 {% from "admin/macros.html" import levels with context %}
 {% block title %}Dictionary{% endblock %}
 {% block nav %}{{ nav("dictionary") }}{% endblock %}

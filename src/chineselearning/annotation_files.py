@@ -6,7 +6,7 @@ The file is the source of truth; it stores surfaces, never word ids.
 import json
 from pathlib import Path
 
-from . import annotations
+from . import annotations, drift
 from .annotations import AnnotationError
 
 KINDS = ("readings", "characters", "words")
@@ -39,6 +39,7 @@ def write_file(conn, text_id, data_dir):
         write_json(path, data)
     else:
         path.unlink(missing_ok=True)
+    drift.touch(conn, data_dir, path)
 
 
 def import_all(conn, data_dir):

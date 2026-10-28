@@ -4,6 +4,7 @@ nav { padding-top: 14px; }
 nav a { text-decoration: none; font-weight: 600; margin-right: 1rem; }
 nav.admin a { color: #6b6b66; font-weight: 400; }
 nav.admin a.on { color: #1f1f1d; font-weight: 600; }
+.banner { max-width: 1180px; margin: 12px auto 0; padding: 8px 24px; box-sizing: border-box; background: #fde2e2; color: #9b1c1c; border-radius: 6px; }
 main { padding-top: 16px; padding-bottom: 64px; }
 a { color: #1d4ed8; }
 a:hover { color: #1e3a8a; }

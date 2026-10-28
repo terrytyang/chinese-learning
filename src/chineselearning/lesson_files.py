@@ -4,7 +4,7 @@ import json
 import re
 from pathlib import Path
 
-from . import lessons
+from . import drift, lessons
 from .annotation_files import write_json
 from .annotations import AnnotationError
 
@@ -33,21 +33,26 @@ def file_path(data_dir, text_id, lesson_id) -> Path:
 def write_file(conn, lesson_id, data_dir):
     """Rewrite one vocabulary lesson's file; a lesson that no longer exists loses its file."""
     lesson = lessons.get(conn, lesson_id)
+    path = file_path(data_dir, lesson["text_id"] if lesson else None, lesson_id)
     if lesson:
-        write_json(file_path(data_dir, lesson["text_id"], lesson_id), export(conn, lesson_id))
+        write_json(path, export(conn, lesson_id))
     else:
-        file_path(data_dir, None, lesson_id).unlink(missing_ok=True)
+        path.unlink(missing_ok=True)
+    drift.touch(conn, data_dir, path)
 
 
 def write_files(conn, text_id, data_dir):
     """Rewrite every lesson file of the text and drop files of lessons that no longer exist."""
-    current = {lesson["id"] for lesson in lessons.for_text(conn, text_id)}
-    for lesson_id in current:
-        write_json(file_path(data_dir, text_id, lesson_id), export(conn, lesson_id))
+    current = [lesson["id"] for lesson in lessons.for_text(conn, text_id)]
+    written = [file_path(data_dir, text_id, lesson_id) for lesson_id in current]
+    for lesson_id, path in zip(current, written):
+        write_json(path, export(conn, lesson_id))
     for path in Path(data_dir, "lessons").glob(f"{text_id}-*.json"):
         match = NAME.fullmatch(path.name)
         if match and match.group(1) and int(match.group(2)) not in current:
             path.unlink()
+            written.append(path)
+    drift.touch(conn, data_dir, *written)
 
 
 def import_all(conn, data_dir):

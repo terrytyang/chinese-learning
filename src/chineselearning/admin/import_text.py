@@ -4,7 +4,7 @@ writes data/texts/<id>-<title>.md, inserts the text as build does, and runs inta
 from fastapi import Depends, Form, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, texts
+from .. import db, drift, texts
 from ..annotations import AnnotationError
 from ..intake import intake
 from ..texts import TextFileError
@@ -40,7 +40,7 @@ def routes(r, admin, connection):
 
     @r.get("/texts/import", response_class=HTMLResponse)
     def page(request: Request, conn=Depends(connection)):
-        return templates.TemplateResponse(request, "admin/import.html", form_context(conn, dict(EMPTY)))
+        return templates.TemplateResponse(request, "admin/import.html", {**form_context(conn, dict(EMPTY)), "drift": admin.drift(conn)})
 
     @r.post("/texts/import/preview", response_class=HTMLResponse)
     def preview_fragment(request: Request, title: str = Form(""), author: str = Form(""), period: str = Form(""), tags: str = Form(""), body: str = Form(""), conn=Depends(connection)):
@@ -66,6 +66,7 @@ def routes(r, admin, connection):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
         try:
+            drift.touch(conn, admin.data_dir, path)
             db.insert_text(conn, text)
             counts = intake(conn, text.id, admin.data_dir)  # commits, and writes the annotation and lesson files
         except (AnnotationError, TextFileError) as e:

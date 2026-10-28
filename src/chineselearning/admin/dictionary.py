@@ -123,7 +123,8 @@ def routes(r, admin, connection):
         """The shell: the header counts, the filter form, the rows for the URL's filters, the add card."""
         filters, _ = filters_of(request, DEFAULTS, checkboxes=("nogloss",))
         ctx = {**rows_context(conn, filters), **date_context(conn, filters), "header": header(conn), "kind_options": KIND_OPTIONS,
-               "source_options": SOURCE_OPTIONS, "state_options": STATE_OPTIONS, "changed_options": CHANGED_OPTIONS, "lookup": None, "added": None}
+               "source_options": SOURCE_OPTIONS, "state_options": STATE_OPTIONS, "changed_options": CHANGED_OPTIONS, "lookup": None, "added": None,
+               "drift": admin.drift(conn)}
         return templates.TemplateResponse(request, "admin/dictionary.html", ctx)
 
     def row(request, conn, item, status=200, editing=False, error=None, submitted=None):
