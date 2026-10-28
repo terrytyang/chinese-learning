@@ -46,13 +46,7 @@ def build(db_path, data_dir) -> dict[str, int]:
         entries, unglossed = supplement.load(conn, data_dir)
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         for t in texts:
-            conn.execute(
-                "INSERT INTO text (id, title, author, period, body, notes) VALUES (?, ?, ?, ?, ?, ?)",
-                (t.id, t.title, t.author, t.period, t.body, t.notes),
-            )
-            for tag in t.tags:
-                conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
-                conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (t.id, tag))
+            insert_text(conn, t)
         annotation_files.import_all(conn, data_dir)
         lesson_files.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
@@ -61,6 +55,18 @@ def build(db_path, data_dir) -> dict[str, int]:
 
 
 # --- texts ---------------------------------------------------------------
+
+
+def insert_text(conn, t: text_files.Text):
+    """One text and its tags, as `build` does for every file (new tag names are created)."""
+    conn.execute("INSERT INTO text (id, title, author, period, body, notes) VALUES (?, ?, ?, ?, ?, ?)", (t.id, t.title, t.author, t.period, t.body, t.notes))
+    for tag in t.tags:
+        conn.execute("INSERT OR IGNORE INTO tag (name) VALUES (?)", (tag,))
+        conn.execute("INSERT INTO text_tag (text_id, tag_name) VALUES (?, ?)", (t.id, tag))
+
+
+def next_text_id(conn) -> int:
+    return (conn.execute("SELECT max(id) FROM text").fetchone()[0] or 0) + 1
 
 
 def filter_options(conn) -> dict[str, list[str]]:

@@ -170,3 +170,16 @@ def test_auto_false_positive_is_deleted_from_candidates(site):
     assert site.client.post("/texts/5/lessons/1/words/无论/delete", headers=HX).status_code == 200
     assert "无论" not in [w["surface"] for w in facts(site, 5)["words"]] and "无论" not in lesson(site, 5, 1)["words"]
     assert site.client.post("/texts/5/lessons/1/words/桃花/rename").status_code == 404
+
+
+def test_intake_accepts_a_words_neutral_tone_reading(site):
+    """地上 reads 上 as "shang", which the character's list (shàng, shǎng) lacks; a word's reading may be the neutral-tone form, a typed one may not."""
+    conn = connect(site)
+    conn.execute("INSERT INTO text (id, title, body) VALUES (9, '地上', '地上霜')")
+    conn.execute("INSERT INTO text_tag VALUES (9, '诗词')")
+    conn.commit()
+    assert intake(conn, 9, site.data)["readings"] == 3
+    assert [(r["char"], r["pinyin"]) for r in facts(site, 9)["readings"]] == [("地", "dì"), ("上", "shang"), ("霜", "shuāng")]
+    with pytest.raises(AnnotationError, match="the reading of “上” must be one of shàng, shǎng"):
+        annotations.set_reading(conn, 9, 1, "上", "shang")
+    annotations.set_reading(conn, 9, 1, "上", "shang", "suggested")

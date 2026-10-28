@@ -2,14 +2,14 @@
 (design.md, Modes).
 
 Fragment URLs: `/texts/{text}/text` (and `/edit`), `/texts/{text}/lessons/{lesson}/<tab>`; tags and lesson controls under
-`/texts/{text}`; `/dictionary/rows`, `/dictionary/row/{item}`. A mutation returns the fragment it changed; a validation
+`/texts/{text}`; `/texts/import` (the form and its preview); `/dictionary/rows`, `/dictionary/row/{item}`. A mutation returns the fragment it changed; a validation
 failure returns it with the message at its form, 422.
 """
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
 
 from .. import progress
-from . import characters, dictionary, extra_words, notes, shell, text_block, words
+from . import characters, dictionary, extra_words, import_text, notes, shell, text_block, words
 from .common import TABS, Admin
 
 
@@ -22,7 +22,7 @@ def router(templates, connection, data_dir) -> APIRouter:
                   "related": extra_words.related_context, "notes": notes.context}
     admin.regions = {"lessons": shell.lesson_context, "lines": text_block.context,
                      "tab": lambda request, conn, text_id, lesson: admin.tab_context(request, conn, text_id, lesson, "characters")}
-    for module in (shell, text_block, characters, words, extra_words, notes, dictionary):
+    for module in (import_text, shell, text_block, characters, words, extra_words, notes, dictionary):  # /texts/import before /texts/{text_id}
         module.routes(r, admin, connection)
 
     @r.get("/texts/{text_id}/lessons/{lesson_id}/{tab}")

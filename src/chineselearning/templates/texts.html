@@ -3,7 +3,7 @@
 {% block title %}Texts{% endblock %}
 {% block nav %}{{ nav("texts") }}{% endblock %}
 {% block content %}
-<h1>Texts</h1>
+<div class="head"><h1>Texts</h1><a href="/texts/import">Import a text</a></div>
 <form method="get" action="/texts" class="filters">
   <label>Tag
     <select name="tag">

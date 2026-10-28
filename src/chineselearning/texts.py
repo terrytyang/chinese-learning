@@ -80,6 +80,22 @@ def parse_text(source: str, name: str = "<text>") -> Text:
     )
 
 
+def file_name(text_id, title) -> str:
+    """The file a new text is written to: three-digit id, the title."""
+    return f"{text_id:03d}-{title.strip()}.md"
+
+
+def compose(text_id, title, tags, body, author="", period="") -> str:
+    """The content of a new text file: header lines in the order id, title, author, period, tags (empty optionals
+    omitted), a blank line, the body as typed with each line's trailing whitespace stripped and one trailing newline.
+    Not validated here; `parse_text` is the rule."""
+    lines = [f"id: {text_id}", f"title: {title.strip()}"]
+    lines += [f"{key}: {value.strip()}" for key, value in (("author", author), ("period", period)) if value.strip()]
+    lines.append(f"tags: {tags.strip()}")
+    body = "\n".join(line.rstrip() for line in body.replace("\r\n", "\n").replace("\r", "\n").split("\n"))
+    return "\n".join(lines) + "\n\n" + body.rstrip("\n") + "\n"
+
+
 def read_text(path: Path) -> Text:
     return parse_text(path.read_text(encoding="utf-8"), name=str(path))
 
