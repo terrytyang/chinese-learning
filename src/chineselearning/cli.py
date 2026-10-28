@@ -8,6 +8,7 @@ from pathlib import Path
 
 from . import db, progress
 from .annotations import AnnotationError
+from .gloss_file import GlossFileError
 from .progress_files import ProgressFileError
 from .supplement import SupplementError
 from .texts import TextFileError
@@ -25,7 +26,7 @@ def fail(step, error):
 def build_command(db_path=DEFAULT_DB):
     try:
         counts = db.build(db_path, DATA_DIR)
-    except (TextFileError, AnnotationError, SupplementError) as e:
+    except (TextFileError, AnnotationError, GlossFileError, SupplementError) as e:
         fail("build", e)
     entries, unglossed = counts.pop("supplement"), counts.pop("supplement_unglossed")
     print(f"{db_path}: " + ", ".join(f"{table} {n}" for table, n in counts.items()))

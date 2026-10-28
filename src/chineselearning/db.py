@@ -4,7 +4,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import annotation_files, lesson_files, supplement
+from . import annotation_files, gloss_file, lesson_files, supplement
 from . import texts as text_files
 from .texts import HAN, HAN_RUN
 
@@ -42,6 +42,7 @@ def build(db_path, data_dir) -> dict[str, int]:
     conn = connect(db_path)
     with conn:
         conn.executescript((data_dir / "hsk.sql").read_text(encoding="utf-8"))
+        gloss_file.apply(conn, data_dir)  # the derivation bakes the same file; applied again so the dictionary page's edits hold until the next derivation
         entries, unglossed = supplement.load(conn, data_dir)
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         for t in texts:
