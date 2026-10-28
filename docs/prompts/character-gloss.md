@@ -43,6 +43,8 @@ Rules for the gloss:
    first: `(什么) what`, `(时候) time, moment`.
 6. Plain words. No pinyin except as a reading label, no Chinese except a
    parenthesised word as in rule 5, no quotation marks, no trailing period.
+7. Reading labels are lowercase with tone marks — `liú`, never `Liú` — for
+   surnames and dynasty names too; capitalisation lives in the gloss text.
 
 Example output:
 

@@ -32,6 +32,14 @@ def supplement_text(site):
     return (site.data / "supplement.tsv").read_text(encoding="utf-8")
 
 
+@pytest.fixture
+def dictionary_only(tmp_path, probe):
+    """A file that says nothing about the student (`state: none`) but carries a word the dictionary lacks, and one it has."""
+    path = tmp_path / "dictionary-only.tsv"
+    path.write_text(f"# source: raw/dictionary.md\n# as_of: 2026-08-01\n# state: none\nitem\tstate\tas_of\tpinyin\tgloss\tlevel\n{probe.word}\t\t\t{probe.pinyin}\ttest\t\n月\n", encoding="utf-8")
+    return path
+
+
 def test_read_header_values_fill_blank_columns():
     entries = read(FIXTURES / "plain-list.tsv")
     assert brief(entries) == [("司", "recognized", "2026-08-30"), ("班", "mastered", "2026-09-14")]
@@ -46,9 +54,9 @@ def test_read_per_line_values_and_optional_columns():
     assert [e.kind for e in entries] == ["word", "character", "word", "word", "character"]
 
 
-def test_read_state_none_and_traditional_conversion():
-    entries = read(FIXTURES / "dictionary-only.tsv")
-    assert brief(entries) == [("乌鸦", None, "2026-08-01"), ("月", None, "2026-08-01")] and entries[0].pinyin == "wū yā"
+def test_read_state_none_and_traditional_conversion(dictionary_only, probe):
+    entries = read(dictionary_only)
+    assert brief(entries) == [(probe.word, None, "2026-08-01"), ("月", None, "2026-08-01")] and entries[0].pinyin == probe.pinyin
     entries = read(FIXTURES / "traditional.tsv")
     assert brief(entries) == [("银行", "exposed", "2026-09-10"), ("学习", "exposed", "2026-09-10"), ("马", "exposed", "2026-09-10")]
     assert [e.original for e in entries] == ["銀行", "學習", "馬"]
@@ -79,9 +87,9 @@ def test_read_errors_name_the_file_and_line(tmp_path, name, content, message):
         read(path)
 
 
-def test_resolve_explicit_implied_tie_and_current_row(site):
+def test_resolve_explicit_implied_tie_and_current_row(site, dictionary_only, probe):
     conn = connect(site)
-    entries = read(FIXTURES / "sheet.tsv") + read(FIXTURES / "traditional.tsv") + read(FIXTURES / "dictionary-only.tsv")
+    entries = read(FIXTURES / "sheet.tsv") + read(FIXTURES / "traditional.tsv") + read(dictionary_only)
     resolved = resolve(conn, entries)
     assert resolved[("word", "银行")] == ("recognized", "2026-10-01", "recognized 2026-10-01 in sheet.tsv:3")  # later than traditional.tsv's exposed
     assert resolved[("character", "银")] == ("recognized", "2026-10-01", "recognized 2026-10-01 implied by 银行 in sheet.tsv:3")
@@ -89,7 +97,7 @@ def test_resolve_explicit_implied_tie_and_current_row(site):
     assert resolved[("character", "月")] == ("mastered", "2026-09-01", "mastered 2026-09-01 in sheet.tsv:4")  # dictionary-only.tsv says nothing
     assert resolved[("character", "马")] == ("exposed", "2026-09-10", "exposed 2026-09-10 in traditional.tsv:7")
     assert resolved[("character", "学")] == ("exposed", "2026-09-10", "exposed 2026-09-10 implied by 学习 in traditional.tsv:6")
-    assert resolved[("character", "龘")][:2] == ("exposed", "2026-10-02") and ("word", "乌鸦") not in resolved and len(resolved) == 15
+    assert resolved[("character", "龘")][:2] == ("exposed", "2026-10-02") and ("word", probe.word) not in resolved and len(resolved) == 15
     progress.set_state(conn, "character", "月", "recognized", changed_at="2026-09-15T10:00:00Z")  # the current row is a candidate too
     progress.set_state(conn, "word", "银行", "mastered", changed_at="2026-09-20T10:00:00Z")
     progress.set_state(conn, "character", "走", "mastered", changed_at="2026-10-01T23:00:00Z")
@@ -99,26 +107,26 @@ def test_resolve_explicit_implied_tie_and_current_row(site):
     assert resolved[("character", "走")][:2] == ("exposed", "2026-10-01")  # same date: the lowest state, whatever the time of day
 
 
-def test_run_writes_states_adds_to_supplement_reports_and_is_idempotent(site):
+def test_run_writes_states_adds_to_supplement_reports_and_is_idempotent(site, dictionary_only, probe):
     conn = connect(site)
-    files = [FIXTURES / name for name in ("sheet.tsv", "traditional.tsv", "dictionary-only.tsv")]
+    files = [FIXTURES / "sheet.tsv", FIXTURES / "traditional.tsv", dictionary_only]
     report = run(conn, site.data, files)
     assert report.files == [str(p) for p in files] and report.entries == 10 and report.conversions == [("銀行", "银行"), ("學習", "学习"), ("馬", "马")]
     assert report.changes == {"unconfirmed→recognized": ["银行", "银", "寒山寺", "寒", "山", "寺"], "unconfirmed→mastered": ["月"],
                               "unconfirmed→exposed": ["行", "行走", "走", "龘", "学习", "学", "习", "马"]}
     assert (report.unchanged, report.downgrades) == (0, [])
-    assert [(r["item"], r["pinyin"], r["gloss"], r["level"]) for r in report.added] == [("龘", "", "dragons flying", ""), ("寒山寺", "hán shān sì", "Hanshan Temple", "7"), ("乌鸦", "wū yā", "crow", "")]
-    assert supplement_text(site).endswith("龘\t\tdragons flying\t\n寒山寺\thán shān sì\tHanshan Temple\t7\n乌鸦\twū yā\tcrow\t\n")
-    assert db.lookup_word(conn, "乌鸦")["meanings"] == ["crow"] and db.lookup_character(conn, "龘")["pinyin"] == "dá"
+    assert [(r["item"], r["pinyin"], r["gloss"], r["level"]) for r in report.added] == [("龘", "", "dragons flying", ""), ("寒山寺", "hán shān sì", "Hanshan Temple", "7"), (probe.word, probe.pinyin, "test", "")]
+    assert supplement_text(site).endswith(f"龘\t\tdragons flying\t\n寒山寺\thán shān sì\tHanshan Temple\t7\n{probe.word}\t{probe.pinyin}\ttest\t\n")
+    assert db.lookup_word(conn, probe.word)["meanings"] == ["test"] and db.lookup_character(conn, "龘")["pinyin"] == "dá"
     assert states(conn) == {"银行": "recognized", "银": "recognized", "行": "exposed", "寒山寺": "recognized", "寒": "recognized", "山": "recognized", "寺": "recognized",
                             "月": "mastered", "行走": "exposed", "走": "exposed", "龘": "exposed", "学习": "exposed", "学": "exposed", "习": "exposed", "马": "exposed"}
     assert conn.execute("SELECT changed_at FROM progress.progress WHERE key = '银行'").fetchone()[0] == "2026-10-01"
     text = report.text()
     assert text.startswith("files read: ") and "\nentries: 10, converted from traditional: 銀行→银行, 學習→学习, 馬→马\n" in text
-    assert "\nunconfirmed→mastered: 月\n" in text and "\nunchanged: 0\n" in text and text.endswith("\nadded to supplement: 龘, 寒山寺, 乌鸦 (0 without a gloss)")
+    assert "\nunconfirmed→mastered: 月\n" in text and "\nunchanged: 0\n" in text and text.endswith(f"\nadded to supplement: 龘, 寒山寺, {probe.word} (0 without a gloss)")
     again = run(connect(site), site.data, files)
     assert (again.changes, again.unchanged, again.downgrades, again.added) == ({}, 15, [], []) and "would add" not in again.text() and "supplement" not in again.text()
-    assert states(connect(site)) == states(conn) and supplement_text(site).count("乌鸦") == 1
+    assert states(connect(site)) == states(conn) and supplement_text(site).count(f"\n{probe.word}\t") == 1
 
 
 def test_check_reports_and_writes_nothing(site):
@@ -157,7 +165,7 @@ def test_unmatched_word_with_unknown_characters_is_refused_before_anything_is_wr
 
 def test_export_then_import_round_trips(site):
     conn = connect(site)
-    assert (site.data / "progress").is_dir() and not list((site.data / "progress").glob("*.tsv"))
+    assert not list((site.data / "progress").glob("*.tsv"))  # no snapshot yet
     progress.set_state(conn, "character", "月", "mastered", changed_at="2026-09-01T10:00:00Z")
     progress.set_state(conn, "word", "银行", "recognized", changed_at="2026-10-01T23:59:59Z")
     progress.set_state(conn, "character", "行", "exposed", changed_at="2026-10-01T23:59:59Z")
@@ -178,14 +186,14 @@ def test_export_then_import_round_trips(site):
         progress_files.export(conn, site.data, 2)
 
 
-def test_cli_init_import_check_export_and_fresh_rebuild(site, monkeypatch, capsys):
+def test_cli_init_import_check_export_and_fresh_rebuild(site, monkeypatch, capsys, baseline):
     """Day-0 with a hand-written batch in place: init imports it before intake, so the default lessons leave out what the student knows."""
     monkeypatch.chdir(site.data.parent)
     hand = Path("data/import/progress/hand.tsv")
     hand.write_text("# source: by hand\nitem\tstate\tas_of\n月\tmastered\t2026-09-01\n银行\trecognized\t2026-10-01\n", encoding="utf-8")
     main(["init", "--fresh"])
     out = capsys.readouterr().out
-    assert "build/content.sqlite: character 3049" in out and "15 supplement entries" in out
+    assert f"build/content.sqlite: character {baseline.hsk_characters + baseline.characters}" in out and f"{baseline.entries} supplement entries" in out
     assert "files read: data/import/progress/hand.tsv\nentries: 2\nunconfirmed→mastered: 月\nunconfirmed→recognized: 银行, 银, 行\nunchanged: 0\n" in out
     assert [line.split(":")[0] for line in out.splitlines() if line.startswith("text ")] == [f"text {i}" for i in range(1, 6)]
     assert Path("build/content.sqlite").is_file() and Path("build/progress.sqlite").is_file() and len(list(Path("data/lessons").glob("*.json"))) == 5

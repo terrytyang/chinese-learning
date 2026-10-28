@@ -33,21 +33,6 @@
     "霜"
   ],
   "words": [],
-  "extra_words": [
-    {
-      "anchor": "乌",
-      "surface": "乌云",
-      "pinyin": "wū yún",
-      "gloss": null,
-      "origin": "manual"
-    },
-    {
-      "anchor": "乌",
-      "surface": "乌鸦",
-      "pinyin": "wū yā",
-      "gloss": null,
-      "origin": "manual"
-    }
-  ],
+  "extra_words": [],
   "notes": []
 }

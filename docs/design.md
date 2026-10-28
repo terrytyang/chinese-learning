@@ -32,8 +32,9 @@ Two flat tables, deliberately lossy. Rules are documented in `tools/derive_hsk.p
 
 - `character` — every character occurring in any HSK item (3,034): `id` = code
   point, `char`, `traditional`, `pinyin` (most common reading), `readings` (JSON
-  list, most common first), `gloss` (short, curated, from
-  `data/character-gloss.tsv`), `hsk_level` (lowest level of any item containing
+  list, most common first), `gloss` (short, curated: `data/character-gloss.tsv`,
+  baked in by the derivation and applied again at build so the dictionary page
+  can edit it), `hsk_level` (lowest level of any item containing
   it), `hsk_edition`. When the syllabus lists the character itself as an item
   (1,571 do), the item's data is carried on the same row: `meanings` (CEDICT,
   primary reading), `alt_readings` (other dictionary forms), `pos`,
@@ -174,8 +175,9 @@ file, strictly and with messages that name the offending value.
 
 ### Layer 4: learner state and collections
 
-`progress(learner_id, kind, key, state, changed_at)` — one row per key, no
-history. `kind` is `character` or `word`; `key` is the character itself or the
+`progress(learner_id, kind, key, state, changed_at, origin)` — one row per key,
+no history. `origin` is `auto` (intake, adding to a lesson), `manual` (a page)
+or `import` (a file). `kind` is `character` or `word`; `key` is the character itself or the
 word string (never a single character). States:
 `unconfirmed` (no row) → `exposed` (met in a lesson) → `recognized` (can read and
 explain, can't write) → `mastered` (can also write). Setting `unconfirmed`
@@ -191,8 +193,9 @@ transformed once, by hand or an AI tool following `docs/prompts/progress-import.
 with the state and date declared in the file — never the import time). For each
 item the candidates are its explicit rows, the rows of words containing it (a
 character takes a word's state by implication), and the current database row;
-the latest `as_of` wins, a tie goes to the lowest state. Unmatched items join
-the supplement. `--check` reports without writing; re-running is a no-op.
+`auto` candidates count only when no other kind exists; among the rest the
+latest `as_of` wins, a tie goes to the lowest state. Unmatched items join the
+supplement. The export carries `origin`, so a round trip preserves it. `--check` reports without writing; re-running is a no-op.
 
 ### Day-0
 
@@ -262,6 +265,8 @@ real database from `data/` and query it.
 - 2026-10-27 The page follows the admin mockup: a gloss and level are edited inline only for characters the master lacks; notes are added and deleted, not edited; a lesson is created and renamed on the page and deleted through the data layer.
 - 2026-10-28 An imported state's `changed_at` is the file's `as_of` date; the export writes dates only, so a state set on the page keeps its date but not its time across export and import.
 - 2026-10-28 The admin page edits no character fact: a character the dictionary lacks is added to `data/supplement.tsv` (intake refuses the text until then) and a contextual character gloss is edited in the annotation file. The add forms' pinyin, gloss and level make the supplement entry; a word's `gloss` on a text or lesson is contextual only. `pinyin.guess` is gone: a supplement character's readings are the file's and pypinyin's.
+- 2026-10-28 Progress rows carry `origin` (`auto` | `manual` | `import`); automatic rows yield to any other candidate at import, which is what lets intake's `exposed` coexist with an older imported `mastered`. The progress database gets the column in place — the one schema change not done by rebuilding.
+- 2026-10-28 `character-gloss.tsv` is applied at build as well as baked by the derivation, so the dictionary page can edit an HSK character's gloss; HSK word meanings stay the master's and read-only. A blank `level` in the supplement means derived at load.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.

@@ -7,58 +7,26 @@ import pytest
 from chineselearning import db, lesson_files, lessons, supplement
 from chineselearning.annotations import AnnotationError
 
-EXPECTED_FILE = """{
-  "lesson_id": 1,
-  "text_id": 1,
-  "name": "A",
-  "characters": [
-    "愁"
-  ],
-  "words": [
-    "寒山寺"
-  ],
-  "extra_words": [
-    {
-      "anchor": null,
-      "surface": "半夜",
-      "pinyin": "bàn yè",
-      "gloss": null,
-      "origin": "manual"
-    },
-    {
-      "anchor": "乌",
-      "surface": "乌鸦",
-      "pinyin": "wū yā",
-      "gloss": null,
-      "origin": "manual"
-    },
-    {
-      "anchor": "姑苏",
-      "surface": "苏州",
-      "pinyin": "sū zhōu",
-      "gloss": null,
-      "origin": "manual"
-    },
-    {
-      "anchor": "月",
-      "surface": "月亮",
-      "pinyin": "yuè liang",
-      "gloss": null,
-      "origin": "manual"
-    }
-  ],
-  "notes": [
-    {
-      "anchor": "月落乌啼",
-      "note": "首句写景",
-      "origin": "manual"
-    }
-  ]
-}
-"""
-
-
 HX = {"HX-Request": "true"}
+
+
+def expected_file(probe):
+    """What fill_lesson leaves in data/lessons/1-1.json: extra words by anchor then surface."""
+    extra = [
+        {"anchor": None, "surface": "半夜", "pinyin": "bàn yè", "gloss": None, "origin": "manual"},
+        {"anchor": probe.anchor, "surface": probe.word, "pinyin": probe.pinyin, "gloss": None, "origin": "manual"},
+        {"anchor": "姑苏", "surface": "苏州", "pinyin": "sū zhōu", "gloss": None, "origin": "manual"},
+        {"anchor": "月", "surface": "月亮", "pinyin": "yuè liang", "gloss": None, "origin": "manual"},
+    ]
+    return {
+        "lesson_id": 1,
+        "text_id": 1,
+        "name": "A",
+        "characters": ["愁"],
+        "words": ["寒山寺"],
+        "extra_words": sorted(extra, key=lambda e: (e["anchor"] or "", e["surface"])),
+        "notes": [{"anchor": "月落乌啼", "note": "首句写景", "origin": "manual"}],
+    }
 
 
 def post(site, path, **fields):
@@ -73,30 +41,34 @@ def lesson_file(site, text_id=1, lesson_id=1):
     return site.data / "lessons" / f"{text_id}-{lesson_id}.json"
 
 
-def fill_lesson(site):
+def fill_lesson(site, probe):
     assert post(site, "lessons", name="A").status_code == 200
     assert post(site, "lessons/1/characters/add", chars=["愁"]).status_code == 200
     assert post(site, "lessons/1/words/new", surface="寒山寺", step="2", gloss="苏州城外的寺庙", hsk_level="7").status_code == 200
     assert post(site, "lessons/1/expansions/add", anchor="月", surface="月亮").status_code == 200
-    assert post(site, "lessons/1/expansions/add", anchor="乌", surface="乌鸦").status_code == 200  # not a dictionary word: nothing added yet
-    assert post(site, "lessons/1/expansions/add", anchor="乌", surface="乌鸦", step="2", pinyin="wu1 ya1", gloss="crow").status_code == 200
+    assert post(site, "lessons/1/expansions/add", anchor=probe.anchor, surface=probe.word).status_code == 200  # not a dictionary word: nothing added yet
+    assert post(site, "lessons/1/expansions/add", anchor=probe.anchor, surface=probe.word, step="2", pinyin=probe.pinyin, gloss="test").status_code == 200
     assert post(site, "lessons/1/related/add", anchor="姑苏", surface="苏州", step="2", gloss="Suzhou", hsk_level="4").status_code == 200
     assert post(site, "lessons/1/related/add", anchor="", surface="半夜").status_code == 200
     assert post(site, "lessons/1/notes/add", anchor="月落乌啼", note="首句写景").status_code == 200
 
 
-def test_lesson_round_trip_file_and_rebuild(site, tmp_path):
-    fill_lesson(site)
-    assert lesson_file(site).read_text(encoding="utf-8") == EXPECTED_FILE
+def test_lesson_round_trip_file_and_rebuild(site, tmp_path, probe):
+    fill_lesson(site, probe)
+    expected = expected_file(probe)
+    assert lesson_file(site).read_text(encoding="utf-8") == json.dumps(expected, ensure_ascii=False, indent=2) + "\n"
     assert '<tr id="char-愁">' in tab(site, "1/characters") and '<tr id="word-寒山寺">' in tab(site, "1/words", show="all")
-    assert '<tr id="extra-乌-乌鸦">' in tab(site, "1/expansions") and '<tr id="extra-半夜">' in tab(site, "1/related") and '<tr id="note-1">' in tab(site, "1/notes")
+    assert f'<tr id="extra-{probe.anchor}-{probe.word}">' in tab(site, "1/expansions") and '<tr id="extra-半夜">' in tab(site, "1/related") and '<tr id="note-1">' in tab(site, "1/notes")
     counts = db.build(tmp_path / "again.sqlite", site.data)
     assert (counts["lesson"], counts["lesson_character"], counts["lesson_word"], counts["lesson_extra_word"], counts["lesson_note"]) == (1, 1, 1, 4, 1)
     conn = db.connect(tmp_path / "again.sqlite", readonly=True)
-    assert lesson_files.export(conn, 1) == json.loads(EXPECTED_FILE)
-    assert {r["surface"]: r["word_id"] >= 10_000_000 for r in conn.execute("SELECT surface, word_id FROM lesson_extra_word")} == {"月亮": False, "乌鸦": True, "苏州": True, "半夜": False}
-    assert (site.data / "supplement.tsv").read_text(encoding="utf-8").endswith("寒山寺\t\t苏州城外的寺庙\t7\n乌鸦\twū yā\tcrow\t\n苏州\t\tSuzhou\t4\n")
-    assert [(e["surface"], e["kind"]) for e in lessons.load(conn, 1)["extra_words"]] == [("月亮", "expansion"), ("乌鸦", "expansion"), ("苏州", "related"), ("半夜", "related")]
+    assert lesson_files.export(conn, 1) == expected
+    assert {r["surface"]: r["word_id"] >= 10_000_000 for r in conn.execute("SELECT surface, word_id FROM lesson_extra_word")} == {"月亮": False, probe.word: True, "苏州": True, "半夜": False}
+    assert (site.data / "supplement.tsv").read_text(encoding="utf-8").endswith(f"寒山寺\t\t苏州城外的寺庙\t7\n{probe.word}\t{probe.pinyin}\ttest\t\n苏州\t\tSuzhou\t4\n")
+    body = db.get_text(conn, 1)["body"]  # the page lists extra words by their anchor's position in the text, then by surface
+    in_body_order = sorted([("月亮", "月", "expansion"), (probe.word, probe.anchor, "expansion"), ("苏州", "姑苏", "related"), ("半夜", None, "related")],
+                           key=lambda x: (body.find(x[1]) if x[1] else len(body), x[0]))
+    assert [(e["surface"], e["kind"]) for e in lessons.load(conn, 1)["extra_words"]] == [(surface, kind) for surface, _, kind in in_body_order]
     before = lesson_file(site).read_bytes()
     lesson_files.write_files(db.connect(site.db), 1, site.data)
     assert lesson_file(site).read_bytes() == before

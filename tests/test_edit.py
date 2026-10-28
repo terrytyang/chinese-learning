@@ -3,7 +3,7 @@
 import json
 import re
 
-from chineselearning import db
+from chineselearning import db, supplement
 from chineselearning.intake import intake
 
 HX = {"HX-Request": "true"}
@@ -99,27 +99,28 @@ def test_edit_linked_word_has_no_level_field_and_no_pinyin_override(site):
     assert '<span class="lvl l5">5</span>' in row and "<td>春天的花</td>" in row  # the dictionary's level still shows
 
 
-def test_edit_extra_word_keeps_anchor(site):
+def test_edit_extra_word_keeps_anchor(site, probe):
+    word, anchor = probe.word, probe.anchor
     assert post(site, "/texts/1/lessons", name="A").status_code == 200
     assert post(site, "/texts/1/lessons/1/expansions/add", anchor="月", surface="月亮").status_code == 200
-    assert post(site, "/texts/1/lessons/1/expansions/add", anchor="乌", surface="乌鸦", step="2", pinyin="wū yā", gloss="crow", hsk_level="2").status_code == 200
-    assert supplement_text(site).endswith("乌鸦\twū yā\tcrow\t2\n")
+    assert post(site, "/texts/1/lessons/1/expansions/add", anchor=anchor, surface=word, step="2", pinyin=probe.pinyin, gloss="test", hsk_level="2").status_code == 200
+    assert supplement_text(site).endswith(f"{word}\t{probe.pinyin}\ttest\t2\n")
     conn = db.connect(site.db)
     form = form_of(get(site, "/texts/1/lessons/1/expansions", edit="月-月亮").text, "/texts/1/lessons/1/expansions/月亮/save")
     assert '<input type="hidden" name="anchor" value="月"><input type="hidden" name="surface" value="月亮">' in form and 'name="hsk_level"' not in form and 'value="yuè liang"' in form
-    form = form_of(get(site, "/texts/1/lessons/1/expansions", edit="乌-乌鸦").text, "/texts/1/lessons/1/expansions/乌鸦/save")
-    assert 'name="hsk_level"' not in form and 'value="wū yā"' in form and 'aria-label="Gloss" value=""' in form
-    assert post(site, "/texts/1/lessons/1/expansions/乌鸦/save", anchor="乌", surface="乌鸦", pinyin="wu1 ya1", gloss="a crow").status_code == 200
+    form = form_of(get(site, "/texts/1/lessons/1/expansions", edit=f"{anchor}-{word}").text, f"/texts/1/lessons/1/expansions/{word}/save")
+    assert 'name="hsk_level"' not in form and f'value="{probe.pinyin}"' in form and 'aria-label="Gloss" value=""' in form
+    assert post(site, f"/texts/1/lessons/1/expansions/{word}/save", anchor=anchor, surface=word, pinyin=probe.pinyin, gloss="in context").status_code == 200
     assert post(site, "/texts/1/lessons/1/expansions/月亮/save", anchor="月", surface="月亮", pinyin="yue4 liang", gloss="the moon").status_code == 200
     rows = [tuple(r) for r in conn.execute("SELECT anchor, surface, word_id >= 10000000, pinyin, gloss, origin FROM lesson_extra_word ORDER BY surface")]
-    assert rows == [("乌", "乌鸦", 1, "wū yā", "a crow", "manual"), ("月", "月亮", 0, "yuè liang", "the moon", "manual")]
-    assert lesson(site)["extra_words"] == [{"anchor": "乌", "surface": "乌鸦", "pinyin": "wū yā", "gloss": "a crow", "origin": "manual"},
-                                           {"anchor": "月", "surface": "月亮", "pinyin": "yuè liang", "gloss": "the moon", "origin": "manual"}]
-    assert post(site, "/texts/1/lessons/1/expansions/乌鸦/save", anchor="乌", surface="乌鸦", pinyin="", gloss="").status_code == 200  # blank: the dictionary's reading, no contextual gloss
-    assert lesson(site)["extra_words"][0] == {"anchor": "乌", "surface": "乌鸦", "pinyin": "wū yā", "gloss": None, "origin": "manual"}
-    assert post(site, "/texts/1/lessons/1/expansions/乌鸦/save", anchor="", surface="乌鸦", gloss="x").status_code == 422  # no such row without the anchor
-    row = row_of(get(site, "/texts/1/lessons/1/expansions").text, "extra-乌-乌鸦")
-    assert '<span class="lvl l2">2</span>' in row and '<span class="muted">crow</span>' in row
+    assert rows == sorted([(anchor, word, 1, probe.pinyin, "in context", "manual"), ("月", "月亮", 0, "yuè liang", "the moon", "manual")], key=lambda r: r[1])
+    assert lesson(site)["extra_words"] == sorted([{"anchor": anchor, "surface": word, "pinyin": probe.pinyin, "gloss": "in context", "origin": "manual"},
+                                                  {"anchor": "月", "surface": "月亮", "pinyin": "yuè liang", "gloss": "the moon", "origin": "manual"}], key=lambda e: (e["anchor"], e["surface"]))
+    assert post(site, f"/texts/1/lessons/1/expansions/{word}/save", anchor=anchor, surface=word, pinyin="", gloss="").status_code == 200  # blank: the dictionary's reading, no contextual gloss
+    assert [e for e in lesson(site)["extra_words"] if e["surface"] == word] == [{"anchor": anchor, "surface": word, "pinyin": probe.pinyin, "gloss": None, "origin": "manual"}]
+    assert post(site, f"/texts/1/lessons/1/expansions/{word}/save", anchor="", surface=word, gloss="x").status_code == 422  # no such row without the anchor
+    row = row_of(get(site, "/texts/1/lessons/1/expansions").text, f"extra-{anchor}-{word}")
+    assert '<span class="lvl l2">2</span>' in row and '<span class="muted">test</span>' in row
 
 
 def test_invalid_add_keeps_form_open_with_422(site):
@@ -133,22 +134,22 @@ def test_invalid_add_keeps_form_open_with_422(site):
     assert post(site, "/texts/1/lessons/1/words/没有/save", gloss="x").status_code == 422
 
 
-def test_supplement_word_level_shows_everywhere(site):
+def test_supplement_word_level_shows_everywhere(site, baseline, probe):
     assert post(site, "/texts/1/lessons", name="A").status_code == 200
     assert post(site, "/texts/1/lessons/1/words/new", surface="寒山寺", step="2", gloss="寺", hsk_level="").status_code == 200  # blank level: derived, 寺 is 7
     assert post(site, "/texts/1/lessons/1/expansions/add", anchor="月", surface="月亮").status_code == 200
-    assert post(site, "/texts/1/lessons/1/expansions/add", anchor="乌", surface="乌鸦", step="2", pinyin="wū yā", gloss="crow", hsk_level="2").status_code == 200
-    assert supplement_text(site).endswith("寒山寺\t\t寺\t\n乌鸦\twū yā\tcrow\t2\n")
-    assert db.connect(site.db).execute("SELECT word_id FROM text_word WHERE surface = '寒山寺'").fetchone()[0] == 10_000_019
+    assert post(site, "/texts/1/lessons/1/expansions/add", anchor=probe.anchor, surface=probe.word, step="2", pinyin=probe.pinyin, gloss="test", hsk_level="2").status_code == 200
+    assert supplement_text(site).endswith(f"寒山寺\t\t寺\t\n{probe.word}\t{probe.pinyin}\ttest\t2\n")
+    assert db.connect(site.db).execute("SELECT word_id FROM text_word WHERE surface = '寒山寺'").fetchone()[0] == supplement.WORD_ID_BASE + baseline.lines
     words = get(site, "/texts/1/lessons/1/words", show="all").text
     assert '<td class="zh word">寒山寺</td><td>hán shān sì</td><td><span class="lvl l7">7–9</span></td>' in words
     expansions = get(site, "/texts/1/lessons/1/expansions").text
-    assert '<td class="zh word">乌鸦</td><td>wū yā</td><td><span class="lvl l2">2</span></td>' in expansions
+    assert f'<td class="zh word">{probe.word}</td><td>{probe.pinyin}</td><td><span class="lvl l2">2</span></td>' in expansions
     assert '<td class="zh word">月亮</td><td>yuè liang</td><td><span class="lvl l3">3</span></td>' in expansions
     assert '<td class="word">寒山寺</td><td>hán shān sì</td><td>7–9</td><td>寺</td>' in site.client.get("/learn/1/1", params={"words": 1}).text
     db.build(site.db, site.data)
     rows = db.connect(site.db).execute("SELECT e.surface, w.hsk_level, w.source FROM lesson_extra_word e JOIN word w ON w.id = e.word_id ORDER BY e.surface")
-    assert [tuple(r) for r in rows] == [("乌鸦", 2, "supplement"), ("月亮", 3, "hsk")]
+    assert [tuple(r) for r in rows] == sorted([(probe.word, 2, "supplement"), ("月亮", 3, "hsk")])
 
 
 def test_reading_of_a_character_the_dictionary_lacks_is_typed(site):

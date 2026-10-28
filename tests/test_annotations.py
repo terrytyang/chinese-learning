@@ -5,7 +5,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from chineselearning import annotation_files, annotations, db
+from chineselearning import annotation_files, annotations, db, supplement
 from chineselearning.annotations import AnnotationError
 from chineselearning.web import create_app
 
@@ -58,7 +58,7 @@ def annotate_text_1(site):
     conn.close()
 
 
-def test_round_trip_page_file_and_rebuild(site, tmp_path):
+def test_round_trip_page_file_and_rebuild(site, tmp_path, baseline):
     annotate_text_1(site)
     page = site.client.get("/texts/1").text
     assert "<td>忧愁</td>" in page and "<ruby>乌<rt>wù</rt></ruby>" in page
@@ -70,7 +70,7 @@ def test_round_trip_page_file_and_rebuild(site, tmp_path):
     counts = db.build(rebuilt, site.data)
     assert (counts["text_reading"], counts["text_character"], counts["text_word"], counts["lesson"], counts["lesson_character"], counts["lesson_word"]) == (1, 1, 1, 1, 1, 1)
     conn = db.connect(rebuilt, readonly=True)
-    assert tuple(conn.execute("SELECT t.word_id, t.gloss, w.meanings FROM text_word t JOIN word w ON w.id = t.word_id WHERE surface = '寒山寺'").fetchone()) == (10_000_019, None, '["苏州城外的寺庙"]')
+    assert tuple(conn.execute("SELECT t.word_id, t.gloss, w.meanings FROM text_word t JOIN word w ON w.id = t.word_id WHERE surface = '寒山寺'").fetchone()) == (supplement.WORD_ID_BASE + baseline.lines, None, '["苏州城外的寺庙"]')
     assert annotation_files.export(conn, 1) == json.loads(EXPECTED_FILE)
     assert TestClient(create_app(rebuilt, site.data, site.progress)).get("/texts/1").text == page
 

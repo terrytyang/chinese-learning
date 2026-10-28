@@ -3,7 +3,7 @@
 import json
 import re
 
-from chineselearning import db, progress
+from chineselearning import db, progress, supplement
 from chineselearning.admin import rows
 from chineselearning.intake import intake
 
@@ -183,7 +183,7 @@ def test_words_in_text_filters_and_bulk_actions(site):
     assert "桃花" not in [w["surface"] for w in facts(site, 5)["words"]] and "桃花" not in lesson(site, 5, 1)["words"]
 
 
-def test_add_word_in_text_two_step(site):
+def test_add_word_in_text_two_step(site, baseline):
     intake(db.connect(site.db, progress_path=site.progress), 1, site.data)
     r = post(site, "/texts/1/lessons/1/words/new", surface="寒山寺")
     assert r.status_code == 200 and "Not an HSK word." in r.text and 'name="pinyin" placeholder="pinyin" value="hán shān sì"' in r.text
@@ -195,7 +195,7 @@ def test_add_word_in_text_two_step(site):
     assert r.status_code == 200 and 'Words in text <span class="muted">1/1</span>' in r.text and "Not an HSK word" not in r.text
     assert (site.data / "supplement.tsv").read_text(encoding="utf-8").endswith("寒山寺\thán shān sì\tHanshan Temple\t7\n")  # the supplement entry
     assert facts(site)["words"] == [{"surface": "寒山寺", "pinyin": None, "gloss": None, "origin": "manual"}]  # linked; nothing contextual
-    assert db.connect(site.db).execute("SELECT word_id FROM text_word WHERE surface = '寒山寺'").fetchone()[0] == 10_000_019
+    assert db.connect(site.db).execute("SELECT word_id FROM text_word WHERE surface = '寒山寺'").fetchone()[0] == supplement.WORD_ID_BASE + baseline.lines
     row = get(site, "/texts/1/lessons/1/words", show="all").text.split('id="word-寒山寺"')[1].split("</tr>")[0]
     assert '<td>hán shān sì</td><td><span class="lvl l7">7–9</span></td><td><span class="muted">Hanshan Temple</span></td>' in row
     assert lesson(site)["words"] == ["寒山寺"] and progress.state_of(db.connect(site.db, progress_path=site.progress), "word", "寒山寺") == "recognized"
