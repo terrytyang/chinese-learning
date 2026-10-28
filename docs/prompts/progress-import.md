@@ -32,7 +32,8 @@ Rules:
    (✓ in a "mastered" column → mastered); otherwise leave the line blank and
    put `?` in the header so the owner decides.
 3. Carry `pinyin`, `gloss` and `level` when the document has them for that
-   line; leave blank otherwise. Level is 1–7 (write 7 for 7–9); a dash or
+   line; leave blank otherwise. Pinyin is lowercase with tone marks (`liú`,
+   not `Liú` or `liu2`). Level is 1–7 (write 7 for 7–9); a dash or
    "not HSK" is blank.
 4. Keep every item, including ones that look trivial or duplicated across the
    document; the importer deduplicates.

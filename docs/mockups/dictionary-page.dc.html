@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dictionary admin</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600&amp;family=Inter:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#f6f5f2;color:#1f1f1d;font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.45}
+a{color:#1d4ed8}a:hover{color:#1e3a8a}
+.zh{font-family:"Noto Serif SC","Songti SC",serif}
+table{border-collapse:collapse;width:100%}
+th{text-align:left;font-weight:500;color:#6b6b66;font-size:12px;padding:6px 10px;border-bottom:1px solid #e3e1dc}
+td{padding:7px 10px;border-bottom:1px solid #eceae5;vertical-align:middle}
+button{font:inherit;cursor:pointer;border:1px solid #cfccc5;background:#fff;color:#1f1f1d;border-radius:6px;padding:4px 10px;min-height:28px}
+button:hover{background:#f0eee9}
+button.primary{background:#1f1f1d;color:#fff;border-color:#1f1f1d}
+button.on{background:#e8f0fe;border-color:#1d4ed8;color:#1d4ed8}
+input,select{font:inherit;border:1px solid #cfccc5;border-radius:6px;padding:4px 8px;min-height:28px;background:#fff}
+.pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid #cfccc5;color:#6b6b66}
+.pill.supplement{background:#fff7e6;border-color:#f0c36a;color:#8a5a00}
+.lvl{display:inline-block;min-width:22px;text-align:center;font-size:11px;border-radius:4px;padding:1px 4px;background:#eceae5;color:#444}
+.card{background:#fff;border:1px solid #e3e1dc;border-radius:10px;padding:16px 18px}
+.muted{color:#6b6b66}
+.sec{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:#6b6b66;margin:18px 0 8px}
+.nav a{margin-right:16px;color:#6b6b66;text-decoration:none}
+.nav a.on{color:#1f1f1d;font-weight:600}
+</style>
+</helmet>
+
+<div style="max-width: 1180px; margin: 0 auto; padding: 24px 24px 64px; display: flex; flex-direction: column; gap: 20px">
+  <div class="nav" style="display: flex; align-items: baseline; gap: 4px">
+    <a href="#texts">Texts</a><a href="#learn">Learn</a><a class="on" href="#dictionary">Dictionary</a><a href="admin-page.dc.html">Text admin (枫桥夜泊)</a>
+  </div>
+
+  <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap">
+    <h1 style="margin: 0; font-size: 24px; font-weight: 600">Dictionary</h1>
+    <span class="muted">3,034 characters · 9,899 HSK words · {{supplementCount}} supplement entries · {{glossless}} without a gloss</span>
+  </div>
+
+  <!-- ===== search & filters ===== -->
+  <div class="card" style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center">
+    <input class="zh" aria-label="Search" placeholder="character, word, pinyin or gloss" style="width: 260px" value="{{q}}" onChange="{{setQ}}">
+    <label class="muted">Kind <select value="{{fKind}}" onChange="{{setKind}}"><option value="all">all</option><option value="character">characters</option><option value="word">words</option></select></label>
+    <label class="muted">Source <select value="{{fSource}}" onChange="{{setSource}}"><option value="all">all</option><option value="hsk">HSK</option><option value="supplement">supplement</option></select></label>
+    <label class="muted">Level <select value="{{fMin}}" onChange="{{setMin}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select> to <select value="{{fMax}}" onChange="{{setMax}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select></label>
+    <label class="muted">State <select value="{{fState}}" onChange="{{setState}}"><option value="any">any</option><option value="unconfirmed">unconfirmed</option><option value="exposed">exposed</option><option value="recognized">recognized</option><option value="mastered">mastered</option></select></label>
+    <label class="muted"><input type="checkbox" checked="{{fNoGloss}}" onChange="{{toggleNoGloss}}"> without a gloss only</label>
+    <span style="flex: 1"></span>
+    <span class="muted">{{shown}} shown</span>
+  </div>
+
+  <!-- ===== results ===== -->
+  <div class="card">
+    <table>
+      <thead><tr><th style="width: 100px">Item</th><th style="width: 120px">Pinyin</th><th style="width: 56px">Level</th><th style="width: 100px">Source</th><th>Gloss</th><th style="width: 330px">State</th><th style="width: 70px"></th></tr></thead>
+      <tbody>
+        <sc-for list="{{rows}}" as="r" hint-placeholder-count="8">
+          <tr>
+            <td class="zh" style="font-size: 20px">{{r.item}}</td>
+            <td>
+              <sc-if value="{{r.notEditing}}" hint-placeholder-val="{{true}}"><span>{{r.pinyin}}</span></sc-if>
+              <sc-if value="{{r.editPinyin}}" hint-placeholder-val="{{false}}"><input aria-label="Pinyin" value="{{r.draftPinyin}}" style="width: 100px" onChange="{{r.setPinyin}}"></sc-if>
+              <sc-if value="{{r.editFixedPinyin}}" hint-placeholder-val="{{false}}"><span class="muted">{{r.pinyin}}</span></sc-if>
+            </td>
+            <td>
+              <sc-if value="{{r.notEditing}}" hint-placeholder-val="{{true}}"><span class="lvl">{{r.levelLabel}}</span></sc-if>
+              <sc-if value="{{r.editLevel}}" hint-placeholder-val="{{false}}"><select aria-label="Level" value="{{r.levelStr}}" onChange="{{r.setLevel}}"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select></sc-if>
+              <sc-if value="{{r.editFixedLevel}}" hint-placeholder-val="{{false}}"><span class="lvl">{{r.levelLabel}}</span></sc-if>
+            </td>
+            <td><span class="pill {{r.source}}">{{r.source}}</span></td>
+            <td>
+              <sc-if value="{{r.notEditing}}" hint-placeholder-val="{{true}}"><span>{{r.gloss}}</span><sc-if value="{{r.noGloss}}" hint-placeholder-val="{{false}}"><span class="muted" style="font-style: italic">no gloss yet</span></sc-if></sc-if>
+              <sc-if value="{{r.isEditing}}" hint-placeholder-val="{{false}}"><span style="display: inline-flex; gap: 6px"><input aria-label="Gloss" value="{{r.draftGloss}}" style="width: 260px" onChange="{{r.setGloss}}"><button class="primary" onClick="{{r.save}}">Save</button><button onClick="{{r.cancel}}">Cancel</button></span></sc-if>
+            </td>
+            <td><span style="display: inline-flex; gap: 4px"><button class="{{r.s0}}" onClick="{{r.set0}}">unconfirmed</button><button class="{{r.s1}}" onClick="{{r.set1}}">exposed</button><button class="{{r.s2}}" onClick="{{r.set2}}">recognized</button><button class="{{r.s3}}" onClick="{{r.set3}}">mastered</button></span></td>
+            <td><sc-if value="{{r.notEditing}}" hint-placeholder-val="{{true}}"><button onClick="{{r.edit}}">Edit</button></sc-if></td>
+          </tr>
+        </sc-for>
+      </tbody>
+    </table>
+    <p class="muted" style="margin: 10px 0 0">HSK entries: only the gloss is editable (it writes data/character-gloss.tsv). Supplement entries: pinyin, gloss and level (data/supplement.tsv). Meanings, readings and HSK levels are the master's and read-only. State writes the learner's database.</p>
+  </div>
+
+  <!-- ===== add ===== -->
+  <div class="card">
+    <div class="sec" style="margin-top: 0">Add an entry <span class="muted" style="text-transform: none; letter-spacing: 0">— a character or word the dictionary lacks; it becomes a supplement entry</span></div>
+    <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap">
+      <input class="zh" placeholder="character or word" style="width: 140px" value="{{addDraft}}" onChange="{{setAddDraft}}">
+      <button class="primary" onClick="{{lookupAdd}}">Look up</button>
+      <span class="muted">{{addHint}}</span>
+    </div>
+    <sc-if value="{{addNeedsDetails}}" hint-placeholder-val="{{false}}">
+      <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; padding: 10px 12px; background: #fff7e6; border-radius: 8px">
+        <span><span class="zh">{{addDraft}}</span> is not in the dictionary.</span>
+        <input placeholder="pinyin" style="width: 120px" value="{{addPinyin}}" onChange="{{setAddPinyin}}">
+        <input placeholder="gloss" style="width: 240px" value="{{addGloss}}" onChange="{{setAddGloss}}">
+        <select aria-label="Level" value="{{addLevel}}" onChange="{{setAddLevel}}"><option value="">derived</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7–9</option></select>
+        <button class="primary" onClick="{{confirmAdd}}">Add to supplement</button>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const E = (item, pinyin, level, source, gloss, state) => ({ item, pinyin, level, source, gloss, state: state || 'unconfirmed' });
+    this.state = {
+      q: '', fKind: 'all', fSource: 'all', fMin: '1', fMax: '7', fState: 'any', fNoGloss: false,
+      editing: null, draft: {},
+      addDraft: '', addHint: '', addNeedsDetails: false, addPinyin: '', addGloss: '', addLevel: '',
+      entries: [
+        E('月', 'yuè', 1, 'hsk', 'moon, month', 'recognized'),
+        E('月亮', 'yuè liang', 3, 'hsk', 'moon', 'recognized'),
+        E('银', 'yín', 3, 'hsk', 'silver, money, bank (银行)'),
+        E('银行', 'yín háng', 3, 'hsk', 'bank', 'exposed'),
+        E('行', 'xíng', 3, 'hsk', 'xíng: walk, go, OK, all right · háng: row, line, firm, profession', 'exposed'),
+        E('啼', 'tí', 7, 'supplement', 'cry, crow (of birds), weep', 'exposed'),
+        E('枫', 'fēng', 7, 'supplement', 'maple'),
+        E('寒山寺', 'hán shān sì', 7, 'supplement', 'Hanshan Temple, outside Suzhou'),
+        E('大人', 'dà rén', 1, 'supplement', 'adult, grown-up', 'mastered'),
+        E('中学', 'zhōng xué', 1, 'supplement', 'middle school, high school', 'recognized'),
+        E('鸳鸯', 'yuān yāng', 7, 'supplement', '', 'unconfirmed'),
+        E('刘', 'Liú', 7, 'supplement', 'surname Liu'),
+        E('班主任', 'bān zhǔ rèn', 5, 'hsk', 'teacher in charge of a class'),
+        E('着', 'zhe', 2, 'hsk', 'zhe: ongoing-action particle · zháo: touch, catch, hit the mark · zhuó: wear, apply · zhāo: move, trick'),
+        E('客船', 'kè chuán', 7, 'supplement', 'passenger boat', 'exposed')
+      ]
+    };
+  }
+  renderVals() {
+    const s = this.state, lo = Number(s.fMin), hi = Number(s.fMax), q = s.q.trim().toLowerCase();
+    const label = l => l === 7 ? '7–9' : String(l);
+    const btns = (cur, set) => ({ s0: cur === 'unconfirmed' ? 'on' : '', s1: cur === 'exposed' ? 'on' : '', s2: cur === 'recognized' ? 'on' : '', s3: cur === 'mastered' ? 'on' : '',
+      set0: () => set('unconfirmed'), set1: () => set('exposed'), set2: () => set('recognized'), set3: () => set('mastered') });
+    const rows = s.entries.map((e, i) => ({ e, i }))
+      .filter(({ e }) => (s.fKind === 'all' || (s.fKind === 'character') === (e.item.length === 1))
+        && (s.fSource === 'all' || e.source === s.fSource) && e.level >= lo && e.level <= hi
+        && (s.fState === 'any' || e.state === s.fState) && (!s.fNoGloss || !e.gloss)
+        && (!q || e.item.includes(q) || e.pinyin.toLowerCase().includes(q) || e.gloss.toLowerCase().includes(q)))
+      .map(({ e, i }) => {
+        const isEditing = s.editing === i, supp = e.source === 'supplement';
+        return {
+          ...e, levelLabel: label(e.level), levelStr: String(e.level), noGloss: !e.gloss,
+          isEditing, notEditing: !isEditing, editPinyin: isEditing && supp, editFixedPinyin: isEditing && !supp,
+          editLevel: isEditing && supp, editFixedLevel: isEditing && !supp,
+          draftPinyin: isEditing ? s.draft.pinyin : e.pinyin, draftGloss: isEditing ? s.draft.gloss : e.gloss,
+          ...btns(e.state, st => this.setState({ entries: s.entries.map((x, j) => j === i ? { ...x, state: st } : x) })),
+          edit: () => this.setState({ editing: i, draft: { pinyin: e.pinyin, gloss: e.gloss, level: String(e.level) } }),
+          setPinyin: ev => this.setState({ draft: { ...s.draft, pinyin: ev.target.value } }),
+          setGloss: ev => this.setState({ draft: { ...s.draft, gloss: ev.target.value } }),
+          setLevel: ev => this.setState({ draft: { ...s.draft, level: ev.target.value } }),
+          save: () => this.setState({ editing: null, entries: s.entries.map((x, j) => j === i ? { ...x, pinyin: supp ? s.draft.pinyin : x.pinyin, gloss: s.draft.gloss, level: supp ? Number(s.draft.level) : x.level } : x) }),
+          cancel: () => this.setState({ editing: null })
+        };
+      });
+    const known = new Set(s.entries.map(e => e.item));
+    return {
+      supplementCount: s.entries.filter(e => e.source === 'supplement').length + 10, glossless: s.entries.filter(e => !e.gloss).length,
+      q: s.q, setQ: ev => this.setState({ q: ev.target.value }),
+      fKind: s.fKind, setKind: ev => this.setState({ fKind: ev.target.value }), fSource: s.fSource, setSource: ev => this.setState({ fSource: ev.target.value }),
+      fMin: s.fMin, setMin: ev => this.setState({ fMin: ev.target.value }), fMax: s.fMax, setMax: ev => this.setState({ fMax: ev.target.value }),
+      fState: s.fState, setState: ev => this.setState({ fState: ev.target.value }), fNoGloss: s.fNoGloss, toggleNoGloss: () => this.setState({ fNoGloss: !s.fNoGloss }),
+      rows, shown: rows.length,
+      addDraft: s.addDraft, addHint: s.addHint, addNeedsDetails: s.addNeedsDetails, addPinyin: s.addPinyin, addGloss: s.addGloss, addLevel: s.addLevel,
+      setAddDraft: ev => this.setState({ addDraft: ev.target.value, addNeedsDetails: false, addHint: '' }),
+      setAddPinyin: ev => this.setState({ addPinyin: ev.target.value }), setAddGloss: ev => this.setState({ addGloss: ev.target.value }), setAddLevel: ev => this.setState({ addLevel: ev.target.value }),
+      lookupAdd: () => { if (!s.addDraft) return; if (known.has(s.addDraft)) this.setState({ addHint: 'Already in the dictionary — shown above.', q: s.addDraft }); else this.setState({ addNeedsDetails: true, addPinyin: '', addHint: '' }); },
+      confirmAdd: () => this.setState({ entries: [...s.entries, E(s.addDraft, s.addPinyin || '?', s.addLevel ? Number(s.addLevel) : 7, 'supplement', s.addGloss, 'unconfirmed')], addDraft: '', addGloss: '', addPinyin: '', addLevel: '', addNeedsDetails: false, addHint: 'Added to the supplement.' })
+    };
+  }
+}
+</script>
+</body>
+</html>
