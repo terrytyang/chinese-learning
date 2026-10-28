@@ -22,10 +22,13 @@
 {% macro pill(origin) -%}
 <span class="pill {{ origin }}">{{ origin }}</span>
 {%- endmacro %}
-{# Four state buttons; the current one is lit, and a no-op server-side. #}
+{# Four state buttons; the current one is lit, and a no-op server-side. The dictionary row wraps them in its own form. #}
+{% macro state_buttons(state) -%}
+{%- for s in STATES %}<button name="state" value="{{ s }}"{% if s == state %} class="on"{% endif %}>{{ s }}</button>{% endfor -%}
+{%- endmacro %}
 {% macro states(kind, key, state) -%}
 <form class="states" hx-post="{{ lesson_base }}/{{ tab }}/progress{{ q }}"><input type="hidden" name="kind" value="{{ kind }}"><input type="hidden" name="key" value="{{ key }}">
-{%- for s in STATES %}<button name="state" value="{{ s }}"{% if s == state %} class="on"{% endif %}>{{ s }}</button>{% endfor %}</form>{{ err("state:" ~ kind ~ ":" ~ key) }}
+{{- state_buttons(state) }}</form>{{ err("state:" ~ kind ~ ":" ~ key) }}
 {%- endmacro %}
 {# The tab's URL with a row's inline edit open. #}
 {% macro edit_url(P, key) -%}

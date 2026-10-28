@@ -32,15 +32,21 @@ def test_text_1_flags_missing_characters_and_finds_no_words(client):
 
 def test_pages_are_english_with_chinese_content(client):
     """Labels, headings, buttons and placeholders are English; titles, bodies and tags stay Chinese."""
-    pages = {url: client.get(url).text for url in ("/texts", "/texts/5", "/learn", "/learn/5")}
+    pages = {url: client.get(url).text for url in ("/texts", "/texts/5", "/dictionary", "/learn", "/learn/5")}
+    admin_nav = '<nav class="admin"><a href="/texts"{}>Texts</a> <a href="/learn">Learn</a> <a href="/dictionary"{}>Dictionary</a></nav>'
     for url, html in pages.items():
-        assert '<html lang="en">' in html and "Chinese Learning" in html and '<a href="/texts">Texts</a> <a href="/learn">Learn</a>' in html
+        assert '<html lang="en">' in html and "Chinese Learning" in html
+        if url.startswith("/learn"):
+            assert '<nav><a href="/texts">Texts</a> <a href="/learn">Learn</a></nav>' in html  # student pages: unchanged
+        else:
+            assert admin_nav.format(*((' class="on"', "") if url.startswith("/texts") else ("", ' class="on"'))) in html  # the current page bold
         for label in ("课文", "课程", "学习", "候选", "释义", "拼音", "状态", "筛选", "全部", "暂无", "添加", "删除", "编辑", "保存", "字数", "进度"):
             assert label not in re.sub(r"<(td|a|option|h1|title)[^>]*>[^<]*</\1>", "", html), (url, label)
-        assert "桃花源记" in html
+        assert "桃花源记" in html or url == "/dictionary"
     assert "<th>Title</th><th>Author</th><th>Period</th><th>Tags</th>" in pages["/texts"] and "<option value=\"\">any</option>" in pages["/texts"]
     assert 'hx-get="/texts/5/text/edit">Edit pinyin</button>' in pages["/texts/5"] and "No lessons yet" in pages["/texts/5"]
     assert "<h1>Learn</h1>" in pages["/learn"] and "<th>Progress</th>" in pages["/learn"]
+    assert "<h1>Dictionary</h1>" in pages["/dictionary"] and "without a gloss only</label>" in pages["/dictionary"]
     assert "Tint:" in pages["/learn/5"] and "<button>Apply</button>" in pages["/learn/5"] and "> Show mastered</label>" in pages["/learn/5"]
 
 

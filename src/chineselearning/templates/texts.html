@@ -1,5 +1,7 @@
 {% extends "base.html" %}
+{% from "admin/nav.html" import nav %}
 {% block title %}Texts{% endblock %}
+{% block nav %}{{ nav("texts") }}{% endblock %}
 {% block content %}
 <h1>Texts</h1>
 <form method="get" action="/texts" class="filters">

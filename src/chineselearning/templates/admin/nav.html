@@ -1,0 +1,4 @@
+{# The admin shells' top line (dictionary mockup): Texts · Learn · Dictionary, the current page bold. Student pages keep base.html's nav. #}
+{% macro nav(current) -%}
+<nav class="admin"><a href="/texts"{% if current == "texts" %} class="on"{% endif %}>Texts</a> <a href="/learn">Learn</a> <a href="/dictionary"{% if current == "dictionary" %} class="on"{% endif %}>Dictionary</a></nav>
+{%- endmacro %}

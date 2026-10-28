@@ -11,12 +11,13 @@ from fastapi.responses import HTMLResponse
 
 from .. import annotation_files, db, lesson_files, lessons, progress
 from ..annotations import AnnotationError
+from ..gloss_file import GlossFileError
 from ..progress import ProgressError
 from ..supplement import SupplementError
 from ..texts import TextFileError
 
 TABS = {"characters": "Characters", "words": "Words in text", "expansions": "Expansions", "related": "Related words", "notes": "Notes"}
-ERRORS = (AnnotationError, ProgressError, SupplementError, TextFileError)
+ERRORS = (AnnotationError, GlossFileError, ProgressError, SupplementError, TextFileError)
 TAB_STATE = {"error": None, "submitted": {}, "editing": None, "pending": None, "q": ""}
 
 
