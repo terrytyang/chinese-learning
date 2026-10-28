@@ -6,7 +6,7 @@ import pytest
 from fastapi.testclient import TestClient
 from opencc import OpenCC
 
-from chineselearning import db, supplement
+from chineselearning import db, supplement, texts
 from chineselearning.web import create_app
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -28,11 +28,15 @@ def copy_data(target):
 
 @pytest.fixture(scope="session")
 def baseline():
-    """What data/supplement.tsv holds, so that tests never hardcode the size of a curated file that is meant to grow."""
+    """What data/supplement.tsv and data/texts/ hold, so that tests never hardcode the size of a curated file that is meant to grow."""
     text = (DATA_DIR / "supplement.tsv").read_text(encoding="utf-8")
     entries = [e for e in map(supplement.parse_line, text.split("\n")) if e]
     characters = sum(len(e["item"]) == 1 for e in entries)
+    loaded = texts.load_texts(DATA_DIR / "texts")
     return SimpleNamespace(
+        texts=loaded,  # the Text of every file, in file order
+        text_ids=sorted(t.id for t in loaded),
+        next_text_id=max(t.id for t in loaded) + 1,
         hsk_characters=HSK_CHARACTERS,
         hsk_words=HSK_WORDS,
         entries=len(entries),
