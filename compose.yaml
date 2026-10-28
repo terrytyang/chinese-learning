@@ -1,40 +1,44 @@
-name: chinese_learning
+# Terminal route, no VS Code: same image as the Dev Container.
+#   docker compose build dev
+#   docker compose run --rm dev            # shell
+#   docker compose run --rm dev claude     # Claude Code
+#   docker compose run --rm -T dev uv run --locked pytest -q
+# One-time on a new Docker host: docker volume create chineselearning-claude-state
+name: chineselearning
 
 services:
   dev:
-    image: chinese_learning_dev:local
+    image: chineselearning-dev:local
     build:
       context: .devcontainer
       dockerfile: Dockerfile
     user: node
-    working_dir: /workspaces/chinese_learning
+    working_dir: /workspaces/chineselearning
     init: true
     stdin_open: true
     tty: true
-    security_opt:
-      - seccomp=unconfined
     environment:
       UV_LINK_MODE: copy
     ports:
       - "127.0.0.1:8000:8000"
-    entrypoint: ["/usr/local/bin/chinese_learning-entrypoint"]
+    entrypoint: ["/usr/local/bin/chineselearning-entrypoint"]
     command: ["bash"]
     volumes:
       - type: bind
         source: .
-        target: /workspaces/chinese_learning
+        target: /workspaces/chineselearning
       - type: bind
         source: ./hsk-original
-        target: /workspaces/chinese_learning/hsk-original
+        target: /workspaces/chineselearning/hsk-original
         read_only: true
-      - python_env:/workspaces/chinese_learning/.venv
+      - python_env:/workspaces/chineselearning/.venv
       - uv_cache:/home/node/.cache/uv
-      - codex_state:/home/node/.codex
+      - claude_state:/home/node/.claude
 
 volumes:
   python_env:
   uv_cache:
-  codex_state:
-    # Reuse the existing VS Code login/history without copying credentials.
+  claude_state:
+    # Shared with the VS Code Dev Container so one login serves both routes.
     external: true
-    name: ${CODEX_STATE_VOLUME:-chineselearn-codex-state}
+    name: chineselearning-claude-state

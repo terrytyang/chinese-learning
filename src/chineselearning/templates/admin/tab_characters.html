@@ -1,0 +1,40 @@
+{% from "admin/macros.html" import err, lvl, levels, states with context %}
+{% set P = lesson_base ~ "/characters" %}
+<div class="sec">In this lesson · {{ study | length }} <span class="hint">— characters the student works on in this lesson; adding one marks it exposed if it was unconfirmed. Pinyin comes from the text above</span></div>
+{% if study %}
+<table>
+  <thead><tr><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th><th></th></tr></thead>
+  <tbody>
+  {% for c in study %}
+    <tr id="char-{{ c.char }}"><td class="zh big">{{ c.char }}</td><td>{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td>
+      <td>{% if c.in_master %}{{ c.gloss or "" }}{% else %}<span class="muted">not in the dictionary — add it to data/supplement.tsv</span>{% endif %}</td>
+      <td>{{ states("character", c.char, c.state) }}</td>
+      <td class="actions"><button hx-post="{{ P }}/{{ c.char }}/remove{{ q }}">Remove from lesson</button></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">None</p>{% endif %}
+
+<div class="sec">Not in this lesson · {{ candidates | length }} <span class="hint">— the rest of the text's characters; filter, tick, add</span></div>
+<div class="row">
+  <form class="filters" hx-get="{{ P }}" hx-trigger="change" hx-push-url="true">
+    <label class="muted">Level <select name="min" aria-label="Lowest level">{{ levels(filters.min) }}</select> to <select name="max" aria-label="Highest level">{{ levels(filters.max) }}</select></label>
+    <label class="muted">State <select name="state" aria-label="State filter">{% for value, label in state_options %}<option value="{{ value }}"{% if filters.state == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="muted"><input type="checkbox" name="missing" value="1"{% if filters.missing == "1" %} checked{% endif %}> include characters not in the dictionary</label>
+  </form>
+  <span class="spacer"></span>
+  <button type="button" form="chars-bulk" data-select-all>Select all shown</button>
+  <button form="chars-bulk" class="primary" data-count>Add 0 to lesson</button>
+</div>
+<form id="chars-bulk" hx-post="{{ P }}/add{{ q }}">{{ err("add") }}
+{% if candidates %}
+<table>
+  <thead><tr><th></th><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th></tr></thead>
+  <tbody>
+  {% for c in candidates %}
+    <tr><td><input type="checkbox" name="chars" value="{{ c.char }}" aria-label="Select"></td><td class="zh big">{{ c.char }}</td><td>{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td><td>{{ c.gloss or "" }}</td><td class="st">{{ c.state }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No characters match</p>{% endif %}
+</form>

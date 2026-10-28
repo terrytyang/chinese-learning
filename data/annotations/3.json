@@ -1,0 +1,194 @@
+{
+  "text_id": 3,
+  "readings": [
+    {
+      "position": 0,
+      "char": "李",
+      "pinyin": "lǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 1,
+      "char": "白",
+      "pinyin": "bái",
+      "origin": "auto"
+    },
+    {
+      "position": 2,
+      "char": "乘",
+      "pinyin": "chéng",
+      "origin": "auto"
+    },
+    {
+      "position": 3,
+      "char": "舟",
+      "pinyin": "zhōu",
+      "origin": "auto"
+    },
+    {
+      "position": 4,
+      "char": "将",
+      "pinyin": "jiāng",
+      "origin": "auto"
+    },
+    {
+      "position": 5,
+      "char": "欲",
+      "pinyin": "yù",
+      "origin": "auto"
+    },
+    {
+      "position": 6,
+      "char": "行",
+      "pinyin": "xíng",
+      "origin": "auto"
+    },
+    {
+      "position": 8,
+      "char": "忽",
+      "pinyin": "hū",
+      "origin": "auto"
+    },
+    {
+      "position": 9,
+      "char": "闻",
+      "pinyin": "wén",
+      "origin": "auto"
+    },
+    {
+      "position": 10,
+      "char": "岸",
+      "pinyin": "àn",
+      "origin": "auto"
+    },
+    {
+      "position": 11,
+      "char": "上",
+      "pinyin": "shàng",
+      "origin": "auto"
+    },
+    {
+      "position": 12,
+      "char": "踏",
+      "pinyin": "tà",
+      "origin": "auto"
+    },
+    {
+      "position": 13,
+      "char": "歌",
+      "pinyin": "gē",
+      "origin": "auto"
+    },
+    {
+      "position": 14,
+      "char": "声",
+      "pinyin": "shēng",
+      "origin": "auto"
+    },
+    {
+      "position": 17,
+      "char": "桃",
+      "pinyin": "táo",
+      "origin": "auto"
+    },
+    {
+      "position": 18,
+      "char": "花",
+      "pinyin": "huā",
+      "origin": "auto"
+    },
+    {
+      "position": 19,
+      "char": "潭",
+      "pinyin": "tán",
+      "origin": "auto"
+    },
+    {
+      "position": 20,
+      "char": "水",
+      "pinyin": "shuǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 21,
+      "char": "深",
+      "pinyin": "shēn",
+      "origin": "auto"
+    },
+    {
+      "position": 22,
+      "char": "千",
+      "pinyin": "qiān",
+      "origin": "auto"
+    },
+    {
+      "position": 23,
+      "char": "尺",
+      "pinyin": "chǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 25,
+      "char": "不",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 26,
+      "char": "及",
+      "pinyin": "jí",
+      "origin": "auto"
+    },
+    {
+      "position": 27,
+      "char": "汪",
+      "pinyin": "wāng",
+      "origin": "auto"
+    },
+    {
+      "position": 28,
+      "char": "伦",
+      "pinyin": "lún",
+      "origin": "auto"
+    },
+    {
+      "position": 29,
+      "char": "送",
+      "pinyin": "sòng",
+      "origin": "auto"
+    },
+    {
+      "position": 30,
+      "char": "我",
+      "pinyin": "wǒ",
+      "origin": "auto"
+    },
+    {
+      "position": 31,
+      "char": "情",
+      "pinyin": "qíng",
+      "origin": "auto"
+    }
+  ],
+  "characters": [],
+  "words": [
+    {
+      "surface": "岸上",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "桃花",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "歌声",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ]
+}

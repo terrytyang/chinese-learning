@@ -1,0 +1,15 @@
+{% from "admin/macros.html" import extra_row, add_form with context %}
+{% set P = lesson_base ~ "/expansions" %}
+<div class="sec">Expansions <span class="hint">— one character of this lesson, taught through a modern word that contains it (月 → 月亮). Any number per character. These belong to the lesson.</span></div>
+{% for c, items in blocks %}
+<div class="block" id="expansions-{{ c.char }}">
+  <div class="anchor zh">{{ c.char }}<div class="reading">{{ c.pinyin or "—" }}</div></div>
+  <div class="items">
+    {% if items %}<table>
+      <thead><tr><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>Origin</th><th>State</th><th></th></tr></thead>
+      <tbody>{% for e in items %}{{ extra_row(P, e) }}{% endfor %}</tbody>
+    </table>{% endif %}
+    {{ add_form(P, c.char, true, "expand " ~ c.char ~ " into…") }}
+  </div>
+</div>
+{% else %}<p class="empty">Add characters to the lesson first.</p>{% endfor %}

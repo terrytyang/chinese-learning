@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}{{ m.text.title }}{% if m.lesson %} · {{ m.lesson.name }}{% endif %}{% endblock %}
+{# One body character. Whitespace control matters: any stray whitespace would render as a gap between characters. #}
+{% macro ch(c) -%}
+{%- if c.han -%}
+<span class="c lvl-{{ c.hsk_level or 0 }} state-{{ c.state }}{% if c.study %} study{% endif %}"{% if o.gloss and c.gloss %} data-gloss="{{ c.gloss }}"{% endif %}>
+{%- set shown = c.traditional if o.traditional else c.char -%}
+{%- if o.pinyin %}<ruby>{{ shown }}<rt>{{ c.pinyin or "" }}</rt></ruby>{% else %}{{ shown }}{% endif -%}
+</span>
+{%- else %}{{ c.char }}{% endif -%}
+{%- endmacro %}
+{% macro word_gloss(w) %}{{ w.gloss or w.meanings | join("; ") }}{% endmacro %}
+{% macro extra_list(title, kind, anchor_label) %}
+<section class="list {{ kind }}">
+  <h2>{{ title }}</h2>
+  {% set rows = lists.extra_words | selectattr("kind", "equalto", kind) | list %}
+  {% if rows %}<table>
+    <thead><tr><th>{{ anchor_label }}</th><th>Word</th><th>Pinyin</th><th>Gloss</th></tr></thead>
+    <tbody>{% for e in rows %}
+      <tr><td class="{{ 'char' if kind == 'expansion' else '' }}">{{ e.anchor or "" }}</td><td class="word">{{ e.surface }}</td><td>{{ e.pinyin or "" }}</td><td>{{ word_gloss(e) }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">None</p>{% endif %}
+</section>
+{% endmacro %}
+{% block content %}
+<form method="get" action="/learn/{{ m.text.id }}{% if m.lesson %}/{{ m.lesson.id }}{% endif %}" class="toggles">
+  <label><input type="checkbox" name="pinyin" value="1"{% if o.pinyin %} checked{% endif %}> Pinyin</label>
+  <label><input type="checkbox" name="traditional" value="1"{% if o.traditional %} checked{% endif %}> Traditional</label>
+  <label><input type="checkbox" name="gloss" value="1"{% if o.gloss %} checked{% endif %}> Glosses</label>
+  <label><input type="checkbox" name="words" value="1"{% if o.words %} checked{% endif %}> Words</label>
+  Tint: {% for value, label in (("none", "none"), ("level", "by level"), ("state", "by state")) %}<label><input type="radio" name="tint" value="{{ value }}"{% if o.tint == value %} checked{% endif %}> {{ label }}</label> {% endfor %}
+  <label><input type="checkbox" name="show_mastered" value="1"{% if o.show_mastered %} checked{% endif %}> Show mastered</label>
+  <button>Apply</button>
+</form>
+<article>
+  <h1>{{ m.text.title }}{% if m.lesson %} <small class="lesson-name">{{ m.lesson.name }}</small>{% endif %}</h1>
+  <p class="meta">{{ m.text.author or "" }}{% if m.text.period %} · {{ m.text.period }}{% endif %}</p>
+  <div class="reader tint-{{ o.tint }}">
+  {%- for para in paragraphs %}
+  <p>
+    {%- for line in para -%}
+      {%- for seg in line -%}
+        {%- if seg.word and o.words %}<span class="w" data-gloss="{{ word_gloss(by_surface[seg.word.surface]) }}">{% endif -%}
+        {%- for c in seg.chars %}{{ ch(c) }}{% endfor -%}
+        {%- if seg.word and o.words %}</span>{% endif -%}
+      {%- endfor -%}
+      {%- if not loop.last %}<br>{% endif -%}
+    {%- endfor -%}
+  </p>
+  {%- endfor %}
+  </div>
+</article>
+
+{% if o.words %}
+<section class="list words">
+  <h2>Words</h2>
+  {% if lists.words %}<table>
+    <thead><tr><th>Word</th><th>Pinyin</th><th>Level</th><th>Gloss</th></tr></thead>
+    <tbody>{% for w in lists.words %}
+      <tr><td class="word">{{ w.surface }}</td><td>{{ w.pinyin or "" }}</td><td>{% if w.hsk_level %}{{ w.hsk_level | hsk }}{% endif %}</td><td>{{ word_gloss(w) }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">None</p>{% endif %}
+</section>
+{% endif %}
+
+{% if m.lesson %}
+<section class="list study">
+  <h2>Characters</h2>
+  {% if lists.study %}<table>
+    <thead><tr><th>Char</th><th>Pinyin</th><th>Gloss</th></tr></thead>
+    <tbody>{% for s in lists.study %}
+      <tr><td class="char">{{ s.char }}</td><td>{{ s.pinyin or "" }}</td><td>{{ s.gloss or "" }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">None</p>{% endif %}
+</section>
+
+{{ extra_list("Expansions", "expansion", "Char") }}
+{{ extra_list("Related words", "related", "Anchor") }}
+
+<section class="list notes">
+  <h2>Notes</h2>
+  {% if m.notes %}<table>
+    <thead><tr><th>Anchor</th><th>Note</th></tr></thead>
+    <tbody>{% for n in m.notes %}
+      <tr><td>{{ n.anchor or "" }}</td><td>{{ n.note }}</td></tr>
+    {% endfor %}</tbody>
+  </table>{% else %}<p class="empty">None</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

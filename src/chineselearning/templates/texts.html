@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Texts{% endblock %}
+{% block content %}
+<h1>Texts</h1>
+<form method="get" action="/texts" class="filters">
+  <label>Tag
+    <select name="tag">
+      <option value="">any</option>
+      {% for t in options.tags %}<option value="{{ t }}"{% if t == selected.tag %} selected{% endif %}>{{ t }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Author
+    <select name="author">
+      <option value="">any</option>
+      {% for a in options.authors %}<option value="{{ a }}"{% if a == selected.author %} selected{% endif %}>{{ a }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Period
+    <select name="period">
+      <option value="">any</option>
+      {% for p in options.periods %}<option value="{{ p }}"{% if p == selected.period %} selected{% endif %}>{{ p }}</option>{% endfor %}
+    </select>
+  </label>
+  <button type="submit">Filter</button>
+</form>
+<p class="count">{{ texts | length }} texts</p>
+<table class="texts">
+  <thead><tr><th>Title</th><th>Author</th><th>Period</th><th>Tags</th></tr></thead>
+  <tbody>
+  {% for t in texts %}
+    <tr>
+      <td><a href="/texts/{{ t.id }}">{{ t.title }}</a>
+          {% if t.lessons %}<div class="lessons">{% for l in t.lessons %}<a href="/texts/{{ t.id }}?lesson={{ l.id }}">{{ l.name }}</a> {% endfor %}</div>{% endif %}</td>
+      <td>{{ t.author or "" }}</td>
+      <td>{{ t.period or "" }}</td>
+      <td>{{ t.tags | join(", ") }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

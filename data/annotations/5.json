@@ -1,0 +1,2072 @@
+{
+  "text_id": 5,
+  "readings": [
+    {
+      "position": 0,
+      "char": "晋",
+      "pinyin": "jìn",
+      "origin": "auto"
+    },
+    {
+      "position": 1,
+      "char": "太",
+      "pinyin": "tài",
+      "origin": "auto"
+    },
+    {
+      "position": 2,
+      "char": "元",
+      "pinyin": "yuán",
+      "origin": "auto"
+    },
+    {
+      "position": 3,
+      "char": "中",
+      "pinyin": "zhōng",
+      "origin": "auto"
+    },
+    {
+      "position": 5,
+      "char": "武",
+      "pinyin": "wǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 6,
+      "char": "陵",
+      "pinyin": "líng",
+      "origin": "auto"
+    },
+    {
+      "position": 7,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 8,
+      "char": "捕",
+      "pinyin": "bǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 9,
+      "char": "鱼",
+      "pinyin": "yú",
+      "origin": "auto"
+    },
+    {
+      "position": 10,
+      "char": "为",
+      "pinyin": "wèi",
+      "origin": "auto"
+    },
+    {
+      "position": 11,
+      "char": "业",
+      "pinyin": "yè",
+      "origin": "auto"
+    },
+    {
+      "position": 13,
+      "char": "缘",
+      "pinyin": "yuán",
+      "origin": "auto"
+    },
+    {
+      "position": 14,
+      "char": "溪",
+      "pinyin": "xī",
+      "origin": "auto"
+    },
+    {
+      "position": 15,
+      "char": "行",
+      "pinyin": "xíng",
+      "origin": "auto"
+    },
+    {
+      "position": 17,
+      "char": "忘",
+      "pinyin": "wàng",
+      "origin": "auto"
+    },
+    {
+      "position": 18,
+      "char": "路",
+      "pinyin": "lù",
+      "origin": "auto"
+    },
+    {
+      "position": 19,
+      "char": "之",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 20,
+      "char": "远",
+      "pinyin": "yuǎn",
+      "origin": "auto"
+    },
+    {
+      "position": 21,
+      "char": "近",
+      "pinyin": "jìn",
+      "origin": "auto"
+    },
+    {
+      "position": 23,
+      "char": "忽",
+      "pinyin": "hū",
+      "origin": "auto"
+    },
+    {
+      "position": 24,
+      "char": "逢",
+      "pinyin": "féng",
+      "origin": "auto"
+    },
+    {
+      "position": 25,
+      "char": "桃",
+      "pinyin": "táo",
+      "origin": "auto"
+    },
+    {
+      "position": 26,
+      "char": "花",
+      "pinyin": "huā",
+      "origin": "auto"
+    },
+    {
+      "position": 27,
+      "char": "林",
+      "pinyin": "lín",
+      "origin": "auto"
+    },
+    {
+      "position": 29,
+      "char": "夹",
+      "pinyin": "jiā",
+      "origin": "auto"
+    },
+    {
+      "position": 30,
+      "char": "岸",
+      "pinyin": "àn",
+      "origin": "auto"
+    },
+    {
+      "position": 31,
+      "char": "数",
+      "pinyin": "shù",
+      "origin": "auto"
+    },
+    {
+      "position": 32,
+      "char": "百",
+      "pinyin": "bǎi",
+      "origin": "auto"
+    },
+    {
+      "position": 33,
+      "char": "步",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 35,
+      "char": "中",
+      "pinyin": "zhōng",
+      "origin": "auto"
+    },
+    {
+      "position": 36,
+      "char": "无",
+      "pinyin": "wú",
+      "origin": "auto"
+    },
+    {
+      "position": 37,
+      "char": "杂",
+      "pinyin": "zá",
+      "origin": "auto"
+    },
+    {
+      "position": 38,
+      "char": "树",
+      "pinyin": "shù",
+      "origin": "auto"
+    },
+    {
+      "position": 40,
+      "char": "芳",
+      "pinyin": "fāng",
+      "origin": "auto"
+    },
+    {
+      "position": 41,
+      "char": "草",
+      "pinyin": "cǎo",
+      "origin": "auto"
+    },
+    {
+      "position": 42,
+      "char": "鲜",
+      "pinyin": "xiān",
+      "origin": "auto"
+    },
+    {
+      "position": 43,
+      "char": "美",
+      "pinyin": "měi",
+      "origin": "auto"
+    },
+    {
+      "position": 45,
+      "char": "落",
+      "pinyin": "luò",
+      "origin": "auto"
+    },
+    {
+      "position": 46,
+      "char": "英",
+      "pinyin": "yīng",
+      "origin": "auto"
+    },
+    {
+      "position": 47,
+      "char": "缤",
+      "pinyin": "bīn",
+      "origin": "auto"
+    },
+    {
+      "position": 48,
+      "char": "纷",
+      "pinyin": "fēn",
+      "origin": "auto"
+    },
+    {
+      "position": 50,
+      "char": "渔",
+      "pinyin": "yú",
+      "origin": "auto"
+    },
+    {
+      "position": 51,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 52,
+      "char": "甚",
+      "pinyin": "shèn",
+      "origin": "auto"
+    },
+    {
+      "position": 53,
+      "char": "异",
+      "pinyin": "yì",
+      "origin": "auto"
+    },
+    {
+      "position": 54,
+      "char": "之",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 56,
+      "char": "复",
+      "pinyin": "fù",
+      "origin": "auto"
+    },
+    {
+      "position": 57,
+      "char": "前",
+      "pinyin": "qián",
+      "origin": "auto"
+    },
+    {
+      "position": 58,
+      "char": "行",
+      "pinyin": "xíng",
+      "origin": "auto"
+    },
+    {
+      "position": 60,
+      "char": "欲",
+      "pinyin": "yù",
+      "origin": "auto"
+    },
+    {
+      "position": 61,
+      "char": "穷",
+      "pinyin": "qióng",
+      "origin": "auto"
+    },
+    {
+      "position": 62,
+      "char": "其",
+      "pinyin": "qí",
+      "origin": "auto"
+    },
+    {
+      "position": 63,
+      "char": "林",
+      "pinyin": "lín",
+      "origin": "auto"
+    },
+    {
+      "position": 67,
+      "char": "林",
+      "pinyin": "lín",
+      "origin": "auto"
+    },
+    {
+      "position": 68,
+      "char": "尽",
+      "pinyin": "jǐn",
+      "origin": "auto"
+    },
+    {
+      "position": 69,
+      "char": "水",
+      "pinyin": "shuǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 70,
+      "char": "源",
+      "pinyin": "yuán",
+      "origin": "auto"
+    },
+    {
+      "position": 72,
+      "char": "便",
+      "pinyin": "biàn",
+      "origin": "auto"
+    },
+    {
+      "position": 73,
+      "char": "得",
+      "pinyin": "dé",
+      "origin": "auto"
+    },
+    {
+      "position": 74,
+      "char": "一",
+      "pinyin": "yī",
+      "origin": "auto"
+    },
+    {
+      "position": 75,
+      "char": "山",
+      "pinyin": "shān",
+      "origin": "auto"
+    },
+    {
+      "position": 77,
+      "char": "山",
+      "pinyin": "shān",
+      "origin": "auto"
+    },
+    {
+      "position": 78,
+      "char": "有",
+      "pinyin": "yǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 79,
+      "char": "小",
+      "pinyin": "xiǎo",
+      "origin": "auto"
+    },
+    {
+      "position": 80,
+      "char": "口",
+      "pinyin": "kǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 82,
+      "char": "仿",
+      "pinyin": "fǎng",
+      "origin": "auto"
+    },
+    {
+      "position": 83,
+      "char": "佛",
+      "pinyin": "fú",
+      "origin": "auto"
+    },
+    {
+      "position": 84,
+      "char": "若",
+      "pinyin": "ruò",
+      "origin": "auto"
+    },
+    {
+      "position": 85,
+      "char": "有",
+      "pinyin": "yǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 86,
+      "char": "光",
+      "pinyin": "guāng",
+      "origin": "auto"
+    },
+    {
+      "position": 88,
+      "char": "便",
+      "pinyin": "biàn",
+      "origin": "auto"
+    },
+    {
+      "position": 89,
+      "char": "舍",
+      "pinyin": "shě",
+      "origin": "auto"
+    },
+    {
+      "position": 90,
+      "char": "船",
+      "pinyin": "chuán",
+      "origin": "auto"
+    },
+    {
+      "position": 92,
+      "char": "从",
+      "pinyin": "cóng",
+      "origin": "auto"
+    },
+    {
+      "position": 93,
+      "char": "口",
+      "pinyin": "kǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 94,
+      "char": "入",
+      "pinyin": "rù",
+      "origin": "auto"
+    },
+    {
+      "position": 96,
+      "char": "初",
+      "pinyin": "chū",
+      "origin": "auto"
+    },
+    {
+      "position": 97,
+      "char": "极",
+      "pinyin": "jí",
+      "origin": "auto"
+    },
+    {
+      "position": 98,
+      "char": "狭",
+      "pinyin": "xiá",
+      "origin": "auto"
+    },
+    {
+      "position": 100,
+      "char": "才",
+      "pinyin": "cái",
+      "origin": "auto"
+    },
+    {
+      "position": 101,
+      "char": "通",
+      "pinyin": "tōng",
+      "origin": "auto"
+    },
+    {
+      "position": 102,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 104,
+      "char": "复",
+      "pinyin": "fù",
+      "origin": "auto"
+    },
+    {
+      "position": 105,
+      "char": "行",
+      "pinyin": "xíng",
+      "origin": "auto"
+    },
+    {
+      "position": 106,
+      "char": "数",
+      "pinyin": "shù",
+      "origin": "auto"
+    },
+    {
+      "position": 107,
+      "char": "十",
+      "pinyin": "shí",
+      "origin": "auto"
+    },
+    {
+      "position": 108,
+      "char": "步",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 110,
+      "char": "豁",
+      "pinyin": "huō",
+      "origin": "auto"
+    },
+    {
+      "position": 111,
+      "char": "然",
+      "pinyin": "rán",
+      "origin": "auto"
+    },
+    {
+      "position": 112,
+      "char": "开",
+      "pinyin": "kāi",
+      "origin": "auto"
+    },
+    {
+      "position": 113,
+      "char": "朗",
+      "pinyin": "lǎng",
+      "origin": "auto"
+    },
+    {
+      "position": 115,
+      "char": "土",
+      "pinyin": "tǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 116,
+      "char": "地",
+      "pinyin": "dì",
+      "origin": "auto"
+    },
+    {
+      "position": 117,
+      "char": "平",
+      "pinyin": "píng",
+      "origin": "auto"
+    },
+    {
+      "position": 118,
+      "char": "旷",
+      "pinyin": "kuàng",
+      "origin": "auto"
+    },
+    {
+      "position": 120,
+      "char": "屋",
+      "pinyin": "wū",
+      "origin": "auto"
+    },
+    {
+      "position": 121,
+      "char": "舍",
+      "pinyin": "shě",
+      "origin": "auto"
+    },
+    {
+      "position": 122,
+      "char": "俨",
+      "pinyin": "yǎn",
+      "origin": "auto"
+    },
+    {
+      "position": 123,
+      "char": "然",
+      "pinyin": "rán",
+      "origin": "auto"
+    },
+    {
+      "position": 125,
+      "char": "有",
+      "pinyin": "yǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 126,
+      "char": "良",
+      "pinyin": "liáng",
+      "origin": "auto"
+    },
+    {
+      "position": 127,
+      "char": "田",
+      "pinyin": "tián",
+      "origin": "auto"
+    },
+    {
+      "position": 128,
+      "char": "美",
+      "pinyin": "měi",
+      "origin": "auto"
+    },
+    {
+      "position": 129,
+      "char": "池",
+      "pinyin": "chí",
+      "origin": "auto"
+    },
+    {
+      "position": 130,
+      "char": "桑",
+      "pinyin": "sāng",
+      "origin": "auto"
+    },
+    {
+      "position": 131,
+      "char": "竹",
+      "pinyin": "zhú",
+      "origin": "auto"
+    },
+    {
+      "position": 132,
+      "char": "之",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 133,
+      "char": "属",
+      "pinyin": "shǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 135,
+      "char": "阡",
+      "pinyin": "qiān",
+      "origin": "auto"
+    },
+    {
+      "position": 136,
+      "char": "陌",
+      "pinyin": "mò",
+      "origin": "auto"
+    },
+    {
+      "position": 137,
+      "char": "交",
+      "pinyin": "jiāo",
+      "origin": "auto"
+    },
+    {
+      "position": 138,
+      "char": "通",
+      "pinyin": "tōng",
+      "origin": "auto"
+    },
+    {
+      "position": 140,
+      "char": "鸡",
+      "pinyin": "jī",
+      "origin": "auto"
+    },
+    {
+      "position": 141,
+      "char": "犬",
+      "pinyin": "quǎn",
+      "origin": "auto"
+    },
+    {
+      "position": 142,
+      "char": "相",
+      "pinyin": "xiāng",
+      "origin": "auto"
+    },
+    {
+      "position": 143,
+      "char": "闻",
+      "pinyin": "wén",
+      "origin": "auto"
+    },
+    {
+      "position": 145,
+      "char": "其",
+      "pinyin": "qí",
+      "origin": "auto"
+    },
+    {
+      "position": 146,
+      "char": "中",
+      "pinyin": "zhōng",
+      "origin": "auto"
+    },
+    {
+      "position": 147,
+      "char": "往",
+      "pinyin": "wǎng",
+      "origin": "auto"
+    },
+    {
+      "position": 148,
+      "char": "来",
+      "pinyin": "lái",
+      "origin": "auto"
+    },
+    {
+      "position": 149,
+      "char": "种",
+      "pinyin": "zhǒng",
+      "origin": "auto"
+    },
+    {
+      "position": 150,
+      "char": "作",
+      "pinyin": "zuò",
+      "origin": "auto"
+    },
+    {
+      "position": 152,
+      "char": "男",
+      "pinyin": "nán",
+      "origin": "auto"
+    },
+    {
+      "position": 153,
+      "char": "女",
+      "pinyin": "nǚ",
+      "origin": "auto"
+    },
+    {
+      "position": 154,
+      "char": "衣",
+      "pinyin": "yī",
+      "origin": "auto"
+    },
+    {
+      "position": 155,
+      "char": "着",
+      "pinyin": "zhe",
+      "origin": "auto"
+    },
+    {
+      "position": 157,
+      "char": "悉",
+      "pinyin": "xī",
+      "origin": "auto"
+    },
+    {
+      "position": 158,
+      "char": "如",
+      "pinyin": "rú",
+      "origin": "auto"
+    },
+    {
+      "position": 159,
+      "char": "外",
+      "pinyin": "wài",
+      "origin": "auto"
+    },
+    {
+      "position": 160,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 162,
+      "char": "黄",
+      "pinyin": "huáng",
+      "origin": "auto"
+    },
+    {
+      "position": 163,
+      "char": "发",
+      "pinyin": "fā",
+      "origin": "auto"
+    },
+    {
+      "position": 164,
+      "char": "垂",
+      "pinyin": "chuí",
+      "origin": "auto"
+    },
+    {
+      "position": 165,
+      "char": "髫",
+      "pinyin": "tiáo",
+      "origin": "auto"
+    },
+    {
+      "position": 167,
+      "char": "并",
+      "pinyin": "bìng",
+      "origin": "auto"
+    },
+    {
+      "position": 168,
+      "char": "怡",
+      "pinyin": "yí",
+      "origin": "auto"
+    },
+    {
+      "position": 169,
+      "char": "然",
+      "pinyin": "rán",
+      "origin": "auto"
+    },
+    {
+      "position": 170,
+      "char": "自",
+      "pinyin": "zì",
+      "origin": "auto"
+    },
+    {
+      "position": 171,
+      "char": "乐",
+      "pinyin": "lè",
+      "origin": "auto"
+    },
+    {
+      "position": 175,
+      "char": "见",
+      "pinyin": "jiàn",
+      "origin": "auto"
+    },
+    {
+      "position": 176,
+      "char": "渔",
+      "pinyin": "yú",
+      "origin": "auto"
+    },
+    {
+      "position": 177,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 179,
+      "char": "乃",
+      "pinyin": "nǎi",
+      "origin": "auto"
+    },
+    {
+      "position": 180,
+      "char": "大",
+      "pinyin": "dà",
+      "origin": "auto"
+    },
+    {
+      "position": 181,
+      "char": "惊",
+      "pinyin": "jīng",
+      "origin": "auto"
+    },
+    {
+      "position": 183,
+      "char": "问",
+      "pinyin": "wèn",
+      "origin": "auto"
+    },
+    {
+      "position": 184,
+      "char": "所",
+      "pinyin": "suǒ",
+      "origin": "auto"
+    },
+    {
+      "position": 185,
+      "char": "从",
+      "pinyin": "cóng",
+      "origin": "auto"
+    },
+    {
+      "position": 186,
+      "char": "来",
+      "pinyin": "lái",
+      "origin": "auto"
+    },
+    {
+      "position": 188,
+      "char": "具",
+      "pinyin": "jù",
+      "origin": "auto"
+    },
+    {
+      "position": 189,
+      "char": "答",
+      "pinyin": "dá",
+      "origin": "auto"
+    },
+    {
+      "position": 190,
+      "char": "之",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 192,
+      "char": "便",
+      "pinyin": "biàn",
+      "origin": "auto"
+    },
+    {
+      "position": 193,
+      "char": "要",
+      "pinyin": "yào",
+      "origin": "auto"
+    },
+    {
+      "position": 194,
+      "char": "还",
+      "pinyin": "hái",
+      "origin": "auto"
+    },
+    {
+      "position": 195,
+      "char": "家",
+      "pinyin": "jiā",
+      "origin": "auto"
+    },
+    {
+      "position": 197,
+      "char": "设",
+      "pinyin": "shè",
+      "origin": "auto"
+    },
+    {
+      "position": 198,
+      "char": "酒",
+      "pinyin": "jiǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 199,
+      "char": "杀",
+      "pinyin": "shā",
+      "origin": "auto"
+    },
+    {
+      "position": 200,
+      "char": "鸡",
+      "pinyin": "jī",
+      "origin": "auto"
+    },
+    {
+      "position": 201,
+      "char": "作",
+      "pinyin": "zuò",
+      "origin": "auto"
+    },
+    {
+      "position": 202,
+      "char": "食",
+      "pinyin": "shí",
+      "origin": "auto"
+    },
+    {
+      "position": 204,
+      "char": "村",
+      "pinyin": "cūn",
+      "origin": "auto"
+    },
+    {
+      "position": 205,
+      "char": "中",
+      "pinyin": "zhōng",
+      "origin": "auto"
+    },
+    {
+      "position": 206,
+      "char": "闻",
+      "pinyin": "wén",
+      "origin": "auto"
+    },
+    {
+      "position": 207,
+      "char": "有",
+      "pinyin": "yǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 208,
+      "char": "此",
+      "pinyin": "cǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 209,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 211,
+      "char": "咸",
+      "pinyin": "xián",
+      "origin": "auto"
+    },
+    {
+      "position": 212,
+      "char": "来",
+      "pinyin": "lái",
+      "origin": "auto"
+    },
+    {
+      "position": 213,
+      "char": "问",
+      "pinyin": "wèn",
+      "origin": "auto"
+    },
+    {
+      "position": 214,
+      "char": "讯",
+      "pinyin": "xùn",
+      "origin": "auto"
+    },
+    {
+      "position": 216,
+      "char": "自",
+      "pinyin": "zì",
+      "origin": "auto"
+    },
+    {
+      "position": 217,
+      "char": "云",
+      "pinyin": "yún",
+      "origin": "auto"
+    },
+    {
+      "position": 218,
+      "char": "先",
+      "pinyin": "xiān",
+      "origin": "auto"
+    },
+    {
+      "position": 219,
+      "char": "世",
+      "pinyin": "shì",
+      "origin": "auto"
+    },
+    {
+      "position": 220,
+      "char": "避",
+      "pinyin": "bì",
+      "origin": "auto"
+    },
+    {
+      "position": 221,
+      "char": "秦",
+      "pinyin": "qín",
+      "origin": "auto"
+    },
+    {
+      "position": 222,
+      "char": "时",
+      "pinyin": "shí",
+      "origin": "auto"
+    },
+    {
+      "position": 223,
+      "char": "乱",
+      "pinyin": "luàn",
+      "origin": "auto"
+    },
+    {
+      "position": 225,
+      "char": "率",
+      "pinyin": "lǜ",
+      "origin": "auto"
+    },
+    {
+      "position": 226,
+      "char": "妻",
+      "pinyin": "qī",
+      "origin": "auto"
+    },
+    {
+      "position": 227,
+      "char": "子",
+      "pinyin": "zǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 228,
+      "char": "邑",
+      "pinyin": "yì",
+      "origin": "auto"
+    },
+    {
+      "position": 229,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 230,
+      "char": "来",
+      "pinyin": "lái",
+      "origin": "auto"
+    },
+    {
+      "position": 231,
+      "char": "此",
+      "pinyin": "cǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 232,
+      "char": "绝",
+      "pinyin": "jué",
+      "origin": "auto"
+    },
+    {
+      "position": 233,
+      "char": "境",
+      "pinyin": "jìng",
+      "origin": "auto"
+    },
+    {
+      "position": 235,
+      "char": "不",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 236,
+      "char": "复",
+      "pinyin": "fù",
+      "origin": "auto"
+    },
+    {
+      "position": 237,
+      "char": "出",
+      "pinyin": "chū",
+      "origin": "auto"
+    },
+    {
+      "position": 238,
+      "char": "焉",
+      "pinyin": "yān",
+      "origin": "auto"
+    },
+    {
+      "position": 240,
+      "char": "遂",
+      "pinyin": "suì",
+      "origin": "auto"
+    },
+    {
+      "position": 241,
+      "char": "与",
+      "pinyin": "yǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 242,
+      "char": "外",
+      "pinyin": "wài",
+      "origin": "auto"
+    },
+    {
+      "position": 243,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 244,
+      "char": "间",
+      "pinyin": "jiān",
+      "origin": "auto"
+    },
+    {
+      "position": 245,
+      "char": "隔",
+      "pinyin": "gé",
+      "origin": "auto"
+    },
+    {
+      "position": 247,
+      "char": "问",
+      "pinyin": "wèn",
+      "origin": "auto"
+    },
+    {
+      "position": 248,
+      "char": "今",
+      "pinyin": "jīn",
+      "origin": "auto"
+    },
+    {
+      "position": 249,
+      "char": "是",
+      "pinyin": "shì",
+      "origin": "auto"
+    },
+    {
+      "position": 250,
+      "char": "何",
+      "pinyin": "hé",
+      "origin": "auto"
+    },
+    {
+      "position": 251,
+      "char": "世",
+      "pinyin": "shì",
+      "origin": "auto"
+    },
+    {
+      "position": 253,
+      "char": "乃",
+      "pinyin": "nǎi",
+      "origin": "auto"
+    },
+    {
+      "position": 254,
+      "char": "不",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 255,
+      "char": "知",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 256,
+      "char": "有",
+      "pinyin": "yǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 257,
+      "char": "汉",
+      "pinyin": "hàn",
+      "origin": "auto"
+    },
+    {
+      "position": 259,
+      "char": "无",
+      "pinyin": "wú",
+      "origin": "auto"
+    },
+    {
+      "position": 260,
+      "char": "论",
+      "pinyin": "lùn",
+      "origin": "auto"
+    },
+    {
+      "position": 261,
+      "char": "魏",
+      "pinyin": "wèi",
+      "origin": "auto"
+    },
+    {
+      "position": 262,
+      "char": "晋",
+      "pinyin": "jìn",
+      "origin": "auto"
+    },
+    {
+      "position": 264,
+      "char": "此",
+      "pinyin": "cǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 265,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 266,
+      "char": "一",
+      "pinyin": "yī",
+      "origin": "auto"
+    },
+    {
+      "position": 267,
+      "char": "一",
+      "pinyin": "yī",
+      "origin": "auto"
+    },
+    {
+      "position": 268,
+      "char": "为",
+      "pinyin": "wèi",
+      "origin": "auto"
+    },
+    {
+      "position": 269,
+      "char": "具",
+      "pinyin": "jù",
+      "origin": "auto"
+    },
+    {
+      "position": 270,
+      "char": "言",
+      "pinyin": "yán",
+      "origin": "auto"
+    },
+    {
+      "position": 271,
+      "char": "所",
+      "pinyin": "suǒ",
+      "origin": "auto"
+    },
+    {
+      "position": 272,
+      "char": "闻",
+      "pinyin": "wén",
+      "origin": "auto"
+    },
+    {
+      "position": 274,
+      "char": "皆",
+      "pinyin": "jiē",
+      "origin": "auto"
+    },
+    {
+      "position": 275,
+      "char": "叹",
+      "pinyin": "tàn",
+      "origin": "auto"
+    },
+    {
+      "position": 276,
+      "char": "惋",
+      "pinyin": "wǎn",
+      "origin": "auto"
+    },
+    {
+      "position": 278,
+      "char": "余",
+      "pinyin": "yú",
+      "origin": "auto"
+    },
+    {
+      "position": 279,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 280,
+      "char": "各",
+      "pinyin": "gè",
+      "origin": "auto"
+    },
+    {
+      "position": 281,
+      "char": "复",
+      "pinyin": "fù",
+      "origin": "auto"
+    },
+    {
+      "position": 282,
+      "char": "延",
+      "pinyin": "yán",
+      "origin": "auto"
+    },
+    {
+      "position": 283,
+      "char": "至",
+      "pinyin": "zhì",
+      "origin": "auto"
+    },
+    {
+      "position": 284,
+      "char": "其",
+      "pinyin": "qí",
+      "origin": "auto"
+    },
+    {
+      "position": 285,
+      "char": "家",
+      "pinyin": "jiā",
+      "origin": "auto"
+    },
+    {
+      "position": 287,
+      "char": "皆",
+      "pinyin": "jiē",
+      "origin": "auto"
+    },
+    {
+      "position": 288,
+      "char": "出",
+      "pinyin": "chū",
+      "origin": "auto"
+    },
+    {
+      "position": 289,
+      "char": "酒",
+      "pinyin": "jiǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 290,
+      "char": "食",
+      "pinyin": "shí",
+      "origin": "auto"
+    },
+    {
+      "position": 292,
+      "char": "停",
+      "pinyin": "tíng",
+      "origin": "auto"
+    },
+    {
+      "position": 293,
+      "char": "数",
+      "pinyin": "shù",
+      "origin": "auto"
+    },
+    {
+      "position": 294,
+      "char": "日",
+      "pinyin": "rì",
+      "origin": "auto"
+    },
+    {
+      "position": 296,
+      "char": "辞",
+      "pinyin": "cí",
+      "origin": "auto"
+    },
+    {
+      "position": 297,
+      "char": "去",
+      "pinyin": "qù",
+      "origin": "auto"
+    },
+    {
+      "position": 299,
+      "char": "此",
+      "pinyin": "cǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 300,
+      "char": "中",
+      "pinyin": "zhōng",
+      "origin": "auto"
+    },
+    {
+      "position": 301,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 302,
+      "char": "语",
+      "pinyin": "yǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 303,
+      "char": "云",
+      "pinyin": "yún",
+      "origin": "auto"
+    },
+    {
+      "position": 306,
+      "char": "不",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 307,
+      "char": "足",
+      "pinyin": "zú",
+      "origin": "auto"
+    },
+    {
+      "position": 308,
+      "char": "为",
+      "pinyin": "wèi",
+      "origin": "auto"
+    },
+    {
+      "position": 309,
+      "char": "外",
+      "pinyin": "wài",
+      "origin": "auto"
+    },
+    {
+      "position": 310,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 311,
+      "char": "道",
+      "pinyin": "dào",
+      "origin": "auto"
+    },
+    {
+      "position": 312,
+      "char": "也",
+      "pinyin": "yě",
+      "origin": "auto"
+    },
+    {
+      "position": 317,
+      "char": "既",
+      "pinyin": "jì",
+      "origin": "auto"
+    },
+    {
+      "position": 318,
+      "char": "出",
+      "pinyin": "chū",
+      "origin": "auto"
+    },
+    {
+      "position": 320,
+      "char": "得",
+      "pinyin": "dé",
+      "origin": "auto"
+    },
+    {
+      "position": 321,
+      "char": "其",
+      "pinyin": "qí",
+      "origin": "auto"
+    },
+    {
+      "position": 322,
+      "char": "船",
+      "pinyin": "chuán",
+      "origin": "auto"
+    },
+    {
+      "position": 324,
+      "char": "便",
+      "pinyin": "biàn",
+      "origin": "auto"
+    },
+    {
+      "position": 325,
+      "char": "扶",
+      "pinyin": "fú",
+      "origin": "auto"
+    },
+    {
+      "position": 326,
+      "char": "向",
+      "pinyin": "xiàng",
+      "origin": "auto"
+    },
+    {
+      "position": 327,
+      "char": "路",
+      "pinyin": "lù",
+      "origin": "auto"
+    },
+    {
+      "position": 329,
+      "char": "处",
+      "pinyin": "chù",
+      "origin": "auto"
+    },
+    {
+      "position": 330,
+      "char": "处",
+      "pinyin": "chù",
+      "origin": "auto"
+    },
+    {
+      "position": 331,
+      "char": "志",
+      "pinyin": "zhì",
+      "origin": "auto"
+    },
+    {
+      "position": 332,
+      "char": "之",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 334,
+      "char": "及",
+      "pinyin": "jí",
+      "origin": "auto"
+    },
+    {
+      "position": 335,
+      "char": "郡",
+      "pinyin": "jùn",
+      "origin": "auto"
+    },
+    {
+      "position": 336,
+      "char": "下",
+      "pinyin": "xià",
+      "origin": "auto"
+    },
+    {
+      "position": 338,
+      "char": "诣",
+      "pinyin": "yì",
+      "origin": "auto"
+    },
+    {
+      "position": 339,
+      "char": "太",
+      "pinyin": "tài",
+      "origin": "auto"
+    },
+    {
+      "position": 340,
+      "char": "守",
+      "pinyin": "shǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 342,
+      "char": "说",
+      "pinyin": "shuō",
+      "origin": "auto"
+    },
+    {
+      "position": 343,
+      "char": "如",
+      "pinyin": "rú",
+      "origin": "auto"
+    },
+    {
+      "position": 344,
+      "char": "此",
+      "pinyin": "cǐ",
+      "origin": "auto"
+    },
+    {
+      "position": 346,
+      "char": "太",
+      "pinyin": "tài",
+      "origin": "auto"
+    },
+    {
+      "position": 347,
+      "char": "守",
+      "pinyin": "shǒu",
+      "origin": "auto"
+    },
+    {
+      "position": 348,
+      "char": "即",
+      "pinyin": "jí",
+      "origin": "auto"
+    },
+    {
+      "position": 349,
+      "char": "遣",
+      "pinyin": "qiǎn",
+      "origin": "auto"
+    },
+    {
+      "position": 350,
+      "char": "人",
+      "pinyin": "rén",
+      "origin": "auto"
+    },
+    {
+      "position": 351,
+      "char": "随",
+      "pinyin": "suí",
+      "origin": "auto"
+    },
+    {
+      "position": 352,
+      "char": "其",
+      "pinyin": "qí",
+      "origin": "auto"
+    },
+    {
+      "position": 353,
+      "char": "往",
+      "pinyin": "wǎng",
+      "origin": "auto"
+    },
+    {
+      "position": 355,
+      "char": "寻",
+      "pinyin": "xún",
+      "origin": "auto"
+    },
+    {
+      "position": 356,
+      "char": "向",
+      "pinyin": "xiàng",
+      "origin": "auto"
+    },
+    {
+      "position": 357,
+      "char": "所",
+      "pinyin": "suǒ",
+      "origin": "auto"
+    },
+    {
+      "position": 358,
+      "char": "志",
+      "pinyin": "zhì",
+      "origin": "auto"
+    },
+    {
+      "position": 360,
+      "char": "遂",
+      "pinyin": "suì",
+      "origin": "auto"
+    },
+    {
+      "position": 361,
+      "char": "迷",
+      "pinyin": "mí",
+      "origin": "auto"
+    },
+    {
+      "position": 363,
+      "char": "不",
+      "pinyin": "bù",
+      "origin": "auto"
+    },
+    {
+      "position": 364,
+      "char": "复",
+      "pinyin": "fù",
+      "origin": "auto"
+    },
+    {
+      "position": 365,
+      "char": "得",
+      "pinyin": "dé",
+      "origin": "auto"
+    },
+    {
+      "position": 366,
+      "char": "路",
+      "pinyin": "lù",
+      "origin": "auto"
+    },
+    {
+      "position": 370,
+      "char": "南",
+      "pinyin": "nán",
+      "origin": "auto"
+    },
+    {
+      "position": 371,
+      "char": "阳",
+      "pinyin": "yáng",
+      "origin": "auto"
+    },
+    {
+      "position": 372,
+      "char": "刘",
+      "pinyin": "liú",
+      "origin": "auto"
+    },
+    {
+      "position": 373,
+      "char": "子",
+      "pinyin": "zi",
+      "origin": "auto"
+    },
+    {
+      "position": 374,
+      "char": "骥",
+      "pinyin": "jì",
+      "origin": "auto"
+    },
+    {
+      "position": 376,
+      "char": "高",
+      "pinyin": "gāo",
+      "origin": "auto"
+    },
+    {
+      "position": 377,
+      "char": "尚",
+      "pinyin": "shàng",
+      "origin": "auto"
+    },
+    {
+      "position": 378,
+      "char": "士",
+      "pinyin": "shì",
+      "origin": "auto"
+    },
+    {
+      "position": 379,
+      "char": "也",
+      "pinyin": "yě",
+      "origin": "auto"
+    },
+    {
+      "position": 381,
+      "char": "闻",
+      "pinyin": "wén",
+      "origin": "auto"
+    },
+    {
+      "position": 382,
+      "char": "之",
+      "pinyin": "zhī",
+      "origin": "auto"
+    },
+    {
+      "position": 384,
+      "char": "欣",
+      "pinyin": "xīn",
+      "origin": "auto"
+    },
+    {
+      "position": 385,
+      "char": "然",
+      "pinyin": "rán",
+      "origin": "auto"
+    },
+    {
+      "position": 386,
+      "char": "规",
+      "pinyin": "guī",
+      "origin": "auto"
+    },
+    {
+      "position": 387,
+      "char": "往",
+      "pinyin": "wǎng",
+      "origin": "auto"
+    },
+    {
+      "position": 389,
+      "char": "未",
+      "pinyin": "wèi",
+      "origin": "auto"
+    },
+    {
+      "position": 390,
+      "char": "果",
+      "pinyin": "guǒ",
+      "origin": "auto"
+    },
+    {
+      "position": 392,
+      "char": "寻",
+      "pinyin": "xún",
+      "origin": "auto"
+    },
+    {
+      "position": 393,
+      "char": "病",
+      "pinyin": "bìng",
+      "origin": "auto"
+    },
+    {
+      "position": 394,
+      "char": "终",
+      "pinyin": "zhōng",
+      "origin": "auto"
+    },
+    {
+      "position": 396,
+      "char": "后",
+      "pinyin": "hòu",
+      "origin": "auto"
+    },
+    {
+      "position": 397,
+      "char": "遂",
+      "pinyin": "suì",
+      "origin": "auto"
+    },
+    {
+      "position": 398,
+      "char": "无",
+      "pinyin": "wú",
+      "origin": "auto"
+    },
+    {
+      "position": 399,
+      "char": "问",
+      "pinyin": "wèn",
+      "origin": "auto"
+    },
+    {
+      "position": 400,
+      "char": "津",
+      "pinyin": "jīn",
+      "origin": "auto"
+    },
+    {
+      "position": 401,
+      "char": "者",
+      "pinyin": "zhě",
+      "origin": "auto"
+    }
+  ],
+  "characters": [],
+  "words": [
+    {
+      "surface": "一一",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "不知",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "不足",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "交通",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "人道",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "人间",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "从来",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "仿佛",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "其中",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "土地",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "处处",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "如此",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "妻子",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "开朗",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "往来",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "无论",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "桃花",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "水源",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "男女",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "缤纷",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "辞去",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "间隔",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "高尚",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "鲜美",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ]
+}

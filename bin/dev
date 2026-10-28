@@ -1,0 +1,16 @@
+#!/bin/sh
+# Run a command inside the VS Code Dev Container for this checkout, from any Mac terminal.
+#   bin/dev              -> claude
+#   bin/dev bash         -> shell
+#   bin/dev uv run pytest -q
+# Requires the folder to be open in VS Code (Dev Containers: Reopen in Container).
+set -eu
+here=$(cd "$(dirname "$0")/.." && pwd -P)
+id=$(docker ps -q --filter "label=devcontainer.local_folder=$here")
+if [ -z "$id" ]; then
+    echo "No running Dev Container for $here. Open the folder in VS Code first," >&2
+    echo "or use the Compose route: docker compose run --rm dev" >&2
+    exit 1
+fi
+[ $# -eq 0 ] && set -- claude
+exec docker exec -it -u node -w /workspaces/chineselearning "$id" "$@"

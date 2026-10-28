@@ -1,0 +1,3 @@
+{# The lesson select's response: the tab card, with the lesson controls and the text block out of band. #}
+{% include "admin/tabs.html" %}
+{% with oob=true %}{% include "admin/lesson.html" %}{% include "admin/text_block.html" %}{% endwith %}

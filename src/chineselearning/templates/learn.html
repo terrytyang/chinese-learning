@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Learn{% endblock %}
+{% macro bar(c) -%}
+<td><div class="bar">{% for s in STATES %}<span class="s-{{ s }}" style="width: {{ (100 * c[s] / c.unique) if c.unique else 0 }}%"></span>{% endfor %}</div></td>
+<td class="shares">{% for s in STATES %}{{ c[s] }}{% if not loop.last %} / {% endif %}{% endfor %}</td>
+{%- endmacro %}
+{% block content %}
+<h1>Learn</h1>
+<table class="learn">
+  <thead><tr><th>Title</th><th>Author</th><th>Tags</th><th>Characters</th><th>Progress</th><th>{{ STATES | join(" / ") }}</th></tr></thead>
+  <tbody>
+  {% for t in texts %}
+    <tr class="text">
+      <td><a href="/learn/{{ t.id }}">{{ t.title }}</a> <a class="original" href="/learn/{{ t.id }}">text only</a></td>
+      <td>{{ t.author or "" }}</td>
+      <td>{{ t.tags | join(", ") }}</td>
+      <td class="unique">{{ t.counts.unique }}</td>
+      {{ bar(t.counts) }}
+    </tr>
+    {% for l in t.lessons %}
+    <tr class="lesson">
+      <td class="lesson-name"><a href="/learn/{{ t.id }}/{{ l.id }}">{{ l.name }}</a></td>
+      <td></td><td></td>
+      <td class="unique">{{ l.counts.unique }}</td>
+      {{ bar(l.counts) }}
+    </tr>
+    {% endfor %}
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

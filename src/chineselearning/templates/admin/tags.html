@@ -1,0 +1,6 @@
+{% from "admin/macros.html" import keep, err with context %}
+<div id="tags" class="tags" hx-target="#tags" hx-swap="outerHTML">
+  <span class="muted">Tags</span>
+  {% for t in text.tags %}<span class="chip"><span class="zh">{{ t }}</span><button aria-label="Remove tag" hx-post="{{ base }}/tags/remove" hx-vals='{{ {"tag": t} | tojson }}'>×</button></span>{% endfor %}
+  <form class="inline" hx-post="{{ base }}/tags/add">{{ err("tag") }}<input class="zh" name="tag" aria-label="Add tag" placeholder="add tag" value="{{ keep('tag', 'tag') }}"> <button>Add</button></form>
+</div>

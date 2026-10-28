@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ text.title }}{% endblock %}
+{% block content %}
+<div class="admin">
+  <div class="head">
+    <div class="titles"><a href="/texts" class="muted">← Texts</a><h1 class="zh">{{ text.title }}</h1><span class="muted">{{ text.author or "" }}{% if text.period %} · {{ text.period }}{% endif %}</span></div>
+    {% include "admin/lesson.html" %}
+  </div>
+  {% include "admin/tags.html" %}
+  {% include "admin/text_block.html" %}
+  {% include "admin/tabs.html" %}
+</div>
+{% endblock %}

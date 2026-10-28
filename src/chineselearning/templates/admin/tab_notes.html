@@ -1,0 +1,15 @@
+{% from "admin/macros.html" import keep, err, pill with context %}
+{% set P = lesson_base ~ "/notes" %}
+<div class="sec">Notes</div>
+{% if notes %}
+<table>
+  <thead><tr><th>Anchor</th><th>Note</th><th>Origin</th><th></th></tr></thead>
+  <tbody>
+  {% for n in notes %}
+    <tr id="note-{{ n.id }}"><td class="zh">{{ n.anchor or "—" }}</td><td>{{ n.note }}</td><td>{{ pill(n.origin) }}</td><td class="actions"><button hx-post="{{ P }}/{{ n.id }}/delete">Delete</button></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">None</p>{% endif %}
+<div class="sec">Add a note <span class="hint">— commentary for this lesson, optionally anchored on a passage</span></div>
+<form class="inline" hx-post="{{ P }}/add">{{ err("note") }}<input class="zh" name="anchor" placeholder="anchor (optional)" value="{{ keep('note', 'anchor') }}"> <input name="note" placeholder="note" size="60" value="{{ keep('note', 'note') }}"> <button class="primary">Add</button></form>
