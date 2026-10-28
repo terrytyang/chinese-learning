@@ -31,3 +31,4 @@ default-groups = ["dev"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["ui: the headless-browser check of every admin page (tests/ui_manifest.py); skipped without Playwright's Chromium"]

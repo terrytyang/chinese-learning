@@ -69,6 +69,25 @@ def reset_text(conn, text_id, data_dir) -> bool:
     return True
 
 
+def ui_check_command():
+    """The UI check outside pytest: the report to stdout, screenshots and report.txt kept in build/ui/."""
+    import importlib.util
+    from pathlib import Path
+
+    from . import ui_check
+
+    if not ui_check.chromium_available():
+        fail("ui-check", ui_check.CHROMIUM_MISSING)
+    manifest = Path(__file__).resolve().parents[2] / "tests" / "ui_manifest.py"
+    spec = importlib.util.spec_from_file_location("ui_manifest", manifest)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    results = ui_check.run(DATA_DIR, Path(BUILD_DIR) / "ui", module.PAGES)
+    print(ui_check.report(results), end="")
+    if not all(r["ok"] for r in results):
+        sys.exit(1)
+
+
 def import_command(files=(), check=False, learner_id=progress.LEARNER):
     from . import progress_import
 
@@ -112,6 +131,7 @@ def main(argv=None):
     exp = commands.add_parser("export-progress", help="write data/progress/<learner>.tsv from the learner database")
     exp.add_argument("--learner", type=int, default=progress.LEARNER)
     init = commands.add_parser("init", help="day-0: build, import-progress, intake --new")
+    commands.add_parser("ui-check", help="drive every admin page in a headless browser (tests/ui_manifest.py); screenshots and report in build/ui/")
     init.add_argument("--fresh", action="store_true", help="delete build/ first")
     args = parser.parse_args(argv)
     if args.command == "build":
@@ -133,6 +153,8 @@ def main(argv=None):
         import_command(args.files, args.check, args.learner)
     elif args.command == "export-progress":
         export_command(args.learner)
+    elif args.command == "ui-check":
+        ui_check_command()
     elif args.command == "init":
         if args.fresh:
             shutil.rmtree(BUILD_DIR, ignore_errors=True)

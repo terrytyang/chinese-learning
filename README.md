@@ -12,9 +12,11 @@ briefs in [`docs/briefs/`](docs/briefs/).
 
 ```sh
 uv sync --locked
+uv run playwright install chromium   # once per container: the browser for the UI check
 uv run chineselearning build      # data/ -> build/content.sqlite
 uv run chineselearning serve      # http://localhost:8000
 uv run pytest -q
+uv run chineselearning ui-check   # every admin page in headless Chromium; report in build/ui/
 ```
 
 `hsk-original/` is the untouched reference dataset

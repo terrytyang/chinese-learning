@@ -15,6 +15,8 @@ plain checkout, or a Claude Code cloud session, all with the same `uv run …` c
 - `uv run chineselearning import-progress [--check]` / `export-progress` — learner state ↔ `data/`
 - `uv run chineselearning init [--fresh]` — day-0: build, import-progress, intake --new
 - `uv run chineselearning serve` — dev server on 0.0.0.0:8000
+- `uv run chineselearning ui-check` — every admin page in headless Chromium (`tests/ui_manifest.py`); report and screenshots in `build/ui/`
+- Any git operation that touches `data/` (checkout, pull, merge) is followed by `build`; the admin pages show a banner until it runs
 - `python3 tools/derive_hsk.py` — regenerate `data/hsk.sql` from `hsk-original/` (rare)
 
 ## Layout
@@ -66,3 +68,6 @@ plain checkout, or a Claude Code cloud session, all with the same `uv run …` c
 - Tests derive expected counts from the data files (the `baseline` fixture):
   nothing asserts the size of a curated file, and a test that needs a word the
   dictionary lacks takes one from the `probe` fixture.
+- A brief that touches a page adds its pages and interactions to
+  `tests/ui_manifest.py` and passes the UI check (`ui-check`, `tests/test_ui.py`);
+  the report quotes the result.
