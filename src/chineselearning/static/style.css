@@ -33,8 +33,11 @@ form.states button:last-child { border-radius: 0 6px 6px 0; }
 form.states button.on { z-index: 1; }
 /* tables with Chinese item cells: fixed columns; item, pinyin, state and actions never wrap; the gloss takes the rest and wraps */
 .card table, .block table { table-layout: fixed; }
-th.w-check { width: 28px; } th.w-item { width: 100px; } th.w-py { width: 120px; } th.w-level { width: 52px; } th.w-source { width: 96px; }
-th.w-origin { width: 84px; } th.w-state { width: 380px; }  /* the control is 341px under Inter: room for it plus a margin */ th.w-st { width: 96px; } th.w-act { width: 80px; } th.w-acts { width: 130px; }
+.card th, .block th { box-sizing: border-box; }  /* a column's width includes the header's padding; the gloss column gets the rest */
+td.gloss, td.note { overflow-wrap: break-word; }  /* a word longer than the column breaks rather than overflows */
+th.w-check { width: 36px; } th.w-item { width: 104px; } th.w-py { width: 124px; } th.w-level { width: 58px; } th.w-source { width: 108px; }
+th.w-origin { width: 90px; } th.w-st { width: 108px; } th.w-act { width: 100px; } th.w-acts { width: 146px; }
+th.w-state { width: 376px; }  /* widths include the 20px of header padding; the control is 341px under Inter, so this leaves a margin */
 td.zh, td.py, td.st { white-space: nowrap; }
 form.local { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 12px; background: #fff7e6; border-radius: 8px; }
 .muted { color: #6b6b66; }
