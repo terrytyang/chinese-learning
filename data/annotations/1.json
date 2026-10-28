@@ -170,19 +170,6 @@
       "origin": "auto"
     }
   ],
-  "characters": [
-    {
-      "char": "啼",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "枫",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    }
-  ],
+  "characters": [],
   "words": []
 }

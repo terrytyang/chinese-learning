@@ -4,7 +4,7 @@ import json
 
 import pytest
 
-from chineselearning import db, lesson_files, lessons
+from chineselearning import db, lesson_files, lessons, supplement
 from chineselearning.annotations import AnnotationError
 
 EXPECTED_FILE = """{
@@ -29,16 +29,14 @@ EXPECTED_FILE = """{
       "anchor": "乌",
       "surface": "乌鸦",
       "pinyin": "wū yā",
-      "hsk_level": 7,
-      "gloss": "crow",
+      "gloss": null,
       "origin": "manual"
     },
     {
       "anchor": "姑苏",
       "surface": "苏州",
       "pinyin": "sū zhōu",
-      "hsk_level": 4,
-      "gloss": "Suzhou",
+      "gloss": null,
       "origin": "manual"
     },
     {
@@ -80,7 +78,7 @@ def fill_lesson(site):
     assert post(site, "lessons/1/characters/add", chars=["愁"]).status_code == 200
     assert post(site, "lessons/1/words/new", surface="寒山寺", step="2", gloss="苏州城外的寺庙", hsk_level="7").status_code == 200
     assert post(site, "lessons/1/expansions/add", anchor="月", surface="月亮").status_code == 200
-    assert post(site, "lessons/1/expansions/add", anchor="乌", surface="乌鸦").status_code == 200  # not a master word: nothing added yet
+    assert post(site, "lessons/1/expansions/add", anchor="乌", surface="乌鸦").status_code == 200  # not a dictionary word: nothing added yet
     assert post(site, "lessons/1/expansions/add", anchor="乌", surface="乌鸦", step="2", pinyin="wu1 ya1", gloss="crow").status_code == 200
     assert post(site, "lessons/1/related/add", anchor="姑苏", surface="苏州", step="2", gloss="Suzhou", hsk_level="4").status_code == 200
     assert post(site, "lessons/1/related/add", anchor="", surface="半夜").status_code == 200
@@ -96,7 +94,8 @@ def test_lesson_round_trip_file_and_rebuild(site, tmp_path):
     assert (counts["lesson"], counts["lesson_character"], counts["lesson_word"], counts["lesson_extra_word"], counts["lesson_note"]) == (1, 1, 1, 4, 1)
     conn = db.connect(tmp_path / "again.sqlite", readonly=True)
     assert lesson_files.export(conn, 1) == json.loads(EXPECTED_FILE)
-    assert {r["surface"]: r["word_id"] is not None for r in conn.execute("SELECT surface, word_id FROM lesson_extra_word")} == {"月亮": True, "乌鸦": False, "苏州": False, "半夜": True}
+    assert {r["surface"]: r["word_id"] >= 10_000_000 for r in conn.execute("SELECT surface, word_id FROM lesson_extra_word")} == {"月亮": False, "乌鸦": True, "苏州": True, "半夜": False}
+    assert (site.data / "supplement.tsv").read_text(encoding="utf-8").endswith("寒山寺\t\t苏州城外的寺庙\t7\n乌鸦\twū yā\tcrow\t\n苏州\t\tSuzhou\t4\n")
     assert [(e["surface"], e["kind"]) for e in lessons.load(conn, 1)["extra_words"]] == [("月亮", "expansion"), ("乌鸦", "expansion"), ("苏州", "related"), ("半夜", "related")]
     before = lesson_file(site).read_bytes()
     lesson_files.write_files(db.connect(site.db), 1, site.data)
@@ -133,12 +132,9 @@ def test_lesson_selection_and_links(site):
     assert '<option value="2" selected>B</option>' in page and '<a class="tab on" href="/texts/1/lessons/2/characters"' in page
     assert 'hx-post="/texts/1/lessons/2/characters/add' in page and 'hx-post="/texts/1/lessons/2/rename"' in page and 'href="/learn/1/2">Open student view' in page
     assert post(site, "lessons/2/characters/add", chars=["月"]).status_code == 200
-    assert post(site, "lessons/2/characters/月/facts", gloss="月亮").status_code == 200
     assert json.loads(lesson_file(site, 1, 2).read_text(encoding="utf-8"))["characters"] == ["月"]
     assert json.loads(lesson_file(site, 1, 1).read_text(encoding="utf-8"))["characters"] == []
-    facts = json.loads(site.file.read_text(encoding="utf-8"))
-    assert facts["characters"] == [{"char": "月", "hsk_level": None, "gloss": "月亮", "origin": "manual"}]
-    assert "<td>月亮</td>" in tab(site, "2/characters").split('id="char-月"')[1].split("</tr>")[0]
+    assert "<td>moon, month</td>" in tab(site, "2/characters").split('id="char-月"')[1].split("</tr>")[0]
     assert '<a href="/texts/1?lesson=1">A</a> <a href="/texts/1?lesson=2">B</a>' in site.client.get("/texts").text
     filtered = tab(site, "2/characters", min=3, max=7, state="any")
     assert 'hx-post="/texts/1/lessons/2/characters/progress?min=3&amp;max=7&amp;state=any"' in filtered
@@ -173,19 +169,18 @@ def test_extra_word_validation(site):
         lessons.add_extra_word(conn, 1, "太阳", anchor="太阳", gloss="sun")
     with pytest.raises(AnnotationError, match="an expansion of “月” must contain it; “太阳” does not"):
         lessons.add_extra_word(conn, 1, "太阳", anchor="月")
-    with pytest.raises(AnnotationError, match="“月影” is not in the master; a gloss is required"):
+    with pytest.raises(AnnotationError, match="“月影” is not in the dictionary; add it to data/supplement.tsv"):
         lessons.add_extra_word(conn, 1, "月影", anchor="月")
     with pytest.raises(AnnotationError, match="a single character is a character; add it in Characters"):
         lessons.add_extra_word(conn, 1, "月", anchor="月")
     with pytest.raises(AnnotationError, match="a word is required"):
         lessons.add_extra_word(conn, 1, " ")
-    with pytest.raises(AnnotationError, match="level must be 1 to 7"):
-        lessons.add_extra_word(conn, 1, "月影", anchor="月", gloss="x", hsk_level="9")
-    lessons.add_extra_word(conn, 1, "月影", anchor="月", gloss="moon shadow")  # unlinked: pinyin from the characters, level defaults to 7
-    lessons.add_extra_word(conn, 1, "月亮", anchor="月", hsk_level="4", pinyin="yue4 liang5")  # linked: no level stored, pinyin as given
+    supplement.add(conn, site.data, "月影", "", "", "")
+    lessons.add_extra_word(conn, 1, "月影", anchor="月", gloss="moon shadow")  # a supplement word: pinyin from the dictionary, gloss contextual
+    lessons.add_extra_word(conn, 1, "月亮", anchor="月", pinyin="yue4 liang5")  # pinyin as given
     lessons.add_extra_word(conn, 1, "半夜", anchor="夜半")
-    rows = [tuple(r) for r in conn.execute("SELECT surface, anchor, word_id IS NOT NULL, pinyin, hsk_level, gloss FROM lesson_extra_word ORDER BY surface")]
-    assert rows == [("半夜", "夜半", 1, "bàn yè", None, None), ("月亮", "月", 1, "yuè liang", None, None), ("月影", "月", 0, "yuè yǐng", 7, "moon shadow")]
+    rows = [tuple(r) for r in conn.execute("SELECT e.surface, e.anchor, w.source, e.pinyin, w.hsk_level, e.gloss FROM lesson_extra_word e JOIN word w ON w.id = e.word_id ORDER BY e.surface")]
+    assert rows == [("半夜", "夜半", "hsk", "bàn yè", 5, None), ("月亮", "月", "hsk", "yuè liang", 3, None), ("月影", "月", "supplement", "yuè yǐng", 1, "moon shadow")]  # level derived from 月 and 影
     r = post(site, "lessons/1/related/add", anchor="太阳", surface="月亮")
     assert r.status_code == 422 and "“太阳” does not occur in the text" in r.text
     r = post(site, "lessons/1/expansions/add", anchor="月", surface="")
@@ -210,7 +205,7 @@ def write_lesson(site, filename, **data):
         ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "words": ["月"]}, "1-1.json: a single character is a character; add it in Characters"),
         ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月", "anchor": "月"}]}, "1-1.json: a single character is a character"),
         ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "太阳", "anchor": "月"}]}, "1-1.json: an expansion of “月” must contain it"),
-        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月影", "anchor": "月"}]}, "1-1.json: “月影” is not in the master; a gloss is required"),
+        ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月影", "anchor": "月"}]}, "1-1.json: “月影” is not in the dictionary; add it to data/supplement.tsv"),
         ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"surface": "月亮", "anchor": "太阳"}]}, "1-1.json: “太阳” does not occur in the text"),
         ("1-1.json", {"lesson_id": 1, "text_id": 1, "name": "x", "extra_words": [{"anchor": "月"}]}, "1-1.json: missing field 'surface'"),
         ("1-1.json", {"lesson_id": 1, "text_id": 1}, "1-1.json: missing field 'name'"),

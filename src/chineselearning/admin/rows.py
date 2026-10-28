@@ -6,7 +6,7 @@ from ..texts import HAN
 
 
 def text_lines(conn, text_id, body) -> list[list[dict]]:
-    """The body as lines of positions; a Han position carries its stored reading and the master's readings."""
+    """The body as lines of positions; a Han position carries its stored reading and the dictionary's readings."""
     stored = {r["position"]: r for r in annotations.load(conn, text_id)["readings"]}
     master = {c["char"]: c for c in db.lookup_characters(conn, db.unique_characters(body))}
     lines = [[]]
@@ -23,7 +23,7 @@ def text_lines(conn, text_id, body) -> list[list[dict]]:
 
 
 def character_rows(conn, text_id, body=None) -> dict[str, dict]:
-    """Every unique Han character of the text, in body order: first stored reading, level and gloss (the text's fact over the master's), state."""
+    """Every unique Han character of the text, in body order: first stored reading, level, gloss (the text's over the dictionary's), state."""
     body = body or annotations.body_of(conn, text_id)
     facts, states = annotations.load(conn, text_id), progress.current(conn)
     fact = {c["char"]: c for c in facts["characters"]}
@@ -33,15 +33,14 @@ def character_rows(conn, text_id, body=None) -> dict[str, dict]:
     out = {}
     for m in db.lookup_characters(conn, db.unique_characters(body)):
         ch, f = m["char"], fact.get(m["char"], {})
-        out[ch] = {"char": ch, "pinyin": first.get(ch), "in_master": m["found"], "hsk_level": f.get("hsk_level") or m.get("hsk_level"),
-                   "fact_level": f.get("hsk_level"), "fact_gloss": f.get("gloss"), "gloss": f.get("gloss") or m.get("gloss"),
-                   "state": states.get(("character", ch), "unconfirmed")}
+        out[ch] = {"char": ch, "pinyin": first.get(ch), "in_master": m["found"], "in_hsk": m.get("source") == "hsk", "hsk_level": m.get("hsk_level"),
+                   "fact_gloss": f.get("gloss"), "gloss": f.get("gloss") or m.get("gloss"), "state": states.get(("character", ch), "unconfirmed")}
     return out
 
 
 def summary(rows) -> str:
-    """The text block's line: characters, those the master lacks, those still without a gloss."""
-    missing = [r["char"] for r in rows.values() if not r["in_master"]]
+    """The text block's line: characters, those outside HSK (supplement or missing), those still without a gloss."""
+    missing = [r["char"] for r in rows.values() if not r["in_hsk"]]
     unglossed = sum(1 for r in rows.values() if not r["gloss"])
     listed = f" ({', '.join(missing)})" if missing else ""
     return f"{len(rows)} characters · {len(missing)} not in HSK{listed} · {unglossed} without a gloss"
@@ -65,7 +64,7 @@ def with_state(conn, extra) -> list[dict]:
 
 
 def prefill_pinyin(conn, text_id, surface) -> str:
-    """The second form's reading for a word the master lacks: from the text's readings when it occurs there, else the
+    """The second form's reading for a word the dictionary lacks: from the text's readings when it occurs there, else the
     characters' primary readings; blank when a character is unknown."""
     if surface in annotations.body_of(conn, text_id):
         return readings.default_pinyin(conn, text_id, surface) or ""

@@ -29,7 +29,7 @@ def routes(r, admin, connection):
 
     @r.get("/texts/{text_id}/text/edit")
     def edit(request: Request, text_id: int, conn=Depends(connection)):
-        """Polyphones get a select of the master's readings, characters the master lacks a text input, the rest is fixed."""
+        """Polyphones get a select of the dictionary's readings, characters the dictionary lacks a text input, the rest is fixed."""
         return block(request, conn, text_id, editing=True)
 
     @r.post("/texts/{text_id}/text")

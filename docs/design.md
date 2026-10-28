@@ -94,7 +94,7 @@ in `data/annotations/<text id>.json`:
 
 Every row carries `origin`: `auto` (intake), `suggested` (an outside tool), or
 `manual` (admin entered or confirmed). A position with no reading row is
-unknown (a character the master lacks, not yet given one). Readings are stored,
+unknown (a character the dictionary lacks, not yet given one). Readings are stored,
 not resolved at view time, so a reading never changes because a word was added later and a
 sheet printed last month still matches the page. A reading's `char` must equal
 the body at its `position`; a body edit therefore fails the build until the
@@ -108,7 +108,7 @@ additions — many per text, each in `data/lessons/<text id>-<lesson id>.json`:
 | `lesson` | `id`, `text_id`, `name` (unique per text) |
 | `lesson_character` | `lesson_id`, `char` — a character to study in this lesson |
 | `lesson_word` | `lesson_id`, `surface` — a text word to study in this lesson |
-| `lesson_extra_word` | `lesson_id`, `surface`, `anchor` (nullable: a passage of the text; one character makes the word an *expansion* of it, 月 → 月亮, and the surface must contain it), `word_id` (nullable), `pinyin` (prefilled from the master or the characters' readings), `hsk_level` (unlinked only, default 7), `gloss` (required when unlinked), `origin`. Key: (lesson, surface, anchor or ''), a unique expression index |
+| `lesson_extra_word` | `lesson_id`, `surface`, `anchor` (nullable: a passage of the text; one character makes the word an *expansion* of it, 月 → 月亮, and the surface must contain it), `word_id` (→ `word`, never null), `pinyin` (prefilled from the dictionary), `gloss` (contextual), `origin`. Key: (lesson, surface, anchor or ''), a unique expression index |
 | `lesson_note` | `id`, `lesson_id`, `anchor`, `note`, `origin` |
 
 A lesson with no selections, extra words or notes renders as the plain text
@@ -135,17 +135,16 @@ updates the database *and* rewrites the file. Files store surfaces, never
 ```json
 {"text_id": 1,
  "readings":   [{"position": 0, "char": "月", "pinyin": "yuè", "origin": "auto"}, "…"],
- "characters": [{"char": "啼", "hsk_level": 7, "gloss": "chirp", "origin": "manual"}],
- "words":      [{"surface": "寒山寺", "pinyin": "hán shān sì", "hsk_level": 7,
-                 "gloss": "苏州城外的寺庙", "origin": "manual"}]}
+ "characters": [{"char": "啼", "gloss": "chirp", "origin": "manual"}],
+ "words":      [{"surface": "寒山寺", "pinyin": null, "gloss": "苏州城外的寺庙", "origin": "manual"}]}
 ```
 ```json
 {"lesson_id": 1, "text_id": 1, "name": "Learn 枫桥夜泊",
  "characters":  ["月", "落", "乌", "啼"],
  "words":       ["寒山寺"],
  "extra_words": [{"anchor": null, "surface": "半夜", "pinyin": "bàn yè", "gloss": null, "origin": "manual"},
-                 {"anchor": "乌", "surface": "乌鸦", "pinyin": "wū yā", "hsk_level": 7, "gloss": "crow", "origin": "suggested"},
-                 {"anchor": "姑苏", "surface": "苏州", "pinyin": "sū zhōu", "hsk_level": 7, "gloss": "Suzhou", "origin": "manual"},
+                 {"anchor": "乌", "surface": "乌鸦", "pinyin": "wū yā", "gloss": "crow", "origin": "suggested"},
+                 {"anchor": "姑苏", "surface": "苏州", "pinyin": "sū zhōu", "gloss": "Suzhou", "origin": "manual"},
                  {"anchor": "月", "surface": "月亮", "pinyin": "yuè liang", "gloss": null, "origin": "manual"}],
  "notes":       [{"anchor": "月落乌啼", "note": "……", "origin": "manual"}]}
 ```
@@ -155,14 +154,16 @@ updates the database *and* rewrites the file. Files store surfaces, never
 `chineselearning intake <text id>` runs once per text, before curation. It
 stores, as `origin = auto`: a reading for every Han position (resolution order:
 override already present > the reading of a text word covering the position,
-leftmost-longest > the character's primary reading > pypinyin's reading > none);
-a `text_character` for every character absent from the master; a `text_word` for every 2–4
+leftmost-longest > the character's primary reading);
+a `text_word` for every 2–4
 character window of the body (within runs of Han characters) that matches
 `word.simplified` — brute force, a few thousand lookups at most; and the default
 lesson. False positives (交通, 无论 in 桃花源记) are rows to delete or gloss, not
 to re-ignore on every view. Intake refuses to run on a text that already has
 facts or lessons unless forced, and forcing redoes only `auto` rows; `build`
-never runs it.
+never runs it. A character the dictionary lacks is an error naming it: it goes into
+`data/supplement.tsv` first. `intake --new` runs intake for every text with no facts and
+no lesson.
 
 Judgment — which matches are real words here, which single characters deserve
 expansion, contextual glosses, non-default readings — comes from outside the
@@ -175,7 +176,7 @@ file, strictly and with messages that name the offending value.
 
 `progress(learner_id, kind, key, state, changed_at)` — one row per key, no
 history. `kind` is `character` or `word`; `key` is the character itself or the
-word string (works for local words too; never a single character). States:
+word string (never a single character). States:
 `unconfirmed` (no row) → `exposed` (met in a lesson) → `recognized` (can read and
 explain, can't write) → `mastered` (can also write). Setting `unconfirmed`
 deletes the row; `changed_at` says when the current state was set.
@@ -259,6 +260,7 @@ real database from `data/` and query it.
 - 2026-10-27 The admin page is a shell plus htmx fragments (vendored htmx 2.0.4): every region has its own URL, a mutation returns the region it changed, a 422 swaps the form back with its message; no redirects, no page anchors.
 - 2026-10-27 Words in text is the text's word list under filters (default: not yet reviewed); a checkbox per row includes it in the lesson, "Mark all shown as reviewed" sets origin manual; inline edit changes pinyin and gloss only, a word's level is set when it is created.
 - 2026-10-27 The page follows the admin mockup: a gloss and level are edited inline only for characters the master lacks; notes are added and deleted, not edited; a lesson is created and renamed on the page and deleted through the data layer.
+- 2026-10-28 The admin page edits no character fact: a character the dictionary lacks is added to `data/supplement.tsv` (intake refuses the text until then) and a contextual character gloss is edited in the annotation file. The add forms' pinyin, gloss and level make the supplement entry; a word's `gloss` on a text or lesson is contextual only. `pinyin.guess` is gone: a supplement character's readings are the file's and pypinyin's.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
 - 2026-10-16 Traditional for display via OpenCC `s2t` (pure-Python), overridable per text; the master's character column stays best-effort.

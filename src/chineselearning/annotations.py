@@ -6,7 +6,7 @@ re-imports them on build through the same functions the admin page uses.
 
 import json
 
-from . import pinyin as pinyin_, readings
+from . import pinyin as pinyin_
 from .texts import HAN
 
 ORIGINS = ("auto", "suggested", "manual")
@@ -55,29 +55,12 @@ def origin_of(value):
     return value
 
 
-def level_of(value):
-    """HSK level for a local word, unlinked extra word or character fact: blank means none, else 1–7."""
-    if value in (None, ""):
-        return None
-    if not (isinstance(value, int) or str(value).isdigit()) or not 1 <= int(value) <= 7:
-        raise AnnotationError("level must be 1 to 7")
-    return int(value)
-
-
-def resolve_word(conn, surface, gloss):
-    """word_id of a master word; a surface absent from the master must be glossed."""
+def resolve_word(conn, surface) -> int:
+    """word_id of a dictionary word, HSK or supplement; any other word is added to the supplement first."""
     row = conn.execute("SELECT id FROM word WHERE simplified = ?", (surface,)).fetchone()
-    if row is None and gloss is None:
-        raise AnnotationError(f"“{surface}” is not in the master; a gloss is required")
-    return row[0] if row else None
-
-
-def _local_pinyin(conn, text_id, surface, pinyin):
-    """A local word always stores its reading: the given one, else prefilled from its characters."""
-    pinyin = pinyin or readings.default_pinyin(conn, text_id, surface)
-    if pinyin is None:
-        raise AnnotationError(f"“{surface}” contains a character the master lacks; a pinyin is required")
-    return pinyin
+    if row is None:
+        raise AnnotationError(f"“{surface}” is not in the dictionary; add it to data/supplement.tsv")
+    return row[0]
 
 
 # --- readings: one row per Han position; setting replaces -----------------
@@ -100,21 +83,19 @@ def set_reading(conn, text_id, position, char, pinyin, origin="manual"):
 
 # --- character facts and words (duplicates are no-ops) --------------------
 
-def add_character(conn, text_id, char, gloss=None, hsk_level=None, origin="manual"):
+def add_character(conn, text_id, char, gloss=None, origin="manual"):
+    """A contextual gloss for a character of the text."""
     char = char_in(body_of(conn, text_id), char)
-    sql = "INSERT OR IGNORE INTO text_character (text_id, char, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?)"
-    conn.execute(sql, (text_id, char, level_of(hsk_level), clean(gloss), origin_of(origin)))
+    conn.execute("INSERT OR IGNORE INTO text_character (text_id, char, gloss, origin) VALUES (?, ?, ?, ?)", (text_id, char, clean(gloss), origin_of(origin)))
 
 
-def add_word(conn, text_id, surface, gloss=None, pinyin=None, origin="manual", hsk_level=None):
+def add_word(conn, text_id, surface, gloss=None, pinyin=None, origin="manual"):
+    """A word of the text, linked to its dictionary row; `pinyin` and `gloss` are contextual."""
     body, surface, gloss, pinyin = body_of(conn, text_id), word_surface(surface), clean(gloss), pinyin_.to_marks(clean(pinyin))
     if surface not in body:
         raise AnnotationError(f"“{surface}” does not occur in the text")
-    word_id, level = resolve_word(conn, surface, gloss), level_of(hsk_level)
-    if word_id is None:
-        pinyin = _local_pinyin(conn, text_id, surface, pinyin)
-    sql = "INSERT OR IGNORE INTO text_word (text_id, surface, word_id, pinyin, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?, ?, ?)"
-    conn.execute(sql, (text_id, surface, word_id, pinyin, level if word_id is None else None, gloss, origin_of(origin)))
+    sql = "INSERT OR IGNORE INTO text_word (text_id, surface, word_id, pinyin, gloss, origin) VALUES (?, ?, ?, ?, ?, ?)"
+    conn.execute(sql, (text_id, surface, resolve_word(conn, surface), pinyin, gloss, origin_of(origin)))
 
 
 def remove(conn, text_id, kind, *key):
@@ -133,47 +114,40 @@ def confirm(conn, text_id, kind, *key):
 def update(conn, text_id, kind, key, fields):
     """Edit one fact in place (validation as for add); origin becomes manual.
 
-    A character's gloss and level are upserted: the fact row appears when something is set and goes when both are blank.
+    A character's gloss is upserted: the fact row appears when it is set and goes when it is blank.
     """
     gloss = clean(fields.get("gloss"))
     if kind == "characters":
-        char, level = char_in(body_of(conn, text_id), key[0]), level_of(fields.get("hsk_level"))
+        char = char_in(body_of(conn, text_id), key[0])
         conn.execute("DELETE FROM text_character WHERE text_id = ? AND char = ?", (text_id, char))
-        if gloss is not None or level is not None:
-            add_character(conn, text_id, char, gloss, level)
+        if gloss is not None:
+            add_character(conn, text_id, char, gloss)
         return
-    row = conn.execute("SELECT word_id FROM text_word WHERE text_id = ? AND surface = ?", (text_id, *key)).fetchone()
-    if row is None:
+    if not conn.execute("SELECT 1 FROM text_word WHERE text_id = ? AND surface = ?", (text_id, *key)).fetchone():
         raise AnnotationError("no such word")
-    pinyin, level = pinyin_.to_marks(clean(fields.get("pinyin"))), None
-    if row["word_id"] is None:
-        if gloss is None:
-            raise AnnotationError(f"“{key[0]}” is not in the master; a gloss is required")
-        conn.execute("UPDATE text_word SET pinyin = NULL WHERE text_id = ? AND surface = ?", (text_id, *key))  # so a prefill ignores the old reading
-        pinyin, level = _local_pinyin(conn, text_id, key[0], pinyin), level_of(fields.get("hsk_level"))
-    sql = "UPDATE text_word SET pinyin = ?, hsk_level = ?, gloss = ?, origin = 'manual' WHERE text_id = ? AND surface = ?"
-    conn.execute(sql, (pinyin, level, gloss, text_id, *key))
+    sql = "UPDATE text_word SET pinyin = ?, gloss = ?, origin = 'manual' WHERE text_id = ? AND surface = ?"
+    conn.execute(sql, (pinyin_.to_marks(clean(fields.get("pinyin"))), gloss, text_id, *key))
 
 
 # --- read ------------------------------------------------------------------
-MASTER = "coalesce(w.hsk_level, t.hsk_level) AS hsk_level, w.hsk_edition, w.meanings, w.alt_readings"
+MASTER = "w.hsk_level, w.hsk_edition, w.meanings, w.alt_readings"
 
 
 def decode_master(row: dict) -> dict:
-    """Parse the master's JSON columns on a joined row; an unlinked row gets empty lists."""
+    """Parse the dictionary's JSON columns on a joined row."""
     for column in ("meanings", "alt_readings"):
         row[column] = json.loads(row[column]) if row.get(column) else []
     return row
 
 
 def load(conn, text_id) -> dict:
-    """Facts for the page: readings by position, character facts and words in body order, words joined to the master."""
+    """Facts for the page: readings by position, character facts and words in body order, words joined to the dictionary."""
     body = body_of(conn, text_id)
     position = lambda s: body.find(s) if s else len(body)  # noqa: E731
     rows = lambda sql: [dict(r) for r in conn.execute(sql, (text_id,))]  # noqa: E731
-    words = rows(f"SELECT t.surface, t.word_id, coalesce(t.pinyin, w.pinyin) AS pinyin, t.gloss, t.origin, {MASTER} FROM text_word t LEFT JOIN word w ON w.id = t.word_id WHERE t.text_id = ?")
+    words = rows(f"SELECT t.surface, t.word_id, coalesce(t.pinyin, w.pinyin) AS pinyin, t.gloss, t.origin, {MASTER} FROM text_word t JOIN word w ON w.id = t.word_id WHERE t.text_id = ?")
     return {
         "readings": rows("SELECT position, char, pinyin, origin FROM text_reading WHERE text_id = ? ORDER BY position"),
-        "characters": sorted(rows("SELECT char, hsk_level, gloss, origin FROM text_character WHERE text_id = ?"), key=lambda r: position(r["char"])),
+        "characters": sorted(rows("SELECT char, gloss, origin FROM text_character WHERE text_id = ?"), key=lambda r: position(r["char"])),
         "words": sorted((decode_master(r) for r in words), key=lambda r: position(r["surface"])),
     }

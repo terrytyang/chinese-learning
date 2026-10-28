@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 from . import lessons
-from .annotation_files import unlinked_level, write_json
+from .annotation_files import write_json
 from .annotations import AnnotationError
 
 NAME = re.compile(r"(\d+)-(\d+)\.json")
@@ -21,7 +21,7 @@ def export(conn, lesson_id) -> dict:
         "name": lesson["name"],
         "characters": [r[0] for r in conn.execute("SELECT char FROM lesson_character WHERE lesson_id = ? ORDER BY char", (lesson_id,))],
         "words": [r[0] for r in conn.execute("SELECT surface FROM lesson_word WHERE lesson_id = ? ORDER BY surface", (lesson_id,))],
-        "extra_words": [unlinked_level(r) for r in rows("SELECT anchor, surface, pinyin, hsk_level, gloss, origin, word_id FROM lesson_extra_word WHERE lesson_id = ? ORDER BY coalesce(anchor, ''), surface")],
+        "extra_words": rows("SELECT anchor, surface, pinyin, gloss, origin FROM lesson_extra_word WHERE lesson_id = ? ORDER BY coalesce(anchor, ''), surface"),
         "notes": rows("SELECT anchor, note, origin FROM lesson_note WHERE lesson_id = ? ORDER BY coalesce(anchor, ''), note"),
     }
 
@@ -58,7 +58,7 @@ def import_all(conn, data_dir):
             for surface in data.get("words", []):
                 lessons.add_word(conn, lesson_id, surface)
             for e in data.get("extra_words", []):
-                lessons.add_extra_word(conn, lesson_id, e["surface"], e.get("anchor"), e.get("gloss"), e.get("pinyin"), e.get("origin", "manual"), e.get("hsk_level"))
+                lessons.add_extra_word(conn, lesson_id, e["surface"], e.get("anchor"), e.get("gloss"), e.get("pinyin"), e.get("origin", "manual"))
             for n in data.get("notes", []):
                 lessons.add_note(conn, lesson_id, n["note"], n.get("anchor"), n.get("origin", "manual"))
         except AnnotationError as e:

@@ -1,7 +1,7 @@
 """Reading resolution, used by intake to fill `text_reading` and by the reset of a character's readings.
 
 Pages never resolve: they read the stored rows. Order: a stored reading > the reading
-of a text word covering the position (leftmost-longest) > the master primary > none.
+of a text word covering the position (leftmost-longest) > the dictionary's primary reading > none.
 """
 
 from .texts import HAN
@@ -20,7 +20,7 @@ def resolve(conn, text_id, ignore_stored=()) -> list[dict]:
     primary = dict(conn.execute(f"SELECT char, pinyin FROM character WHERE char IN ({','.join('?' * len(chars))})", chars).fetchall())
     stored = {r["position"]: r["pinyin"] for r in conn.execute("SELECT position, char, pinyin FROM text_reading WHERE text_id = ?", (text_id,)) if r["char"] not in ignore_stored}
     cover = {}  # position -> (start, -length, surface, pinyin): min() picks leftmost, then longest
-    sql = "SELECT t.surface, coalesce(t.pinyin, w.pinyin) FROM text_word t LEFT JOIN word w ON w.id = t.word_id WHERE t.text_id = ?"
+    sql = "SELECT t.surface, coalesce(t.pinyin, w.pinyin) FROM text_word t JOIN word w ON w.id = t.word_id WHERE t.text_id = ?"
     for surface, pinyin in conn.execute(sql, (text_id,)).fetchall():
         start = body.find(surface)
         while start >= 0:
@@ -45,7 +45,7 @@ def resolve(conn, text_id, ignore_stored=()) -> list[dict]:
 
 
 def default_pinyin(conn, text_id, surface) -> str | None:
-    """A local word's reading from its characters' readings at its first occurrence; None if any is unknown."""
+    """A word's reading from the text's readings at its first occurrence (the prefill for a new supplement word); None if any is unknown."""
     body = conn.execute("SELECT body FROM text WHERE id = ?", (text_id,)).fetchone()[0]
     start = body.find(surface)
     at = {r["position"]: r["pinyin"] for r in resolve(conn, text_id)}

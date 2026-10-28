@@ -1066,7 +1066,7 @@
     {
       "position": 221,
       "char": "秦",
-      "pinyin": "qín",
+      "pinyin": "Qín",
       "origin": "auto"
     },
     {
@@ -1270,7 +1270,7 @@
     {
       "position": 261,
       "char": "魏",
-      "pinyin": "wèi",
+      "pinyin": "Wèi",
       "origin": "auto"
     },
     {
@@ -1780,7 +1780,7 @@
     {
       "position": 372,
       "char": "刘",
-      "pinyin": "liú",
+      "pinyin": "Liú",
       "origin": "auto"
     },
     {
@@ -1922,74 +1922,7 @@
       "origin": "auto"
     }
   ],
-  "characters": [
-    {
-      "char": "俨",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "刘",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "焉",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "秦",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "诣",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "邑",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "郡",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "阡",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "骥",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "髫",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "魏",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    }
-  ],
+  "characters": [],
   "words": [
     {
       "surface": "一一",

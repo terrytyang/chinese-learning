@@ -4,7 +4,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import annotation_files, lesson_files
+from . import annotation_files, lesson_files, supplement
 from . import texts as text_files
 from .texts import HAN, HAN_RUN
 
@@ -31,7 +31,7 @@ def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
 
 
 def build(db_path, data_dir) -> dict[str, int]:
-    """Delete and recreate the content database from data/. Returns row counts."""
+    """Delete and recreate the content database from data/. Returns row counts, plus the supplement's entries and how many lack a gloss."""
     db_path, data_dir = Path(db_path), Path(data_dir)
     texts = text_files.load_texts(data_dir / "texts")
     for suffix in ("", "-journal", "-wal", "-shm"):
@@ -40,6 +40,7 @@ def build(db_path, data_dir) -> dict[str, int]:
     conn = connect(db_path)
     with conn:
         conn.executescript((data_dir / "hsk.sql").read_text(encoding="utf-8"))
+        entries, unglossed = supplement.load(conn, data_dir)
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         for t in texts:
             conn.execute(
@@ -53,7 +54,7 @@ def build(db_path, data_dir) -> dict[str, int]:
         lesson_files.import_all(conn, data_dir)
     counts = {table: conn.execute(f"SELECT count(*) FROM {table}").fetchone()[0] for table in CONTENT_TABLES}
     conn.close()
-    return counts
+    return {**counts, "supplement": entries, "supplement_unglossed": unglossed}
 
 
 # --- texts ---------------------------------------------------------------
@@ -119,8 +120,20 @@ def _decoded(row) -> dict:
     return out
 
 
+def lookup_character(conn, char) -> dict | None:
+    """The `character` row, HSK or supplement, with its JSON columns parsed; None when the dictionary lacks it."""
+    row = conn.execute("SELECT * FROM character WHERE char = ?", (char,)).fetchone()
+    return _decoded(row) if row else None
+
+
+def lookup_word(conn, surface) -> dict | None:
+    """The `word` row, HSK or supplement, with its JSON columns parsed; None when the dictionary lacks it."""
+    row = conn.execute("SELECT * FROM word WHERE simplified = ?", (surface,)).fetchone()
+    return _decoded(row) if row else None
+
+
 def lookup_characters(conn, chars) -> list[dict]:
-    """One entry per character, in the given order; `found` is False when absent from the master.
+    """One entry per character, in the given order; `found` is False when the dictionary lacks it.
 
     A found entry carries every `character` column: the readings list, and the item data
     (`meanings`, `alt_readings`, `pos`, `frequency_rank`, `word_level`) when the syllabus lists it alone.
@@ -135,7 +148,7 @@ def lookup_characters(conn, chars) -> list[dict]:
 
 
 def find_words(conn, body: str) -> list[dict]:
-    """Every 2–4 character window inside a run of Han characters that is a master word, once each, in order of first appearance.
+    """Every 2–4 character window inside a run of Han characters that is a dictionary word, once each, in order of first appearance.
 
     Each entry is the `word` row with `meanings` and `alt_readings` parsed; the full list of forms is the primary columns plus `alt_readings`.
     """

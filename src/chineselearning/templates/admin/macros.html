@@ -31,7 +31,7 @@
 {% macro edit_url(P, key) -%}
 {{ P }}{{ q or "?" }}{% if q %}&amp;{% endif %}edit={{ key }}
 {%- endmacro %}
-{# The text's gloss, else the master's first meanings. #}
+{# The text's gloss, else the dictionary's first meanings. #}
 {% macro gloss_cell(a) -%}
 <td>{% if a.gloss %}{{ a.gloss }}{% else %}<span class="muted">{{ a.meanings[:3] | join("; ") }}</span>{% endif %}</td>
 {%- endmacro %}
@@ -39,12 +39,12 @@
 {% macro extra_row(P, e, with_anchor=false) -%}
 {% set fk = "edit:" ~ e.key -%}
 <tr id="extra-{{ e.key }}">{% if with_anchor %}<td class="zh">{{ e.anchor or "—" }}</td>{% endif %}<td class="zh word">{{ e.surface }}</td>
-{%- if editing == e.key %}<td colspan="3"><form class="inline" hx-post="{{ P }}/{{ e.surface }}/save{{ q }}">{{ err(fk) }}<input type="hidden" name="anchor" value="{{ e.anchor or '' }}"><input type="hidden" name="surface" value="{{ e.surface }}">{% if not e.word_id %}<input type="hidden" name="hsk_level" value="{{ e.hsk_level or '' }}">{% endif %}<input name="pinyin" aria-label="Pinyin" value="{{ keep(fk, 'pinyin') or e.pinyin or '' }}"> <input name="gloss" aria-label="Gloss" value="{{ keep(fk, 'gloss') or e.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}{{ q }}">Cancel</button></form></td>
+{%- if editing == e.key %}<td colspan="3"><form class="inline" hx-post="{{ P }}/{{ e.surface }}/save{{ q }}">{{ err(fk) }}<input type="hidden" name="anchor" value="{{ e.anchor or '' }}"><input type="hidden" name="surface" value="{{ e.surface }}"><input name="pinyin" aria-label="Pinyin" value="{{ keep(fk, 'pinyin') or e.pinyin or '' }}"> <input name="gloss" aria-label="Gloss" value="{{ keep(fk, 'gloss') or e.gloss or '' }}"> <button class="primary">Save</button> <button type="button" hx-get="{{ P }}{{ q }}">Cancel</button></form></td>
 {%- else %}<td>{{ e.pinyin or "" }}</td><td>{{ lvl(e.hsk_level) }}</td>{{ gloss_cell(e) }}{% endif -%}
 <td>{{ pill(e.origin) }}</td><td>{{ states("word", e.surface, e.state) }}</td>
 <td class="actions"><button hx-get="{{ edit_url(P, e.key) }}">Edit</button> <button hx-post="{{ P }}/{{ e.surface }}/delete{{ q }}" hx-vals='{{ {"anchor": e.anchor or ""} | tojson }}'>Delete</button></td></tr>
 {%- endmacro %}
-{# The add form for an anchor (hidden in an expansion block), then the second form while a looked-up word is not in the master. #}
+{# The add form for an anchor (hidden in an expansion block), then the second form while a looked-up word is not in the dictionary: its fields make the supplement entry. #}
 {% macro add_form(P, anchor, hidden, placeholder) -%}
 {% set fk = "add:" ~ anchor %}{% set lk = "local:" ~ anchor %}{% set waiting = pending and pending.anchor == anchor -%}
 <form class="inline" hx-post="{{ P }}/add{{ q }}">{{ err(fk) }}{% if hidden %}<input type="hidden" name="anchor" value="{{ anchor }}">{% else %}<input class="zh" name="anchor" placeholder="passage it relates to (optional)" value="{{ anchor }}"> {% endif %}<input class="zh" name="surface" placeholder="{{ placeholder }}" value="{{ keep(fk, 'surface') or (pending.surface if waiting else '') }}"> <button{% if not hidden %} class="primary"{% endif %}>Look up &amp; add</button></form>

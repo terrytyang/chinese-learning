@@ -1,4 +1,4 @@
-"""Numbered pinyin to tone marks, and the pypinyin fallback for characters the master lacks."""
+"""Numbered pinyin to tone marks, and pypinyin's readings for a supplement character."""
 
 import pytest
 
@@ -17,6 +17,6 @@ def test_to_marks(numbered, marked):
     assert pinyin.to_marks(numbered) == marked
 
 
-def test_guess_is_none_for_a_character_pypinyin_lacks():
-    assert pinyin.guess("啼") == "tí" and pinyin.guess("枫") == "fēng"
-    assert pinyin.guess("\U0002a6d6") is None
+def test_readings_of_lists_pypinyin_readings_most_common_first():
+    assert pinyin.readings_of("啼") == ["tí"] and pinyin.readings_of("枫") == ["fēng"] and pinyin.readings_of("行")[:2] == ["xíng", "háng"]
+    assert pinyin.readings_of("\U0002a6d6") == []

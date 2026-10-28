@@ -1,14 +1,14 @@
-"""Intake: auto facts, stored readings for every position (pypinyin for characters the master lacks), the default lesson, and reading edits on the page."""
+"""Intake: auto words, stored readings for every position, the default lesson, the dictionary check, `--new`, and reading edits on the page."""
 
 import json
 import re
 
 import pytest
 
-from chineselearning import annotations, db, progress, readings
+from chineselearning import annotations, db, progress, readings, supplement
 from chineselearning.annotations import AnnotationError
 from chineselearning.cli import main
-from chineselearning.intake import intake
+from chineselearning.intake import intake, new_texts
 from chineselearning.texts import HAN
 
 HX = {"HX-Request": "true"}
@@ -30,13 +30,13 @@ def test_intake_text_1_readings_facts_and_default_lesson(site):
     conn = connect(site)
     progress.set_state(conn, "character", "月", "mastered")
     conn.commit()
-    assert intake(conn, 1, site.data) == {"words": 0, "characters": 2, "readings": 28, "lesson": 1}
+    assert intake(conn, 1, site.data) == {"words": 0, "readings": 28, "lesson": 1}
     body = db.get_text(conn, 1)["body"]
     stored = {r["position"]: r for r in facts(site)["readings"]}
     assert set(stored) == {i for i, ch in enumerate(body) if HAN.fullmatch(ch)}
     assert all(r["origin"] == "auto" and r["char"] == body[r["position"]] for r in stored.values())
     assert (stored[0]["pinyin"], stored[3]["pinyin"], stored[9]["pinyin"]) == ("yuè", "tí", "fēng") and list(facts(site)) == ["text_id", "readings", "characters", "words"]
-    assert [(c["char"], c["origin"]) for c in facts(site)["characters"]] == [("啼", "auto"), ("枫", "auto")]
+    assert facts(site)["characters"] == []  # 啼 and 枫 are supplement characters: their readings come from the dictionary
     data = lesson(site)
     assert (data["lesson_id"], data["text_id"], data["name"], data["words"], data["extra_words"], data["notes"]) == (1, 1, "Learn 枫桥夜泊", [], [], [])
     assert len(data["characters"]) == 27 and "月" not in data["characters"] and "啼" in data["characters"]
@@ -65,7 +65,7 @@ def test_intake_text_5_words_and_lesson_words(site):
     conn = connect(site)
     expected = sorted(w["simplified"] for w in db.find_words(conn, db.get_text(conn, 5)["body"]))
     counts = intake(conn, 5, site.data)
-    assert counts["words"] == len(expected) > 0 and counts["characters"] > 0 and counts["lesson"] == 1
+    assert counts["words"] == len(expected) > 0 and counts["lesson"] == 1
     assert sorted(w["surface"] for w in facts(site, 5)["words"]) == expected and lesson(site, 5, 1)["words"] == expected
     tab = site.client.get("/texts/5/lessons/1/words", params={"show": "all", "min": 1, "max": 7}, headers=HX).text
     assert tab.count('<tr id="word-') == counts["words"] and f'Words in text <span class="muted">{counts["words"]}/{counts["words"]}</span>' in tab
@@ -79,7 +79,7 @@ def test_intake_refuses_rerun_and_force_leaves_lessons_and_manual_rows(site):
     assert site.client.post("/texts/1/text", data={"p2": "wù"}).status_code == 200
     assert site.client.post("/texts/1/lessons/1/characters/落/remove").status_code == 200
     assert site.client.post("/texts/1/lessons", data={"name": "Two"}).status_code == 200
-    assert intake(connect(site), 1, site.data, force=True) == {"words": 0, "characters": 2, "readings": 27, "lesson": None}
+    assert intake(connect(site), 1, site.data, force=True) == {"words": 0, "readings": 27, "lesson": None}
     stored = {r["position"]: r for r in facts(site)["readings"]}
     assert (stored[2]["pinyin"], stored[2]["origin"], stored[1]["origin"]) == ("wù", "manual", "auto")
     assert "落" not in lesson(site)["characters"] and sorted(p.name for p in (site.data / "lessons").iterdir()) == ["1-1.json", "1-2.json"]
@@ -104,8 +104,42 @@ def test_resolver_uses_stored_rows_then_words_then_primary(site):
     assert resolved[2:5] == [("银", "yín", "word:银行"), ("行", "háng", "word:银行"), ("行", "xíng", "primary")]
     annotations.set_reading(conn, 99, 6, "行", "hang4")  # numbered pinyin is accepted everywhere
     assert [(r["pinyin"], r["source"]) for r in readings.resolve(conn, 99) if r["position"] == 6] == [("hàng", "stored")]
-    annotations.add_word(conn, 99, "行不", gloss="x")  # local word: reading prefilled from the stored and resolved readings
-    assert conn.execute("SELECT pinyin FROM text_word WHERE surface = '行不'").fetchone()[0] == "hàng bù"
+    assert readings.default_pinyin(conn, 99, "行不") == "hàng bù"  # the prefill for a new supplement word: the text's readings
+    with pytest.raises(AnnotationError, match="“行不” is not in the dictionary; add it to data/supplement.tsv"):
+        annotations.add_word(conn, 99, "行不")
+    supplement.add(conn, site.data, "行不", "", "x", "")
+    annotations.add_word(conn, 99, "行不")
+    assert tuple(conn.execute("SELECT t.pinyin, w.pinyin FROM text_word t JOIN word w ON w.id = t.word_id WHERE surface = '行不'").fetchone()) == (None, "xíng bù")
+
+
+def test_intake_refuses_a_character_the_dictionary_lacks(site):
+    (site.data / "texts" / "006-龘.md").write_text("id: 6\ntitle: 龘\ntags: 诗词\n\n龘飞龘\n", encoding="utf-8")
+    db.build(site.db, site.data)
+    conn = connect(site)
+    with pytest.raises(AnnotationError, match="text 6 has characters not in the dictionary: 龘; add them to data/supplement.tsv"):
+        intake(conn, 6, site.data)
+    assert not (site.data / "annotations" / "6.json").exists() and not list((site.data / "lessons").glob("6-*.json"))
+    supplement.add(conn, site.data, "龘", "da2", "dragons flying", "")
+    assert intake(conn, 6, site.data) == {"words": 0, "readings": 3, "lesson": 1}
+    assert [r["pinyin"] for r in facts(site, 6)["readings"]] == ["dá", "fēi", "dá"]
+
+
+def test_intake_new_picks_only_texts_without_facts_or_lesson(site, capsys):
+    conn = connect(site)
+    assert new_texts(conn) == [1, 2, 3, 4, 5]
+    assert site.client.post("/texts/3/lessons", data={"name": "A"}).status_code == 200  # a lesson alone also excludes the text
+    intake(conn, 1, site.data)
+    assert new_texts(conn) == [2, 4, 5]
+    args = ["--db", str(site.db), "--data", str(site.data), "--progress", str(site.progress)]
+    main(["intake", "--new", *args])
+    out = capsys.readouterr().out
+    assert [line.split(":")[0] for line in out.splitlines()] == ["text 2", "text 4", "text 5"] and "readings 20, lesson 3" in out
+    assert new_texts(connect(site)) == [] and sorted(p.name for p in (site.data / "annotations").iterdir()) == ["1.json", "2.json", "4.json", "5.json"]
+    main(["intake", "--new", *args])
+    assert capsys.readouterr().out == "nothing to intake: every text has facts or a lesson\n"
+    for argv in (["intake", *args], ["intake", "1", "--new", *args]):
+        with pytest.raises(SystemExit):
+            main(argv)
 
 
 def test_edit_mode_sets_one_position(site):

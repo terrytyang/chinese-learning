@@ -2,7 +2,7 @@
 
 from fastapi import Depends, Form, Request
 
-from .. import annotations, lessons
+from .. import lessons
 from . import rows
 from .common import filters_of, level_bounds, select_character
 
@@ -13,7 +13,7 @@ PATH = "/texts/{text_id}/lessons/{lesson_id}/characters"
 
 
 def passes(row, filters) -> bool:
-    """Level in range (a character without a level only when `missing` is ticked) and the state filter."""
+    """Level in range (a character the dictionary lacks only when `missing` is ticked) and the state filter."""
     lo, hi = level_bounds(filters)
     level, state, wanted = row["hsk_level"], row["state"], filters["state"]
     in_range = filters["missing"] == "1" if not level else lo <= level <= hi
@@ -44,10 +44,3 @@ def routes(r, admin, connection):
     @r.post(PATH + "/{char}/remove")
     def remove(request: Request, text_id: int, lesson_id: int, char: str, conn=Depends(connection)):
         return tab(request, conn, text_id, lesson_id, lambda: lessons.remove(conn, lesson_id, "characters", char), "add")
-
-    @r.post(PATH + "/{char}/facts")
-    def facts(request: Request, text_id: int, lesson_id: int, char: str, gloss: str = Form(""), hsk_level: str = Form(""), conn=Depends(connection)):
-        """The gloss and level of a character the master lacks (the text fact)."""
-        fields = {"gloss": gloss, "hsk_level": hsk_level}
-        change = lambda: annotations.update(conn, text_id, "characters", (char,), fields)  # noqa: E731
-        return tab(request, conn, text_id, lesson_id, change, f"facts:{char}", fields)

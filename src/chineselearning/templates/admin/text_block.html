@@ -1,5 +1,5 @@
 {% from "admin/macros.html" import keep, err with context %}
-{# The text block: ruby over every character, or the edit form (polyphones a select, characters the master lacks an input, the rest fixed). #}
+{# The text block: ruby over every character, or the edit form (polyphones a select, characters the dictionary lacks an input, the rest fixed). #}
 {% if text_editing %}
 <form id="text" class="card" hx-post="{{ base }}/text" hx-target="#text" hx-swap="outerHTML"{% if oob %} hx-swap-oob="true"{% endif %}>
   <div class="row"><span class="sec">Text</span><span class="muted">Editing readings — polyphones and unknown characters are editable; the rest is fixed.</span><span class="spacer"></span><button type="button" hx-get="{{ base }}/text">Cancel</button> <button class="primary">Save readings</button></div>

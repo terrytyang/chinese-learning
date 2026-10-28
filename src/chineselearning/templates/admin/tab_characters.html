@@ -1,13 +1,13 @@
-{% from "admin/macros.html" import keep, err, lvl, levels, level_select, states with context %}
+{% from "admin/macros.html" import err, lvl, levels, states with context %}
 {% set P = lesson_base ~ "/characters" %}
 <div class="sec">In this lesson · {{ study | length }} <span class="hint">— characters the student works on in this lesson; adding one marks it exposed if it was unconfirmed. Pinyin comes from the text above</span></div>
 {% if study %}
 <table>
   <thead><tr><th>Char</th><th>Pinyin</th><th>Level</th><th>Gloss</th><th>State</th><th></th></tr></thead>
   <tbody>
-  {% for c in study %}{% set fk = "facts:" ~ c.char %}
+  {% for c in study %}
     <tr id="char-{{ c.char }}"><td class="zh big">{{ c.char }}</td><td>{{ c.pinyin or "—" }}</td><td>{{ lvl(c.hsk_level) }}</td>
-      <td>{% if c.in_master %}{{ c.gloss or "" }}{% else %}<form class="inline" hx-post="{{ P }}/{{ c.char }}/facts{{ q }}">{{ err(fk) }}<input name="gloss" aria-label="Gloss" placeholder="gloss — not in HSK, please fill" value="{{ keep(fk, 'gloss') or c.fact_gloss or '' }}"> {{ level_select(keep(fk, 'hsk_level') or c.fact_level) }} <button>Save</button></form>{% endif %}</td>
+      <td>{% if c.in_master %}{{ c.gloss or "" }}{% else %}<span class="muted">not in the dictionary — add it to data/supplement.tsv</span>{% endif %}</td>
       <td>{{ states("character", c.char, c.state) }}</td>
       <td class="actions"><button hx-post="{{ P }}/{{ c.char }}/remove{{ q }}">Remove from lesson</button></td></tr>
   {% endfor %}
@@ -20,7 +20,7 @@
   <form class="filters" hx-get="{{ P }}" hx-trigger="change" hx-push-url="true">
     <label class="muted">Level <select name="min" aria-label="Lowest level">{{ levels(filters.min) }}</select> to <select name="max" aria-label="Highest level">{{ levels(filters.max) }}</select></label>
     <label class="muted">State <select name="state" aria-label="State filter">{% for value, label in state_options %}<option value="{{ value }}"{% if filters.state == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-    <label class="muted"><input type="checkbox" name="missing" value="1"{% if filters.missing == "1" %} checked{% endif %}> include characters not in HSK</label>
+    <label class="muted"><input type="checkbox" name="missing" value="1"{% if filters.missing == "1" %} checked{% endif %}> include characters not in the dictionary</label>
   </form>
   <span class="spacer"></span>
   <button type="button" form="chars-bulk" data-select-all>Select all shown</button>

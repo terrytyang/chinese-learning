@@ -2,9 +2,9 @@
 
 from fastapi import Depends, Form, Request
 
-from .. import annotations, lessons, progress
+from .. import annotations, lessons, progress, supplement
 from . import rows
-from .common import in_master
+from .common import in_dictionary
 
 PATH = "/texts/{text_id}/lessons/{lesson_id}/"
 
@@ -46,19 +46,22 @@ def register(r, admin, connection, tab):
         request: Request, text_id: int, lesson_id: int, anchor: str = Form(""), surface: str = Form(""), pinyin: str = Form(""),
         gloss: str = Form(""), hsk_level: str = Form(""), state: str = Form(""), step: str = Form(""), conn=Depends(connection),
     ):
-        """Look up & add: a master word links at once; any other word gets the second form (pinyin, gloss, level, state) as step 2."""
+        """Look up & add: a dictionary word links at once; any other word gets the second form (pinyin, gloss, level, state) as
+        step 2, which makes its supplement entry first."""
         lesson = admin.lesson(conn, text_id, lesson_id)
         word, anchor, local = surface.strip(), anchor.strip(), step == "2"
         form = f"{'local' if local else 'add'}:{anchor}"
         submitted = {"anchor": anchor, "surface": surface, "pinyin": pinyin, "gloss": gloss, "hsk_level": hsk_level, "state": state}
         body = admin.text(conn, text_id)["body"]
         anchor_ok = not anchor or (anchor in body and (len(anchor) != 1 or anchor in word))
-        if not local and len(word) > 1 and anchor_ok and not in_master(conn, word):
+        if not local and len(word) > 1 and anchor_ok and not in_dictionary(conn, word):
             pending = {"anchor": anchor, "surface": word, "pinyin": rows.prefill_pinyin(conn, text_id, word)}
             return admin.tab(request, conn, text_id, lesson, tab, pending=pending)
 
         def change():
-            lessons.add_extra_word(conn, lesson_id, surface, anchor, gloss if local else None, pinyin if local else None, hsk_level=hsk_level if local else None)
+            if local and not in_dictionary(conn, word):
+                supplement.add(conn, admin.data_dir, word, pinyin, gloss, hsk_level)
+            lessons.add_extra_word(conn, lesson_id, surface, anchor)
             progress.expose(conn, "word", word)
             if local and state and state != "unconfirmed":
                 progress.set_state(conn, "word", word, state)
@@ -68,12 +71,12 @@ def register(r, admin, connection, tab):
     @r.post(path + "/{word}/save")
     def save(
         request: Request, text_id: int, lesson_id: int, word: str, anchor: str = Form(""), surface: str = Form(""),
-        pinyin: str = Form(""), gloss: str = Form(""), hsk_level: str = Form(""), conn=Depends(connection),
+        pinyin: str = Form(""), gloss: str = Form(""), conn=Depends(connection),
     ):
         """Inline edit of pinyin and gloss; the row is (word, anchor), both carried as hidden fields."""
         lesson = admin.lesson(conn, text_id, lesson_id)
         anchor, key = anchor.strip(), lessons.extra_key(anchor.strip(), word)
-        fields = {"surface": surface or word, "pinyin": pinyin, "gloss": gloss, "hsk_level": hsk_level}
+        fields = {"surface": surface or word, "pinyin": pinyin, "gloss": gloss}
         change = lambda: lessons.update(conn, lesson_id, "extra_words", (word, anchor), fields)  # noqa: E731
         return respond(request, conn, text_id, lesson, change, f"edit:{key}", fields, editing=key)
 

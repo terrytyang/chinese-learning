@@ -25,8 +25,8 @@ def test_text_1_flags_missing_characters_and_finds_no_words(client):
     assert "枫桥夜泊" in r.text and "张继 · 唐朝" in r.text and '<span class="zh">诗词</span>' in r.text
     body = r.text.split('<div class="zh body">')[1].split('<div id="tabs"')[0]
     assert body.count("<ruby>") == 28 and body.count('<div class="line">') == 2 and "，" in body and body.startswith('<div class="line"><ruby>月<rt></rt></ruby>')
-    assert "<ruby>啼<rt></rt></ruby>" in body and "<ruby>枫<rt></rt></ruby>" in body  # absent from the master, no reading stored
-    assert "28 characters · 2 not in HSK (啼, 枫) · 2 without a gloss" in r.text
+    assert "<ruby>啼<rt></rt></ruby>" in body and "<ruby>枫<rt></rt></ruby>" in body  # no intake yet: no reading stored
+    assert "28 characters · 2 not in HSK (啼, 枫) · 0 without a gloss" in r.text  # supplement characters, glossed there
     assert "No lessons yet" in r.text  # no intake yet: no readings, no lesson
 
 
@@ -62,4 +62,4 @@ def test_api_characters(client):
     assert rows[0]["gloss"] == "moon, month" and rows[0]["readings"][0] == "yuè"
     assert rows[0]["meanings"][:2] == ["moon", "month"] and rows[0]["pos"] == "n,t" and rows[0]["word_level"] == 1 and rows[0]["alt_readings"] == []
     assert isinstance(rows[0]["frequency_rank"], int)
-    assert rows[3] == {"char": "啼", "found": False}
+    assert (rows[3]["found"], rows[3]["pinyin"], rows[3]["source"], rows[3]["hsk_edition"], rows[3]["gloss"]) == (True, "tí", "supplement", "none", "cry, crow (of birds), weep")

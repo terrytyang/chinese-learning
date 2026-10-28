@@ -122,20 +122,7 @@
       "origin": "auto"
     }
   ],
-  "characters": [
-    {
-      "char": "鸯",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    },
-    {
-      "char": "鸳",
-      "hsk_level": null,
-      "gloss": null,
-      "origin": "auto"
-    }
-  ],
+  "characters": [],
   "words": [
     {
       "surface": "燕子",

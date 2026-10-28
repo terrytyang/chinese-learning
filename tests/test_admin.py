@@ -42,7 +42,7 @@ def test_shell_and_fragments(site):
     for region in ("lesson-controls", "tags", "text", "tabs"):
         assert f'id="{region}"' in page
     assert '<a class="tab on" href="/texts/1/lessons/1/characters"' in page and "In this lesson · 28" in page
-    assert "<ruby>月<rt>yuè</rt></ruby>" in page and "28 characters · 2 not in HSK (啼, 枫) · 2 without a gloss" in page
+    assert "<ruby>月<rt>yuè</rt></ruby>" in page and "28 characters · 2 not in HSK (啼, 枫) · 0 without a gloss" in page
     assert '<option value="1" selected>Learn 枫桥夜泊</option>' in page and 'href="/learn/1/1">Open student view' in page
     fragment = get(site, "/texts/1/lessons/1/words").text
     assert fragment.startswith('<div id="tabs"') and "<html" not in fragment and '<a class="tab on" href="/texts/1/lessons/1/words"' in fragment
@@ -102,15 +102,15 @@ def test_pinyin_edit_round_trip(site):
     edit = get(site, "/texts/1/text/edit").text
     assert edit.startswith('<form id="text"') and 'hx-post="/texts/1/text"' in edit
     assert '<select name="p2" aria-label="Reading"><option selected>wū</option><option>wù</option></select>' in edit
-    assert '<input name="p9" aria-label="Reading" placeholder="pinyin" value="fēng">' in edit and '<span class="fixed">shuāng</span><span>霜</span>' in edit
+    assert '<span class="fixed">fēng</span><span>枫</span>' in edit and '<span class="fixed">shuāng</span><span>霜</span>' in edit  # one reading: fixed, supplement or HSK
     assert "Save readings" in edit and 'hx-get="/texts/1/text">Cancel</button>' in edit
     current = {m.group(1): m.group(2) for m in re.finditer(r'<select name="(p\d+)"[^>]*>.*?<option selected>(.*?)</option>', edit)}
-    r = post(site, "/texts/1/text", **{**current, "p2": "wù", "p9": "feng2"})
-    assert r.status_code == 200 and r.text.startswith('<div id="text"') and "<ruby>乌<rt>wù</rt></ruby>" in r.text and "<ruby>枫<rt>féng</rt></ruby>" in r.text
+    r = post(site, "/texts/1/text", **{**current, "p2": "wù", "p9": "fēng"})
+    assert r.status_code == 200 and r.text.startswith('<div id="text"') and "<ruby>乌<rt>wù</rt></ruby>" in r.text and "<ruby>枫<rt>fēng</rt></ruby>" in r.text
     manual = [x for x in facts(site)["readings"] if x["origin"] == "manual"]
-    assert manual == [{"position": 2, "char": "乌", "pinyin": "wù", "origin": "manual"}, {"position": 9, "char": "枫", "pinyin": "féng", "origin": "manual"}]
-    r = post(site, "/texts/1/text", p9="")
-    assert r.status_code == 422 and r.text.startswith('<form id="text"') and "a reading for position 9 “枫” is required" in r.text and 'name="p9"' in r.text
+    assert manual == [{"position": 2, "char": "乌", "pinyin": "wù", "origin": "manual"}]  # an unchanged reading is not re-stored
+    r = post(site, "/texts/1/text", p2="")
+    assert r.status_code == 422 and r.text.startswith('<form id="text"') and "a reading for position 2 “乌” is required" in r.text and 'name="p2"' in r.text
     r = post(site, "/texts/1/text", p2="wu")
     assert r.status_code == 422 and "the reading of “乌” must be one of wū, wù" in r.text
     full = site.client.get("/texts/1/text/edit").text
@@ -122,7 +122,7 @@ def test_bulk_add_and_filters(site):
     tab = get(site, "/texts/1/lessons/1/characters").text
     assert tab.count('name="chars" value="') == 28 and "Not in this lesson · 28" in tab and '<p class="empty">None</p>' in tab
     assert "data-select-all>Select all shown</button>" in tab and 'form="chars-bulk" class="primary" data-count>Add 0 to lesson</button>' in tab
-    assert re.search(r'name="chars" value="月"[^>]*>.*?<td>moon, month</td>', tab, re.S) and re.search(r'name="chars" value="啼"[^>]*>.*?<span class="lvl l0">n/a</span>', tab, re.S)
+    assert re.search(r'name="chars" value="月"[^>]*>.*?<td>moon, month</td>', tab, re.S) and re.search(r'name="chars" value="啼"[^>]*>.*?<span class="lvl l7">7–9</span>', tab, re.S)
     r = post(site, "/texts/1/lessons/1/characters/add", chars=["月", "落"])
     assert r.status_code == 200 and r.text.startswith('<div id="tabs"') and 'Characters <span class="muted">2</span>' in r.text
     assert '<tr id="char-月">' in r.text and '<tr id="char-落">' in r.text and r.text.count('name="chars" value="') == 26
@@ -136,9 +136,9 @@ def test_bulk_add_and_filters(site):
     assert re.findall(r'name="chars" value="(.)"', filtered) == low and len(low) > 0 and '<option value="2" selected>2</option>' in filtered
     assert re.findall(r'name="chars" value="(.)"', get(site, "/texts/1/lessons/1/characters", state="mastered", min=1, max=7).text) == ["乌"]
     default = re.findall(r'name="chars" value="(.)"', get(site, "/texts/1/lessons/1/characters").text)
-    assert "乌" not in default and "啼" in default  # default: unconfirmed or exposed, characters not in HSK included
+    assert "乌" not in default and "啼" in default  # default: unconfirmed or exposed; a supplement character has a level like any other
     without = get(site, "/texts/1/lessons/1/characters", min=1, max=7, state="learning").text  # the form sent no `missing`: unticked
-    assert "啼" not in re.findall(r'name="chars" value="(.)"', without) and 'name="missing" value="1">' in without
+    assert 'name="missing" value="1"> include characters not in the dictionary' in without and 'name="missing" value="1" checked>' in get(site, "/texts/1/lessons/1/characters").text
     r = post(site, "/texts/1/lessons/1/characters/add?min=1&max=2&state=any", chars=low)
     assert sorted(lesson(site)["characters"]) == sorted(["月", "落"] + low) and '<option value="2" selected>2</option>' in r.text
     assert 'hx-get="/texts/1/lessons/1/characters" hx-trigger="change" hx-push-url="true"' in r.text
@@ -189,11 +189,15 @@ def test_add_word_in_text_two_step(site):
     assert r.status_code == 200 and "Not an HSK word." in r.text and 'name="pinyin" placeholder="pinyin" value="hán shān sì"' in r.text
     assert '<input type="hidden" name="step" value="2"><input type="hidden" name="surface" value="寒山寺">' in r.text
     assert '<option value="7" selected>7–9</option>' in r.text and '<option value="exposed" selected>' in r.text and 'placeholder="word" value="寒山寺"' in r.text
-    r = post(site, "/texts/1/lessons/1/words/new", surface="寒山寺", step="2", pinyin="", gloss="", hsk_level="7", state="exposed")
-    assert r.status_code == 422 and "a gloss is required" in r.text.split('class="local"')[1].split("</form>")[0] and r.text.count('class="error"') == 1
+    r = post(site, "/texts/1/lessons/1/words/new", surface="寒山寺", step="2", pinyin="", gloss="", hsk_level="9", state="exposed")
+    assert r.status_code == 422 and "level must be 1 to 7, not “9”" in r.text.split('class="local"')[1].split("</form>")[0] and r.text.count('class="error"') == 1
     r = post(site, "/texts/1/lessons/1/words/new", surface="寒山寺", step="2", pinyin="han2 shan1 si4", gloss="Hanshan Temple", hsk_level="7", state="recognized")
     assert r.status_code == 200 and 'Words in text <span class="muted">1/1</span>' in r.text and "Not an HSK word" not in r.text
-    assert facts(site)["words"] == [{"surface": "寒山寺", "pinyin": "hán shān sì", "hsk_level": 7, "gloss": "Hanshan Temple", "origin": "manual"}]
+    assert (site.data / "supplement.tsv").read_text(encoding="utf-8").endswith("寒山寺\thán shān sì\tHanshan Temple\t7\n")  # the supplement entry
+    assert facts(site)["words"] == [{"surface": "寒山寺", "pinyin": None, "gloss": None, "origin": "manual"}]  # linked; nothing contextual
+    assert db.connect(site.db).execute("SELECT word_id FROM text_word WHERE surface = '寒山寺'").fetchone()[0] == 10_000_019
+    row = get(site, "/texts/1/lessons/1/words", show="all").text.split('id="word-寒山寺"')[1].split("</tr>")[0]
+    assert '<td>hán shān sì</td><td><span class="lvl l7">7–9</span></td><td><span class="muted">Hanshan Temple</span></td>' in row
     assert lesson(site)["words"] == ["寒山寺"] and progress.state_of(db.connect(site.db, progress_path=site.progress), "word", "寒山寺") == "recognized"
     shown = get(site, "/texts/1/lessons/1/words", show="included", min=1, max=7).text
     assert '<tr id="word-寒山寺">' in shown and 'value="recognized" class="on"' in shown
@@ -216,11 +220,12 @@ def test_extra_words_two_step_expansions_and_related(site):
     assert r.status_code == 200 and '<span class="zh">月影</span> is not an HSK word.' in r.text and 'placeholder="pinyin" value="yuè yǐng"' in r.text
     local = r.text.split('class="local"')[1].split("</form>")[0]
     assert '<input type="hidden" name="step" value="2"><input type="hidden" name="anchor" value="月"><input type="hidden" name="surface" value="月影">' in local and 'name="state"' in local
-    r = post(site, "/texts/1/lessons/1/expansions/add", anchor="月", surface="月影", step="2", gloss="", hsk_level="6", state="recognized")
-    assert r.status_code == 422 and "a gloss is required" in r.text.split('class="local"')[1] and 'name="step" value="2"' in r.text
+    r = post(site, "/texts/1/lessons/1/expansions/add", anchor="月", surface="月影", step="2", gloss="", hsk_level="9", state="recognized")
+    assert r.status_code == 422 and "level must be 1 to 7, not “9”" in r.text.split('class="local"')[1] and 'name="step" value="2"' in r.text
     r = post(site, "/texts/1/lessons/1/expansions/add", anchor="月", surface="月影", step="2", pinyin="yue4 ying3", gloss="moon shadow", hsk_level="6", state="recognized")
     assert r.status_code == 200 and '<tr id="extra-月-月影">' in r.text and 'name="step"' not in r.text
-    assert lesson(site)["extra_words"][1] == {"anchor": "月", "surface": "月影", "pinyin": "yuè yǐng", "hsk_level": 6, "gloss": "moon shadow", "origin": "manual"}
+    assert lesson(site)["extra_words"][1] == {"anchor": "月", "surface": "月影", "pinyin": "yuè yǐng", "gloss": None, "origin": "manual"}
+    assert (site.data / "supplement.tsv").read_text(encoding="utf-8").endswith("月影\tyuè yǐng\tmoon shadow\t6\n")
     assert re.search(r'<tr id="extra-月-月影">.*?value="recognized" class="on"', r.text, re.S) and re.search(r'<tr id="extra-月-月亮">.*?value="exposed" class="on"', r.text, re.S)
     r = post(site, "/texts/1/lessons/1/expansions/add", anchor="月", surface="太阳")
     assert r.status_code == 422 and "an expansion of “月” must contain it; “太阳” does not" in r.text.split('id="expansions-月"')[1] and 'name="step"' not in r.text
@@ -238,11 +243,11 @@ def test_extra_words_two_step_expansions_and_related(site):
     assert [(e["anchor"], e["surface"]) for e in lesson(site)["extra_words"]] == [(None, "半夜"), ("姑苏", "苏州"), ("月", "月亮"), ("月", "月影")]
     editing = get(site, "/texts/1/lessons/1/expansions", edit="月-月影").text
     form = form_of(editing, "/texts/1/lessons/1/expansions/月影/save")
-    assert 'name="anchor" value="月"' in form and 'name="hsk_level" value="6"' in form and 'value="yuè yǐng"' in form
-    r = post(site, "/texts/1/lessons/1/expansions/月影/save", anchor="月", surface="月影", pinyin="", gloss="shadow of the moon", hsk_level="6")
-    assert r.status_code == 200 and "<td>shadow of the moon</td>" in r.text and lesson(site)["extra_words"][3]["hsk_level"] == 6
-    r = post(site, "/texts/1/lessons/1/expansions/月影/save", anchor="月", surface="月影", pinyin="", gloss="", hsk_level="6")
-    assert r.status_code == 422 and "a gloss is required" in form_of(r.text, "/texts/1/lessons/1/expansions/月影/save")
+    assert 'name="anchor" value="月"' in form and 'name="hsk_level"' not in form and 'value="yuè yǐng"' in form
+    r = post(site, "/texts/1/lessons/1/expansions/月影/save", anchor="月", surface="月影", pinyin="", gloss="shadow of the moon")
+    assert r.status_code == 200 and "<td>shadow of the moon</td>" in r.text and lesson(site)["extra_words"][3]["gloss"] == "shadow of the moon"
+    r = post(site, "/texts/1/lessons/1/expansions/月影/save", anchor="月", surface="月影", pinyin="", gloss="")
+    assert r.status_code == 200 and '<span class="muted">moon shadow</span>' in r.text and lesson(site)["extra_words"][3]["gloss"] is None  # back to the dictionary's
     assert post(site, "/texts/1/lessons/1/expansions/月影/delete", anchor="").status_code == 200 and len(lesson(site)["extra_words"]) == 4  # no such row without the anchor
     r = post(site, "/texts/1/lessons/1/expansions/月影/delete", anchor="月")
     assert '<tr id="extra-月-月影">' not in r.text and len(lesson(site)["extra_words"]) == 3

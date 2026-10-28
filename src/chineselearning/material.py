@@ -1,6 +1,6 @@
 """The one assembled structure every student-facing presentation renders from (design.md, "Modes").
 
-`assemble` joins the body, its stored readings, traditional forms, the master,
+`assemble` joins the body, its stored readings, traditional forms, the dictionary,
 the text facts, optionally one lesson, and the learner's state.
 """
 
@@ -61,7 +61,7 @@ def assemble(conn, text_id, lesson_id=None, learner_id=progress.LEARNER) -> dict
         chars.append({
             "position": i, "char": ch, "han": True,
             "pinyin": r["pinyin"] if r else None, "source": r["origin"] if r else "none", "traditional": trad[i],
-            "hsk_level": f.get("hsk_level") or m.get("hsk_level"), "hsk_edition": m.get("hsk_edition"),
+            "hsk_level": m.get("hsk_level"), "hsk_edition": m.get("hsk_edition"),
             "gloss": f.get("gloss") or m.get("gloss"), "in_master": m["found"],
             **{k: m.get(k) for k in ITEM_COLUMNS},
             "study": ch in selected, "state": state("character", ch),
@@ -73,7 +73,7 @@ def assemble(conn, text_id, lesson_id=None, learner_id=progress.LEARNER) -> dict
 
     def word(w):
         return {"surface": w["surface"], "pinyin": w["pinyin"], "hsk_level": w["hsk_level"], "gloss": w["gloss"],
-                "meanings": w["meanings"][:3], "linked": w["word_id"] is not None, "state": state("word", w["surface"])}
+                "meanings": w["meanings"][:3], "state": state("word", w["surface"])}
 
     words = [dict(word(w), spans=spans_of(body, w["surface"])) for w in facts["words"] if lesson is None or w["surface"] in lesson["words"]]
     han = [c for c in chars if c["han"]]

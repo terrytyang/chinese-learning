@@ -1,7 +1,6 @@
 """The text facts file data/annotations/<text id>.json: export, write-through, and import on build.
 
-The file is the source of truth; it stores surfaces, never word ids, and `hsk_level`
-on words only for rows that are not linked to the master.
+The file is the source of truth; it stores surfaces, never word ids.
 """
 
 import json
@@ -13,22 +12,14 @@ from .annotations import AnnotationError
 KINDS = ("readings", "characters", "words")
 
 
-def unlinked_level(row) -> dict:
-    """Drop word_id; keep hsk_level only when the row is not linked."""
-    row = dict(row)
-    if row.pop("word_id") is not None:
-        del row["hsk_level"]
-    return row
-
-
 def export(conn, text_id) -> dict:
     """File content: keys in documented order, readings by position, characters by char, words by surface."""
     rows = lambda sql: [dict(r) for r in conn.execute(sql, (text_id,))]  # noqa: E731
     return {
         "text_id": text_id,
         "readings": rows("SELECT position, char, pinyin, origin FROM text_reading WHERE text_id = ? ORDER BY position"),
-        "characters": rows("SELECT char, hsk_level, gloss, origin FROM text_character WHERE text_id = ? ORDER BY char"),
-        "words": [unlinked_level(r) for r in rows("SELECT surface, pinyin, hsk_level, gloss, origin, word_id FROM text_word WHERE text_id = ? ORDER BY surface")],
+        "characters": rows("SELECT char, gloss, origin FROM text_character WHERE text_id = ? ORDER BY char"),
+        "words": rows("SELECT surface, pinyin, gloss, origin FROM text_word WHERE text_id = ? ORDER BY surface"),
     }
 
 
@@ -61,9 +52,9 @@ def import_all(conn, data_dir):
             for r in data.get("readings", []):
                 annotations.set_reading(conn, text_id, r["position"], r["char"], r["pinyin"], r.get("origin", "manual"))
             for c in data.get("characters", []):
-                annotations.add_character(conn, text_id, c["char"], c.get("gloss"), c.get("hsk_level"), c.get("origin", "manual"))
+                annotations.add_character(conn, text_id, c["char"], c.get("gloss"), c.get("origin", "manual"))
             for w in data.get("words", []):
-                annotations.add_word(conn, text_id, w["surface"], w.get("gloss"), w.get("pinyin"), w.get("origin", "manual"), w.get("hsk_level"))
+                annotations.add_word(conn, text_id, w["surface"], w.get("gloss"), w.get("pinyin"), w.get("origin", "manual"))
         except AnnotationError as e:
             raise AnnotationError(f"{path}: {e}") from None
         except KeyError as e:

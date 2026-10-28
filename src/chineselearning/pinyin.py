@@ -1,4 +1,4 @@
-"""Pinyin helpers: numbered pinyin to tone marks, and a pypinyin reading for a character the master lacks."""
+"""Pinyin helpers: numbered pinyin to tone marks, and pypinyin's readings for a supplement character."""
 
 import re
 
@@ -32,7 +32,6 @@ def to_marks(text):
     return NUMBERED.sub(_mark, text) if text else text
 
 
-def guess(char) -> str | None:
-    """pypinyin's reading of a character absent from the master, or None when it has none either."""
-    reading = _pinyin(char, style=Style.TONE)[0][0]
-    return reading if reading != char else None
+def readings_of(char) -> list[str]:
+    """pypinyin's readings of a character, most common first; empty when it has none."""
+    return [r for r in _pinyin(char, style=Style.TONE, heteronym=True)[0] if r != char]

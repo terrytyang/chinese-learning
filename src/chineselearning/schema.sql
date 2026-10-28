@@ -27,24 +27,21 @@ CREATE TABLE text_reading (       -- the reading of every Han position; char mus
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
   PRIMARY KEY (text_id, position)
 );
-CREATE TABLE text_character (     -- facts about a character the master lacks or this text uses unusually
+CREATE TABLE text_character (     -- a character this text uses unusually: a contextual gloss beside the dictionary's
   text_id INTEGER NOT NULL REFERENCES text(id) ON DELETE CASCADE,
   char TEXT NOT NULL,                -- its reading is its text_reading rows
-  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),
   gloss TEXT,
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
   PRIMARY KEY (text_id, char)
 );
-CREATE TABLE text_word (          -- a word present in the text; word_id null = local word
+CREATE TABLE text_word (          -- a word present in the text; always a dictionary row (HSK or supplement)
   text_id INTEGER NOT NULL REFERENCES text(id) ON DELETE CASCADE,
   surface TEXT NOT NULL,
-  word_id INTEGER REFERENCES word(id),
-  pinyin TEXT,                     -- a local word's reading, or a contextual correction of a linked word's
-  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),  -- local words only; null when linked
-  gloss TEXT,
+  word_id INTEGER NOT NULL REFERENCES word(id),
+  pinyin TEXT,                     -- a contextual correction of the dictionary's reading
+  gloss TEXT,                      -- a contextual gloss beside the dictionary's
   origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
-  PRIMARY KEY (text_id, surface),
-  CHECK (word_id IS NOT NULL OR gloss IS NOT NULL)
+  PRIMARY KEY (text_id, surface)
 );
 
 -- Lessons: additive layers over a text (data/lessons/<text id>-<lesson id>.json). Ids are fixed by the file.
@@ -68,12 +65,10 @@ CREATE TABLE lesson_extra_word (  -- a word the lesson teaches that the text doe
   lesson_id INTEGER NOT NULL REFERENCES lesson(id) ON DELETE CASCADE,
   surface TEXT NOT NULL,
   anchor TEXT,                     -- a passage of the text it relates to; one character = an expansion (月 -> 月亮)
-  word_id INTEGER REFERENCES word(id),
-  pinyin TEXT,                     -- prefilled from the master or the characters' readings
-  hsk_level INTEGER CHECK (1 <= hsk_level AND hsk_level <= 7),  -- unlinked words only
-  gloss TEXT,
-  origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual')),
-  CHECK (word_id IS NOT NULL OR gloss IS NOT NULL)
+  word_id INTEGER NOT NULL REFERENCES word(id),
+  pinyin TEXT,                     -- prefilled from the dictionary
+  gloss TEXT,                      -- a contextual gloss beside the dictionary's
+  origin TEXT NOT NULL CHECK (origin IN ('auto', 'suggested', 'manual'))
 );
 -- The key is (lesson, surface, anchor or ''); SQLite forbids expressions in a PRIMARY KEY, so it is a unique index.
 CREATE UNIQUE INDEX lesson_extra_word_key ON lesson_extra_word (lesson_id, surface, coalesce(anchor, ''));

@@ -2,10 +2,10 @@
 
 from fastapi import Depends, Form, Request
 
-from .. import annotations, lessons, progress
+from .. import annotations, lessons, progress, supplement
 from .. import pinyin as pinyin_
 from . import rows
-from .common import filters_of, in_master, level_bounds, select_word
+from .common import filters_of, in_dictionary, level_bounds, select_word
 
 DEFAULTS = {"show": "unreviewed", "min": "1", "max": "7"}
 SHOW_OPTIONS = (("all", "all"), ("unreviewed", "not yet reviewed (auto / suggested)"), ("included", "in this lesson"), ("excluded", "not in this lesson"))
@@ -63,11 +63,11 @@ def routes(r, admin, connection):
         return tab(request, conn, text_id, lesson, change, "shown")
 
     @r.post(PATH + "/{word}/save")
-    def save(request: Request, text_id: int, lesson_id: int, word: str, pinyin: str = Form(""), gloss: str = Form(""), hsk_level: str = Form(""), conn=Depends(connection)):
-        """Inline edit of pinyin and gloss; the master's own reading, left as it was, is not stored as an override."""
+    def save(request: Request, text_id: int, lesson_id: int, word: str, pinyin: str = Form(""), gloss: str = Form(""), conn=Depends(connection)):
+        """Inline edit of pinyin and gloss; the dictionary's own reading, left as it was, is not stored as an override."""
         lesson = admin.lesson(conn, text_id, lesson_id)
         master = conn.execute("SELECT w.pinyin FROM text_word t JOIN word w ON w.id = t.word_id WHERE t.text_id = ? AND t.surface = ?", (text_id, word)).fetchone()
-        fields = {"pinyin": "" if master and pinyin_.to_marks(pinyin.strip()) == master[0] else pinyin, "gloss": gloss, "hsk_level": hsk_level}
+        fields = {"pinyin": "" if master and pinyin_.to_marks(pinyin.strip()) == master[0] else pinyin, "gloss": gloss}
         change = lambda: annotations.update(conn, text_id, "words", (word,), fields)  # noqa: E731
         return tab(request, conn, text_id, lesson, change, f"edit:{word}", fields, editing=word)
 
@@ -82,18 +82,21 @@ def routes(r, admin, connection):
         request: Request, text_id: int, lesson_id: int, surface: str = Form(""), pinyin: str = Form(""), gloss: str = Form(""),
         hsk_level: str = Form(""), state: str = Form(""), step: str = Form(""), conn=Depends(connection),
     ):
-        """Look up: a master word is added and selected at once; any other word of the text gets the second form (step 2)."""
+        """Look up: a dictionary word is added and selected at once; any other word of the text gets the second form (step 2),
+        whose pinyin, gloss and level make its supplement entry."""
         lesson = admin.lesson(conn, text_id, lesson_id)
         word, local = surface.strip(), step == "2"
         form = "new-local" if local else "new"
         submitted = {"surface": surface, "pinyin": pinyin, "gloss": gloss, "hsk_level": hsk_level, "state": state}
         body = admin.text(conn, text_id)["body"]
-        if not local and len(word) > 1 and word in body and not in_master(conn, word):
+        if not local and len(word) > 1 and word in body and not in_dictionary(conn, word):
             pending = {"surface": word, "pinyin": rows.prefill_pinyin(conn, text_id, word)}
             return admin.tab(request, conn, text_id, lesson, "words", pending=pending, submitted={"form": "new", **submitted})
 
         def change():
-            annotations.add_word(conn, text_id, surface, gloss if local else None, pinyin if local else None, hsk_level=hsk_level if local else None)
+            if local and not in_dictionary(conn, word):
+                supplement.add(conn, admin.data_dir, word, pinyin, gloss, hsk_level)
+            annotations.add_word(conn, text_id, surface)
             select_word(conn, lesson_id, word)
             if local and state and state != "unconfirmed":
                 progress.set_state(conn, "word", word, state)

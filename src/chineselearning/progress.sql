@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS progress.learner (
 CREATE TABLE IF NOT EXISTS progress.progress (
   learner_id INTEGER NOT NULL REFERENCES learner(id),
   kind TEXT NOT NULL CHECK (kind IN ('character', 'word')),
-  key TEXT NOT NULL,                -- the character itself, or the word string (local words too)
+  key TEXT NOT NULL,                -- the character itself, or the word string (never a single character)
   state TEXT NOT NULL CHECK (state IN ('exposed', 'recognized', 'mastered')),
   changed_at TEXT NOT NULL,         -- ISO 8601 UTC
   PRIMARY KEY (learner_id, kind, key)

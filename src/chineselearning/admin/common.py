@@ -12,10 +12,11 @@ from fastapi.responses import HTMLResponse
 from .. import annotation_files, db, lesson_files, lessons, progress
 from ..annotations import AnnotationError
 from ..progress import ProgressError
+from ..supplement import SupplementError
 from ..texts import TextFileError
 
 TABS = {"characters": "Characters", "words": "Words in text", "expansions": "Expansions", "related": "Related words", "notes": "Notes"}
-ERRORS = (AnnotationError, ProgressError, TextFileError)
+ERRORS = (AnnotationError, ProgressError, SupplementError, TextFileError)
 TAB_STATE = {"error": None, "submitted": {}, "editing": None, "pending": None, "q": ""}
 
 
@@ -40,8 +41,9 @@ def level_bounds(filters) -> tuple[int, int]:
     return (int(lo) if lo.isdigit() else 1, int(hi) if hi.isdigit() else 7)
 
 
-def in_master(conn, surface) -> bool:
-    return conn.execute("SELECT 1 FROM word WHERE simplified = ?", (surface,)).fetchone() is not None
+def in_dictionary(conn, surface) -> bool:
+    """Whether the word has a dictionary row, HSK or supplement; any other word gets the second form."""
+    return db.lookup_word(conn, surface) is not None
 
 
 def select_character(conn, lesson_id, char):

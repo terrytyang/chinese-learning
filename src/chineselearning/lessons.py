@@ -4,7 +4,7 @@
 """
 
 from . import pinyin as pinyin_
-from .annotations import MASTER, AnnotationError, body_of, char_in, clean, decode_master, level_of, origin_of, resolve_word, word_surface
+from .annotations import MASTER, AnnotationError, body_of, char_in, clean, decode_master, origin_of, resolve_word, word_surface
 
 TABLES = {
     "characters": ("lesson_character", "char = ?"),
@@ -93,30 +93,27 @@ def extra_key(anchor, surface) -> str:
 
 
 def characters_pinyin(conn, surface) -> str:
-    """A word's reading from its characters' primary readings; every character must be in the master."""
+    """A word's reading from its characters' primary readings; every character must be in the dictionary."""
     primary = dict(conn.execute(f"SELECT char, pinyin FROM character WHERE char IN ({','.join('?' * len(surface))})", list(surface)).fetchall())
     if any(ch not in primary for ch in surface):
-        raise AnnotationError(f"“{surface}” contains a character the master lacks; a pinyin is required")
+        raise AnnotationError(f"“{surface}” contains a character the dictionary lacks; a pinyin is required")
     return " ".join(primary[ch] for ch in surface)
 
 
-def add_extra_word(conn, lesson_id, surface, anchor=None, gloss=None, pinyin=None, origin="manual", hsk_level=None, replace=False):
-    """A word the lesson teaches beyond the text. `anchor`, when given, is a passage of the text; a one-character anchor
-    makes it an expansion, which must contain that character. Pinyin is prefilled from the master or the characters'
-    readings; an unlinked word needs a gloss and gets a level (default 7)."""
+def add_extra_word(conn, lesson_id, surface, anchor=None, gloss=None, pinyin=None, origin="manual", replace=False):
+    """A word the lesson teaches beyond the text, linked to its dictionary row. `anchor`, when given, is a passage of the
+    text; a one-character anchor makes it an expansion, which must contain that character. Pinyin is prefilled from the
+    dictionary; `gloss` is contextual."""
     body = body_of(conn, _require(conn, lesson_id)["text_id"])
     surface, anchor, gloss, pinyin = word_surface(surface), clean(anchor), clean(gloss), pinyin_.to_marks(clean(pinyin))
     if anchor and anchor not in body:
         raise AnnotationError(f"“{anchor}” does not occur in the text")
     if kind_of(anchor) == "expansion" and anchor not in surface:
         raise AnnotationError(f"an expansion of “{anchor}” must contain it; “{surface}” does not")
-    word_id, level = resolve_word(conn, surface, gloss), level_of(hsk_level)
-    if word_id is not None:
-        pinyin, level = pinyin or conn.execute("SELECT pinyin FROM word WHERE id = ?", (word_id,)).fetchone()[0], None
-    else:
-        pinyin, level = pinyin or characters_pinyin(conn, surface), level or 7
-    sql = f"INSERT OR {'REPLACE' if replace else 'IGNORE'} INTO lesson_extra_word (lesson_id, surface, anchor, word_id, pinyin, hsk_level, gloss, origin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-    conn.execute(sql, (lesson_id, surface, anchor, word_id, pinyin, level, gloss, origin_of(origin)))
+    word_id = resolve_word(conn, surface)
+    pinyin = pinyin or conn.execute("SELECT pinyin FROM word WHERE id = ?", (word_id,)).fetchone()[0]
+    sql = f"INSERT OR {'REPLACE' if replace else 'IGNORE'} INTO lesson_extra_word (lesson_id, surface, anchor, word_id, pinyin, gloss, origin) VALUES (?, ?, ?, ?, ?, ?, ?)"
+    conn.execute(sql, (lesson_id, surface, anchor, word_id, pinyin, gloss, origin_of(origin)))
 
 
 def add_note(conn, lesson_id, note, anchor=None, origin="manual") -> int:
@@ -150,7 +147,7 @@ def update(conn, lesson_id, kind, key, fields):
         raise AnnotationError("no such entry")
     if kind == "extra_words":  # the surface is part of the key: delete and re-add in this transaction
         remove(conn, lesson_id, kind, *key)
-        add_extra_word(conn, lesson_id, fields.get("surface"), key[1] or None, fields.get("gloss"), fields.get("pinyin"), "manual", fields.get("hsk_level"), replace=True)
+        add_extra_word(conn, lesson_id, fields.get("surface"), key[1] or None, fields.get("gloss"), fields.get("pinyin"), "manual", replace=True)
     else:
         body = body_of(conn, _require(conn, lesson_id)["text_id"])
         note, anchor = clean(fields.get("note")), clean(fields.get("anchor"))
@@ -164,16 +161,16 @@ def update(conn, lesson_id, kind, key, fields):
 # --- read ------------------------------------------------------------------
 
 def load(conn, lesson_id) -> dict:
-    """The lesson's content for pages, in body order; characters carry the text fact and master gloss/level, extra words their kind."""
+    """The lesson's content for pages, in body order; characters carry the text's or the dictionary's gloss and the level, extra words their kind."""
     lesson = _require(conn, lesson_id)
     body = body_of(conn, lesson["text_id"])
     position = lambda s: body.find(s) if s else len(body)  # noqa: E731
     rows = lambda sql, *args: [dict(r) for r in conn.execute(sql, args)]  # noqa: E731
     characters = rows(
-        "SELECT l.char, coalesce(f.gloss, c.gloss) AS gloss, coalesce(f.hsk_level, c.hsk_level) AS hsk_level FROM lesson_character l"
+        "SELECT l.char, coalesce(f.gloss, c.gloss) AS gloss, c.hsk_level FROM lesson_character l"
         " LEFT JOIN text_character f ON f.text_id = ? AND f.char = l.char LEFT JOIN character c ON c.char = l.char WHERE l.lesson_id = ?",
         lesson["text_id"], lesson_id)
-    extra = rows(f"SELECT t.surface, t.anchor, t.word_id, coalesce(t.pinyin, w.pinyin) AS pinyin, t.gloss, t.origin, {MASTER} FROM lesson_extra_word t LEFT JOIN word w ON w.id = t.word_id WHERE t.lesson_id = ?", lesson_id)
+    extra = rows(f"SELECT t.surface, t.anchor, t.word_id, coalesce(t.pinyin, w.pinyin) AS pinyin, t.gloss, t.origin, {MASTER} FROM lesson_extra_word t JOIN word w ON w.id = t.word_id WHERE t.lesson_id = ?", lesson_id)
     for r in extra:
         decode_master(r)
         r["kind"] = kind_of(r["anchor"])

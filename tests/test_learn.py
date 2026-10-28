@@ -2,7 +2,7 @@
 
 import re
 
-from chineselearning import annotations, db, lessons, material, progress
+from chineselearning import annotations, db, lessons, material, progress, supplement
 from chineselearning.intake import intake
 
 
@@ -19,26 +19,30 @@ def test_assemble_text_1_without_and_with_a_lesson(site):
     yue = m["chars"][0]
     assert (yue["pinyin"], yue["source"], yue["traditional"], yue["hsk_level"], yue["gloss"], yue["in_master"], yue["study"]) == (None, "none", "月", 1, "moon, month", True, False)
     assert (yue["meanings"][:2], yue["pos"], yue["word_level"], yue["alt_readings"]) == (["moon", "month"], "n,t", 1, []) and isinstance(yue["frequency_rank"], int)
-    assert {k: m["chars"][3][k] for k in ("char", "meanings", "pos", "word_level", "frequency_rank")} == {"char": "啼", "meanings": None, "pos": None, "word_level": None, "frequency_rank": None}
+    ti = m["chars"][3]
+    assert {k: ti[k] for k in ("char", "meanings", "pos", "word_level", "frequency_rank")} == {"char": "啼", "meanings": [], "pos": None, "word_level": None, "frequency_rank": None}
+    assert (ti["hsk_level"], ti["hsk_edition"], ti["gloss"], ti["in_master"]) == (7, "none", "cry, crow (of birds), weep", True)  # a supplement character
     intake(conn, 1, site.data)
-    annotations.set_reading(conn, 1, 3, "啼", "tì")
+    supplement.add(conn, site.data, "寒山寺", "", "Hanshan Temple", "")
+    supplement.add(conn, site.data, "苏州", "", "Suzhou", "")
+    annotations.set_reading(conn, 1, 3, "啼", "ti2")  # the supplement's reading list allows tí alone
     annotations.update(conn, 1, "characters", ("啼",), {"gloss": "鸟叫"})
     annotations.add_word(conn, 1, "寒山寺", gloss="苏州的寺")
     lesson_id = lessons.for_text(conn, 1)[0]["id"]
     lessons.add_word(conn, lesson_id, "寒山寺")
     lessons.add_extra_word(conn, lesson_id, "月亮", "月")
-    lessons.add_extra_word(conn, lesson_id, "苏州", "姑苏", gloss="Suzhou")
+    lessons.add_extra_word(conn, lesson_id, "苏州", "姑苏")
     lessons.add_note(conn, lesson_id, "首句写景", "月落乌啼")
     plain, with_lesson = material.assemble(conn, 1), material.assemble(conn, 1, lesson_id)
     assert plain["chars"][0]["pinyin"] == "yuè" and plain["chars"][0]["source"] == "auto"
     ti = next(c for c in with_lesson["chars"] if c["char"] == "啼")
-    assert (ti["pinyin"], ti["source"], ti["in_master"], ti["study"], ti["gloss"], ti["state"]) == ("tì", "manual", False, True, "鸟叫", "exposed")
+    assert (ti["pinyin"], ti["source"], ti["in_master"], ti["study"], ti["gloss"], ti["state"]) == ("tí", "manual", True, True, "鸟叫", "exposed")
     assert plain["chars"][3]["study"] is False and [w["surface"] for w in plain["words"]] == ["寒山寺"] and plain["highlight"][0]["surface"] == "寒山寺"
     start = db.get_text(conn, 1)["body"].index("寒山寺")
     assert with_lesson["lesson"] == {"id": lesson_id, "name": "Learn 枫桥夜泊"} and with_lesson["words"][0]["spans"] == [[start, start + 3]]
-    assert len(with_lesson["study"]) == 28 and with_lesson["study"][3] == {"char": "啼", "pinyin": "tì", "gloss": "鸟叫", "hsk_level": None, "state": "exposed"}
+    assert len(with_lesson["study"]) == 28 and with_lesson["study"][3] == {"char": "啼", "pinyin": "tí", "gloss": "鸟叫", "hsk_level": 7, "state": "exposed"}
     extra = with_lesson["extra_words"]
-    assert [(e["surface"], e["anchor"], e["kind"], e["linked"], e["pinyin"]) for e in extra] == [("月亮", "月", "expansion", True, "yuè liang"), ("苏州", "姑苏", "related", False, "sū zhōu")]
+    assert [(e["surface"], e["anchor"], e["kind"], e["pinyin"], e["hsk_level"], e["meanings"]) for e in extra] == [("月亮", "月", "expansion", "yuè liang", 3, ["the moon"]), ("苏州", "姑苏", "related", "sū zhōu", 7, ["Suzhou"])]
     assert with_lesson["notes"] == [{"anchor": "月落乌啼", "note": "首句写景"}]
     lessons.remove(conn, lesson_id, "words", "寒山寺")
     assert material.assemble(conn, 1, lesson_id)["words"] == [] and material.assemble(conn, 1)["words"] != []
@@ -70,14 +74,16 @@ def reader_body(html):
 
 def test_reader_toggles_on_text_and_lesson(site):
     plain = site.client.get("/learn/1").text
-    assert '<span class="c lvl-1 state-unconfirmed">月</span>' in plain and '<span class="c lvl-0 state-unconfirmed">啼</span>' in plain
-    intake(connect(site), 1, site.data)
+    assert '<span class="c lvl-1 state-unconfirmed">月</span>' in plain and '<span class="c lvl-7 state-unconfirmed">啼</span>' in plain
+    conn = connect(site)
+    intake(conn, 1, site.data)
+    annotations.update(conn, 1, "characters", ("愁",), {"gloss": "忧愁"})
+    conn.commit()
     assert site.client.post("/texts/1/lessons/1/words/new", data={"surface": "寒山寺", "step": "2", "gloss": "苏州的寺", "hsk_level": "7"}).status_code == 200
-    assert site.client.post("/texts/1/lessons/1/characters/愁/facts", data={"gloss": "忧愁"}).status_code == 200
     assert site.client.post("/texts/1/lessons/1/expansions/add", data={"anchor": "月", "surface": "月亮"}).status_code == 200
     assert site.client.post("/texts/1/lessons/1/related/add", data={"anchor": "姑苏", "surface": "苏州", "step": "2", "gloss": "Suzhou"}).status_code == 200
     plain = site.client.get("/learn/1").text
-    assert '<span class="c lvl-1 state-exposed">月</span>' in plain and '<span class="c lvl-0 state-exposed">啼</span>' in plain
+    assert '<span class="c lvl-1 state-exposed">月</span>' in plain and '<span class="c lvl-7 state-exposed">啼</span>' in plain
     assert "study" not in reader_body(plain) and "<h2>Characters</h2>" not in plain and "<ruby>" not in plain and 'class="reader tint-none"' in plain
     level = connect(site).execute("SELECT hsk_level FROM character WHERE char = '愁'").fetchone()[0]
     with_lesson = site.client.get("/learn/1/1").text
@@ -90,7 +96,7 @@ def test_reader_toggles_on_text_and_lesson(site):
     trad = site.client.get("/learn/1", params={"traditional": 1}).text
     assert "烏" in reader_body(trad) and "乌" not in reader_body(trad)
     glossed = site.client.get("/learn/1", params={"gloss": 1}).text
-    assert 'data-gloss="moon, month">月</span>' in glossed and 'data-gloss="忧愁">愁</span>' in glossed
+    assert 'data-gloss="moon, month">月</span>' in glossed and 'data-gloss="忧愁">愁</span>' in glossed and 'data-gloss="cry, crow (of birds), weep">啼</span>' in glossed
     for path in ("/learn/1", "/learn/1/1"):
         words = site.client.get(path, params={"words": 1}).text
         assert '<span class="w" data-gloss="苏州的寺"><span class="c lvl-' in words and '<td class="word">寒山寺</td>' in words and "<h2>Words</h2>" in words
