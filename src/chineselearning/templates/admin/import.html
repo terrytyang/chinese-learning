@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% from "admin/nav.html" import nav %}
+{% block title %}Import a text{% endblock %}
+{% block nav %}{{ nav("texts") }}{% endblock %}
+{% block content %}
+<div class="import">
+  <h1>Import a text</h1>
+  <p class="muted intro">Writes <code>data/texts/&lt;next id&gt;-&lt;title&gt;.md</code> and runs intake; the confirmation links to the text's admin page. The file is the source; edit it there afterwards if needed.</p>
+  {% include "admin/import_form.html" %}
+  <div class="card">
+    <div class="sec" style="margin-top: 0">Will be written as</div>
+    {% include "admin/import_preview.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-"""Command line: `build`, `serve`, `intake`, `import-progress`, `export-progress` and `init`."""
+"""Command line: `build`, `serve`, `intake` (with `--new`, `--force`, `--reset`), `import-progress`, `export-progress` and `init`."""
 
 import argparse
 import os
@@ -33,10 +33,13 @@ def build_command(db_path=DEFAULT_DB):
     print(f"{entries} supplement entries, {unglossed} without a gloss")
 
 
-def intake_command(db_path, data_dir, progress_path, text_id=None, new=False, force=False):
+def intake_command(db_path, data_dir, progress_path, text_id=None, new=False, force=False, reset=False):
     from .intake import intake, new_texts
 
     conn = db.connect(db_path, progress_path=progress_path)
+    if reset and not reset_text(conn, text_id, data_dir):
+        conn.close()
+        return
     ids = new_texts(conn) if new else [text_id]
     if not ids:
         print("nothing to intake: every text has facts or a lesson")
@@ -47,6 +50,23 @@ def intake_command(db_path, data_dir, progress_path, text_id=None, new=False, fo
             fail("intake", e)
         print(f"text {text_id}: " + ", ".join(f"{k} {v}" for k, v in counts.items()))
     conn.close()
+
+
+def reset_text(conn, text_id, data_dir) -> bool:
+    """`intake --reset`: say what goes, ask for the text id, delete; False when the answer was anything else."""
+    from .intake import FACT_TABLES, reset, reset_plan
+
+    try:
+        plan = reset_plan(conn, text_id, data_dir)
+    except AnnotationError as e:
+        fail("intake", e)
+    print(f"text {text_id}: deleting " + ", ".join(f"{plan[t]} {t}" for t in FACT_TABLES) + f", {plan['lessons']} lessons")
+    print("files: " + (", ".join(str(p) for p in plan["files"]) or "none"))
+    if input(f"type {text_id} to confirm: ").strip() != str(text_id):
+        print("aborted, nothing changed")
+        return False
+    reset(conn, text_id, data_dir)
+    return True
 
 
 def import_command(files=(), check=False, learner_id=progress.LEARNER):
@@ -81,6 +101,7 @@ def main(argv=None):
     intake.add_argument("text_id", type=int, nargs="?")
     intake.add_argument("--new", action="store_true", help="every text with no facts and no lesson, instead of one text id")
     intake.add_argument("--force", action="store_true", help="redo the auto rows even if the text already has annotations")
+    intake.add_argument("--reset", action="store_true", help="delete the text's facts, lessons and their files (after confirmation) and intake it again")
     intake.add_argument("--db", default=DEFAULT_DB)
     intake.add_argument("--data", default=DATA_DIR)
     intake.add_argument("--progress", default=DEFAULT_PROGRESS, help="learner database; recognized and mastered items stay out of the default lesson")
@@ -105,7 +126,9 @@ def main(argv=None):
     elif args.command == "intake":
         if args.new == (args.text_id is not None):
             intake.error("give one text id, or --new for every text with no facts and no lesson")
-        intake_command(args.db, args.data, args.progress, args.text_id, args.new, args.force)
+        if args.reset and (args.new or args.force):
+            intake.error("--reset takes one text id, without --new or --force")
+        intake_command(args.db, args.data, args.progress, args.text_id, args.new, args.force, args.reset)
     elif args.command == "import-progress":
         import_command(args.files, args.check, args.learner)
     elif args.command == "export-progress":

@@ -1,7 +1,10 @@
 # Development environment
 
-All development happens inside a container so that nothing is installed on the
-Mac. VS Code owns the container; any Mac terminal can attach to it.
+This is how the owner runs the project on the Mac: inside a container, so that
+nothing is installed locally. VS Code owns the container; any Mac terminal can
+attach to it. It is not a requirement: a plain checkout (`uv sync --locked`,
+then the `uv run …` commands in `CLAUDE.md`) and Claude Code cloud sessions run
+the same code the same way.
 
 ## Day to day
 
@@ -45,7 +48,8 @@ separate images from the same Dockerfile; the layer cache is shared.
   points at it so the `.claude.json` account file lands there too. Deleting the
   volume signs you out.
 - Compose keeps its own `.venv` and uv cache in named volumes.
-- `hsk-original/` is mounted read-only under Compose.
+- `hsk-original/` is mounted read-only under Compose; elsewhere nothing guards it
+  but the rule that it is never written.
 
 ## Updating tools
 

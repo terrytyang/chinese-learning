@@ -73,7 +73,9 @@ def set_reading(conn, text_id, position, char, pinyin, origin="manual"):
         raise AnnotationError(f"position {position} is “{body[position]}”, not “{char}”; re-run intake")
     row = conn.execute("SELECT readings FROM character WHERE char = ?", (char,)).fetchone()
     allowed = json.loads(row[0]) if row else None
-    if allowed and pinyin not in allowed:
+    # A reading from a dictionary word or a file may be the neutral-tone form of a listed one (地上 gives 上 "shang"); a typed one may not.
+    neutral = origin != "manual" and pinyin and pinyin == pinyin_.toneless(pinyin) and pinyin in map(pinyin_.toneless, allowed or [])
+    if allowed and pinyin not in allowed and not neutral:
         raise AnnotationError(f"the reading of “{char}” must be one of {', '.join(allowed)}")
     if not pinyin:
         raise AnnotationError(f"a reading for “{char}” is required")

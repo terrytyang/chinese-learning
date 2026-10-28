@@ -1,0 +1,19 @@
+{# The form card; after an import, the confirmation card sits above an empty form and the preview follows out of band. #}
+<div id="import">
+{% if done %}
+  <div class="card done">Written <code>{{ done.file }}</code> · intake: {{ done.characters }} characters, {{ done.words }} words · <a href="/texts/{{ done.id }}">Open <span class="zh">{{ done.title }}</span> →</a></div>
+{% endif %}
+  <form class="card" hx-post="/texts/import/preview" hx-trigger="input delay:300ms" hx-target="#preview" hx-swap="outerHTML">
+    {% if error %}<p class="error">{{ error }}</p>{% endif %}
+    {% if missing %}<p class="error">characters not in the dictionary: {{ missing | join(", ") }} — <a href="/dictionary">add them there</a>, then import again</p>{% endif %}
+    <div class="grid">
+      <label>Title <input class="zh" name="title" value="{{ fields.title }}" placeholder="静夜思"></label>
+      <label>Author <input class="zh" name="author" value="{{ fields.author }}" placeholder="李白"></label>
+      <label>Period <input class="zh" name="period" value="{{ fields.period }}" placeholder="唐朝"></label>
+    </div>
+    <label>Tags <input class="zh" name="tags" value="{{ fields.tags }}" placeholder="诗词, 节选 — comma separated; new names are created"></label>
+    <label>Body <textarea class="zh" name="body" rows="8" placeholder="床前明月光，疑是地上霜。&#10;举头望明月，低头思故乡。">{{ fields.body }}</textarea></label>
+    <button type="submit" class="primary" hx-post="/texts/import" hx-target="#import" hx-swap="outerHTML">Import</button>
+  </form>
+</div>
+{% if oob_preview %}{% include "admin/import_preview.html" %}{% endif %}

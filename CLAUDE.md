@@ -1,7 +1,8 @@
 # chineselearning
 
 Private Chinese learning/teaching app: one parent (admin, native speaker) teaching one
-student. Runs only inside the dev container, never on the internet. Read
+student. Runs locally, never on the internet: the owner's dev container (`bin/dev`), a
+plain checkout, or a Claude Code cloud session, all with the same `uv run …` commands. Read
 `docs/design.md` before touching the data model or routes; work from the brief in
 `docs/briefs/` that the owner points you at, and nothing beyond it.
 
@@ -10,7 +11,7 @@ student. Runs only inside the dev container, never on the internet. Read
 - `uv sync --locked` — install (runs automatically on container create)
 - `uv run pytest -q` — tests
 - `uv run chineselearning build` — rebuild `build/content.sqlite` from `data/`; always overwrites
-- `uv run chineselearning intake --new | <text id> [--force]` — facts and default lesson for texts
+- `uv run chineselearning intake --new | <text id> [--force] | --reset <id>` — facts and default lesson for texts
 - `uv run chineselearning import-progress [--check]` / `export-progress` — learner state ↔ `data/`
 - `uv run chineselearning init [--fresh]` — day-0: build, import-progress, intake --new
 - `uv run chineselearning serve` — dev server on 0.0.0.0:8000
@@ -18,7 +19,7 @@ student. Runs only inside the dev container, never on the internet. Read
 
 ## Layout
 
-- `hsk-original/` — reference dataset. Read-only. The app never opens it.
+- `hsk-original/` — reference dataset. Never written; the app never opens it.
 - `tools/` — one-off derivation scripts (may use pypinyin)
 - `data/` — source-controlled content: `hsk.sql` (generated), `supplement.tsv`, `character-gloss.tsv`
   (curated, applied at build), `texts/*.md` (hand-written), `annotations/`, `lessons/` (written by the app),
@@ -60,3 +61,8 @@ student. Runs only inside the dev container, never on the internet. Read
   design as if word matching will do most of the work.
 - Pages are a shell plus htmx fragments: a mutation returns the fragment it
   changed, never a redirect; state that selects a view lives in the URL.
+- `hsk-original/` is never written. The read-only mount guards it only under
+  Compose; everywhere else this rule does.
+- Tests derive expected counts from the data files (the `baseline` fixture):
+  nothing asserts the size of a curated file, and a test that needs a word the
+  dictionary lacks takes one from the `probe` fixture.

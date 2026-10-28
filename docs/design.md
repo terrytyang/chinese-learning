@@ -164,7 +164,8 @@ to re-ignore on every view. Intake refuses to run on a text that already has
 facts or lessons unless forced, and forcing redoes only `auto` rows; `build`
 never runs it. A character the dictionary lacks is an error naming it: it goes into
 `data/supplement.tsv` first. `intake --new` runs intake for every text with no facts and
-no lesson.
+no lesson. `intake --reset <id>` deletes a text's facts and lessons, manual rows included, and
+their files, after the id is typed to confirm, then runs intake again; progress is untouched.
 
 Judgment — which matches are real words here, which single characters deserve
 expansion, contextual glosses, non-default readings — comes from outside the
@@ -266,6 +267,8 @@ real database from `data/` and query it.
 - 2026-10-28 An imported state's `changed_at` is the file's `as_of` date; the export writes dates only, so a state set on the page keeps its date but not its time across export and import.
 - 2026-10-28 The admin page edits no character fact: a character the dictionary lacks is added to `data/supplement.tsv` (intake refuses the text until then) and a contextual character gloss is edited in the annotation file. The add forms' pinyin, gloss and level make the supplement entry; a word's `gloss` on a text or lesson is contextual only. `pinyin.guess` is gone: a supplement character's readings are the file's and pypinyin's.
 - 2026-10-28 Progress rows carry `origin` (`auto` | `manual` | `import`); automatic rows yield to any other candidate at import, which is what lets intake's `exposed` coexist with an older imported `mastered`. The progress database gets the column in place — the one schema change not done by rebuilding.
+- 2026-10-28 A text imported from the page is written to `data/texts/` first, inserted as `build` inserts a file, and intaken; no rebuild, no redirect — a later `build` reproduces the same rows. `intake --reset` is the way to redo a text after its file is edited by hand.
+- 2026-10-28 A reading typed on the page must be one of the character's listed readings; one that comes from a dictionary word or a file (origin `auto` or `suggested`) may also be the neutral-tone form of one (地上 gives 上 `shang`), which intake otherwise fails on.
 - 2026-10-28 `character-gloss.tsv` is applied at build as well as baked by the derivation, so the dictionary page can edit an HSK character's gloss; HSK word meanings stay the master's and read-only. A blank `level` in the supplement means derived at load.
 - 2026-10-16 No collection entity and no text status: a text with its annotations is the material and is always in flux; `lesson` groups texts later.
 - 2026-10-16 Intake is deterministic and in-app; judgment comes from any outside AI tool via a prompt template producing the annotation file. No model calls in the app.
