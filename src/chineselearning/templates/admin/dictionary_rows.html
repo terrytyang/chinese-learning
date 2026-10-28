@@ -1,5 +1,15 @@
-{# The results card; as a fragment it also carries the "n shown" count of the filter form out of band. #}
+{# The results card: the count, "Add all shown to" a vocabulary lesson (the filter form's fields ride along), the rows. #}
 <div id="rows" class="card"{% if oob %} hx-swap-oob="true"{% endif %}>
+<div class="row">
+  <span id="shown" class="muted">{{ shown }}</span>
+  <span class="spacer"></span>
+  <form class="inline" hx-post="/dictionary/add-to-lesson" hx-include="#filters" hx-target="#rows" hx-swap="outerHTML">
+    <label class="muted">Add all shown to <select name="lesson" aria-label="Lesson">{% for l in vocabulary %}<option value="{{ l.id }}"{% if l.id == selected_lesson %} selected{% endif %}>{{ l.name }}</option>{% endfor %}<option value="new"{% if not selected_lesson and not vocabulary %} selected{% endif %}>New lesson…</option></select></label>
+    <button class="primary">Add all {{ rows | length }} shown</button>
+  </form>
+</div>
+{% if added_to %}<p class="muted">Added {{ added_to.count }} to {{ added_to.name }} · <a href="/lessons/{{ added_to.id }}">Open →</a></p>{% endif %}
+{% if error %}<p class="error">{{ error }}</p>{% endif %}
 {% if rows %}
 <table>
   <thead><tr><th>Item</th><th>Pinyin</th><th>Level</th><th>Source</th><th>Gloss</th><th>State</th><th></th></tr></thead>
@@ -11,4 +21,3 @@
 {% else %}<p class="empty">No entries match</p>{% endif %}
 <p class="muted">HSK entries: only the gloss is editable (it writes data/character-gloss.tsv). Supplement entries: pinyin, gloss and level (data/supplement.tsv). Meanings, readings and HSK levels are the master's and read-only. State writes the learner's database.</p>
 </div>
-{% if fragment %}<span id="shown" class="muted" hx-swap-oob="true">{{ shown }}</span>{% endif %}

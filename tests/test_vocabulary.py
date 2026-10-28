@@ -134,3 +134,56 @@ def test_removal_undoes_an_automatic_exposure_only_when_no_lesson_holds_it(site)
     assert states(conn) == {"月": "exposed", "乌": "exposed", "银行": "exposed"} and lessons.held(conn, "character", "月") and not lessons.held(conn, "word", "乌鸦")
     deselect(conn, t, "characters", "月")
     assert states(conn) == {"乌": "exposed", "银行": "exposed"}
+
+
+def items(html):
+    return re.findall(r'<tr id="entry-(.*?)"', html)
+
+
+def test_add_all_shown_to_a_new_and_an_existing_lesson(site):
+    conn = connect(site)
+    filters = {"q": "乌", "kind": "all", "source": "all", "min": "1", "max": "7", "state": "unconfirmed"}
+    shown = items(get(site, "/dictionary/rows", **filters).text)
+    assert shown == ["乌黑", "乌", "乌云", "乌鸦", "鸦"]
+    r = post(site, "/dictionary/add-to-lesson", lesson="new", **filters)
+    assert r.status_code == 200 and r.text.startswith('<div id="rows" class="card">') and items(r.text) == []  # now exposed: no longer unconfirmed
+    lesson = lessons.vocabulary(conn)[0]
+    assert lesson["name"] == f"Vocabulary {TODAY}" and f'Added 5 to Vocabulary {TODAY} · <a href="/lessons/{lesson["id"]}">Open →</a>' in r.text
+    assert f'<option value="{lesson["id"]}" selected>Vocabulary {TODAY}</option>' in r.text and '<option value="new">New lesson…</option>' in r.text
+    content = lessons.load(conn, lesson["id"])
+    assert sorted(c["char"] for c in content["characters"]) == ["乌", "鸦"] and content["words"] == {"乌黑", "乌云", "乌鸦"}
+    data = json.loads((site.data / "lessons" / f"{lesson['id']}.json").read_text(encoding="utf-8"))
+    assert (data["text_id"], data["characters"], data["words"]) == (None, ["乌", "鸦"], ["乌云", "乌鸦", "乌黑"])
+    assert states(conn) == {"乌": "exposed", "鸦": "exposed", "乌黑": "exposed", "乌云": "exposed", "乌鸦": "exposed"}
+    r = post(site, "/dictionary/add-to-lesson", lesson=str(lesson["id"]), **{**filters, "state": "exposed"})
+    assert r.status_code == 200 and f"Added 0 to Vocabulary {TODAY} · " in r.text and len(items(r.text)) == 5  # the same rows: nothing changes
+    assert json.loads((site.data / "lessons" / f"{lesson['id']}.json").read_text(encoding="utf-8")) == data
+    r = post(site, "/dictionary/add-to-lesson", lesson="new", q="月亮", kind="all", source="all", min="1", max="7", state="any")
+    second = lessons.vocabulary(conn)[0]
+    assert second["name"] == f"Vocabulary {TODAY} (2)" and f"Added 1 to Vocabulary {TODAY} (2)" in r.text and lessons.load(conn, second["id"])["words"] == {"月亮"}
+    assert r.text.index(f'value="{second["id"]}"') < r.text.index(f'value="{lesson["id"]}"')  # newest first
+    assert post(site, "/dictionary/add-to-lesson", lesson="999", q="月亮").status_code == 404
+    lessons.create(conn, 1, "T")
+    conn.commit()
+    assert post(site, "/dictionary/add-to-lesson", lesson=str(lessons.for_text(conn, 1)[0]["id"]), q="月亮").status_code == 404  # a text lesson is not a target
+
+
+def test_changed_filter_and_the_dates_endpoint(site):
+    conn = connect(site)
+    progress.set_state(conn, "character", "月", "mastered", "manual", changed_at="2026-09-01T10:00:00Z")
+    progress.set_state(conn, "character", "落", "recognized", "manual", changed_at="2026-10-01T10:00:00Z")
+    progress.set_state(conn, "word", "银行", "exposed", "import", changed_at="2026-10-01")
+    progress.set_state(conn, "character", "乌", "exposed", "auto", changed_at="2026-10-15T23:59:59Z")
+    conn.commit()
+    rows = lambda changed, date="", q="": set(items(get(site, "/dictionary/rows", q=q, kind="all", changed=changed, date=date).text))  # noqa: E731
+    assert rows("on", "2026-10-01") == {"落", "银行"} and rows("before", "2026-10-01") == {"月"} and rows("on_or_before", "2026-10-01") == {"月", "落", "银行"}
+    assert rows("after", "2026-10-01") == {"乌"} and rows("on_or_after", "2026-10-01") == {"落", "银行", "乌"} and rows("on", "2026-10-02") == set()
+    assert "天" in rows("any", q="天") and "天" in rows("any", "2026-10-01", q="天") and "天" in rows("on", q="天")  # unconfirmed rows match only any; no date means no constraint
+    assert "天" not in rows("on", "2026-10-01", q="天") and items(get(site, "/dictionary/rows", changed="on", date="2026-10-01", state="unconfirmed").text) == []
+    page = site.client.get("/dictionary", params={"changed": "on", "date": "2026-10-01"}).text
+    assert '<select name="changed" aria-label="Changed" hx-get="/dictionary/changed-dates" hx-target="#date" hx-swap="outerHTML" hx-include="#date">' in page
+    assert '<option value="on" selected>on</option>' in page and '<select id="date" name="date" aria-label="Date"><option value="2026-10-15">2026-10-15 (1)</option><option value="2026-10-01" selected>2026-10-01 (2)</option><option value="2026-09-01">2026-09-01 (1)</option></select>' in page
+    r = get(site, "/dictionary/changed-dates", changed="after", date="2026-10-01")
+    assert r.status_code == 200 and r.text == '<input id="date" type="date" name="date" aria-label="Date" value="2026-10-01">'
+    assert get(site, "/dictionary/changed-dates", changed="any", date="2026-10-01").text == '<input id="date" type="hidden" name="date" value="2026-10-01">'
+    assert get(site, "/dictionary/changed-dates", changed="on").text.startswith('<select id="date" name="date" aria-label="Date"><option value="2026-10-15">2026-10-15 (1)</option>')

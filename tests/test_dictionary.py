@@ -27,7 +27,7 @@ def rows(site, **filters):
 
 
 def shown(html):
-    return re.search(r'<span id="shown" class="muted" hx-swap-oob="true">(.*?)</span>', html).group(1)
+    return re.search(r'<span id="shown" class="muted">(.*?)</span>', html).group(1)
 
 
 def cell(html, item, column):
@@ -41,7 +41,8 @@ def test_page_counts_filters_and_defaults(site, baseline):
     unglossed = baseline.unglossed  # every HSK character has a gloss; a supplement character's counts like a supplement word's
     assert f"{baseline.hsk_characters + baseline.characters:,} characters · {baseline.hsk_words:,} HSK words · {baseline.entries} supplement entries · {unglossed} without a gloss" in page
     assert f'<span id="shown" class="muted">{CAP} of {baseline.hsk_characters + baseline.characters + baseline.hsk_words + baseline.words:,} shown — narrow the filters</span>' in page
-    assert 'hx-get="/dictionary/rows" hx-trigger="change, keyup changed delay:300ms from:#q" hx-target="#rows" hx-swap="outerHTML" hx-push-url="true"' in page
+    assert 'hx-get="/dictionary/rows" hx-trigger="input delay:300ms" hx-target="#rows" hx-swap="outerHTML"' in page and "hx-push-url" not in page
+    assert get(site, "/dictionary/rows", q="乌", kind="word").headers["HX-Push-Url"] == "/dictionary?q=%E4%B9%8C&kind=word&source=all&min=1&max=7&state=any&changed=any"
     assert '<option value="all" selected>all</option>' in page and '<option value="any" selected>any</option>' in page and 'name="nogloss" value="1">' in page
     assert len(items(page)) == CAP and items(page)[0] == "一"  # level 1 first, then by item
     assert site.client.get("/dictionary/rows", params={"q": "乌"}).text.count("<h1>Dictionary</h1>") == 1  # a plain request gets the page
@@ -149,7 +150,7 @@ def test_lookup_and_add(site, probe, baseline):
     before = path.read_text(encoding="utf-8")
     r = post(site, "/dictionary/add", item=probe.word, pinyin=probe.pinyin, gloss="probe", level="")
     assert r.status_code == 200 and f"Added to the supplement: <span class=\"zh\">{probe.word}</span>." in r.text and 'hx-post="/dictionary/add"' not in r.text
-    assert '<div id="rows" class="card" hx-swap-oob="true">' in r.text and items(r.text) == [probe.word] and f'hx-swap-oob="true">1 shown</span>' in r.text
+    assert '<div id="rows" class="card" hx-swap-oob="true">' in r.text and items(r.text) == [probe.word] and shown(r.text) == "1 shown"
     assert path.read_text(encoding="utf-8") == before + f"{probe.word}\t{probe.pinyin}\tprobe\t\n"
     word = db.lookup_word(db.connect(site.db), probe.word)
     assert (word["source"], word["meanings"], word["hsk_level"], word["id"]) == ("supplement", ["probe"], probe.level, 10_000_000 + baseline.lines)

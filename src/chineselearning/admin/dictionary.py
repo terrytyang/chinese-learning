@@ -6,14 +6,16 @@ from urllib.parse import urlencode
 from fastapi import Depends, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
 
-from .. import gloss_file, progress, supplement
+from .. import gloss_file, lesson_files, lessons, progress, supplement
 from .. import pinyin as pinyin_
-from .common import ERRORS, filters_of, is_fragment, level_bounds
+from .common import ERRORS, filters_of, is_fragment, level_bounds, select_character, select_word
 
-DEFAULTS = {"q": "", "kind": "all", "source": "all", "min": "1", "max": "7", "state": "any", "nogloss": ""}
+DEFAULTS = {"q": "", "kind": "all", "source": "all", "min": "1", "max": "7", "state": "any", "nogloss": "", "changed": "any", "date": ""}
 KIND_OPTIONS = (("all", "all"), ("character", "characters"), ("word", "words"))
 SOURCE_OPTIONS = (("all", "all"), ("hsk", "HSK"), ("supplement", "supplement"))
 STATE_OPTIONS = ("any", *progress.STATES)
+CHANGED_OPTIONS = (("any", "any"), ("on", "on"), ("before", "before"), ("on_or_before", "on or before"), ("after", "after"), ("on_or_after", "on or after"))
+CHANGED_SQL = {"on": "=", "before": "<", "on_or_before": "<=", "after": ">", "on_or_after": ">="}
 CAP = 200
 NOT_EDITABLE = "an HSK word is not editable; HSK meanings are read-only"
 # One query over both tables: a character's gloss, a word's meanings joined (a supplement word's is [gloss] or []).
@@ -37,6 +39,9 @@ def where(filters) -> tuple[str, list]:
         params.append(filters["state"])
     if filters["nogloss"] == "1":
         clauses.append("coalesce(d.gloss, '') = ''")
+    if filters["changed"] in CHANGED_SQL and filters["date"].strip():  # the date part of changed_at; unconfirmed rows have none
+        clauses.append(f"substr(p.changed_at, 1, 10) {CHANGED_SQL[filters['changed']]} ?")
+        params.append(filters["date"].strip())
     if filters["q"].strip():
         like = "%" + filters["q"].strip().replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         clauses.append("(d.item LIKE ? ESCAPE '\\' OR d.pinyin LIKE ? ESCAPE '\\' OR d.gloss LIKE ? ESCAPE '\\')")
@@ -72,6 +77,16 @@ def header(conn) -> str:
     return f"{characters:,} characters · {hsk_words:,} HSK words · {entries:,} supplement entries · {unglossed:,} without a gloss"
 
 
+def changed_dates(conn, learner_id=progress.LEARNER) -> list[tuple[str, int]]:
+    """The distinct dates in the learner's progress rows, newest first, each with its count."""
+    sql = "SELECT substr(changed_at, 1, 10) AS day, count(*) FROM progress.progress WHERE learner_id = ? GROUP BY day ORDER BY day DESC"
+    return [(r[0], r[1]) for r in conn.execute(sql, (learner_id,))]
+
+
+def member_count(conn, lesson_id) -> int:
+    return sum(conn.execute(f"SELECT count(*) FROM {t} WHERE lesson_id = ?", (lesson_id,)).fetchone()[0] for t in ("lesson_character", "lesson_word"))
+
+
 def file_level(data_dir, item) -> int | None:
     """A supplement entry's level as the file says it: None when derived."""
     for line in supplement.file_path(data_dir).read_text(encoding="utf-8").split("\n"):
@@ -98,13 +113,17 @@ def routes(r, admin, connection):
     def rows_context(conn, filters, **state) -> dict:
         rows, total = entries(conn, filters)
         query = "?" + urlencode({k: v for k, v in filters.items() if v})
-        return {"rows": rows, "filters": filters, "q": query, "shown": shown_label(rows, total), "STATES": progress.STATES, **state}
+        return {"rows": rows, "filters": filters, "q": query, "shown": shown_label(rows, total), "STATES": progress.STATES,
+                "vocabulary": lessons.vocabulary(conn), "selected_lesson": None, "added_to": None, "error": None, **state}
+
+    def date_context(conn, filters) -> dict:
+        return {"filters": filters, "dates": changed_dates(conn) if filters["changed"] == "on" else []}
 
     def page(request, conn):
         """The shell: the header counts, the filter form, the rows for the URL's filters, the add card."""
         filters, _ = filters_of(request, DEFAULTS, checkboxes=("nogloss",))
-        ctx = {**rows_context(conn, filters), "header": header(conn), "kind_options": KIND_OPTIONS, "source_options": SOURCE_OPTIONS,
-               "state_options": STATE_OPTIONS, "lookup": None, "added": None}
+        ctx = {**rows_context(conn, filters), **date_context(conn, filters), "header": header(conn), "kind_options": KIND_OPTIONS,
+               "source_options": SOURCE_OPTIONS, "state_options": STATE_OPTIONS, "changed_options": CHANGED_OPTIONS, "lookup": None, "added": None}
         return templates.TemplateResponse(request, "admin/dictionary.html", ctx)
 
     def row(request, conn, item, status=200, editing=False, error=None, submitted=None):
@@ -120,7 +139,7 @@ def routes(r, admin, connection):
     def add_card(request, conn, status=200, lookup=None, added=None, error=None, submitted=None, oob_rows=False):
         ctx = {"request": request, "lookup": lookup, "added": added, "error": error, "submitted": submitted, "oob": False}
         if oob_rows:
-            ctx.update(rows_context(conn, {**DEFAULTS, "q": added}, oob=True, fragment=True))
+            ctx.update(rows_context(conn, {**DEFAULTS, "q": added}, oob=True, error=None))
         return fragment("add", ctx, status)
 
     @r.get("/dictionary", response_class=HTMLResponse)
@@ -129,11 +148,46 @@ def routes(r, admin, connection):
 
     @r.get("/dictionary/rows", response_class=HTMLResponse)
     def rows(request: Request, conn=Depends(connection)):
-        """The results card for the filters in the query string; a non-htmx request gets the whole page."""
+        """The results card for the filters in the query string, pushing /dictionary?… as the URL; a non-htmx request gets the whole page."""
         if not is_fragment(request):
             return page(request, conn)
         filters, _ = filters_of(request, DEFAULTS, checkboxes=("nogloss",))
-        return fragment("rows", {"request": request, **rows_context(conn, filters, oob=False, fragment=True)})
+        ctx = rows_context(conn, filters, oob=False)
+        response = fragment("rows", {"request": request, **ctx})
+        response.headers["HX-Push-Url"] = "/dictionary" + ("" if ctx["q"] == "?" else ctx["q"])
+        return response
+
+    @r.get("/dictionary/changed-dates", response_class=HTMLResponse)
+    def changed_date_control(request: Request, conn=Depends(connection)):
+        """The Changed filter's date control for the operator: a select of the dates in the progress table for `on`, a date input otherwise."""
+        filters, _ = filters_of(request, DEFAULTS, checkboxes=("nogloss",))
+        return fragment("date", date_context(conn, filters))
+
+    @r.post("/dictionary/add-to-lesson", response_class=HTMLResponse)
+    def add_to_lesson(request: Request, lesson: str = Form(""), q: str = Form(""), kind: str = Form("all"), source: str = Form("all"), min: str = Form("1"),
+                      max: str = Form("7"), state: str = Form("any"), nogloss: str = Form(""), changed: str = Form("any"), date: str = Form(""), conn=Depends(connection)):
+        """Every row the filters show, up to the cap, into a vocabulary lesson (`new` creates one with the default name); duplicates are no-ops.
+        The response is the results card for the same filters with the line "Added N to 〈name〉"."""
+        filters = {"q": q, "kind": kind, "source": source, "min": min, "max": max, "state": state, "nogloss": nogloss, "changed": changed, "date": date}
+        rows, _ = entries(conn, filters)
+        try:
+            if lesson == "new":
+                lesson_id = lessons.create(conn, None, lessons.default_name(conn))
+            else:
+                found = lessons.get(conn, int(lesson)) if lesson.isdigit() else None
+                if found is None or found["text_id"] is not None:
+                    raise HTTPException(status_code=404, detail="no such vocabulary lesson")
+                lesson_id = found["id"]
+            before = member_count(conn, lesson_id)
+            for e in rows:
+                (select_character if e["kind"] == "character" else select_word)(conn, lesson_id, e["item"])
+        except ERRORS as err:
+            conn.rollback()
+            return fragment("rows", {"request": request, **rows_context(conn, filters, oob=False, error=str(err))}, 422)
+        conn.commit()
+        lesson_files.write_file(conn, lesson_id, admin.data_dir)
+        added = {"count": member_count(conn, lesson_id) - before, "id": lesson_id, "name": lessons.get(conn, lesson_id)["name"]}
+        return fragment("rows", {"request": request, **rows_context(conn, filters, oob=False, selected_lesson=lesson_id, added_to=added)})
 
     @r.get("/dictionary/row/{item}", response_class=HTMLResponse)
     def show(request: Request, item: str, edit: str = "", conn=Depends(connection)):
