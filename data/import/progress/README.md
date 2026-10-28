@@ -24,7 +24,13 @@ item	state	as_of	pinyin	gloss	level
   all) means the file carries dictionary entries only and says nothing about
   the student.
 - `pinyin`, `gloss`, `level` are optional and matter only for items the
-  dictionary does not have: they become the supplement entry.
+  dictionary does not have: they become the supplement entry. A blank `level`
+  (here as in `supplement.tsv`) means *derived at load*: a character is 7, a
+  word the highest level among its characters.
+- `origin` is optional: `auto` | `manual` | `import`; blank or absent means
+  `import`. Any other value is refused, naming the line. The column header
+  names `item state as_of` and then any of `pinyin gloss level origin`, in that
+  order (`export-progress` writes `item state as_of origin`).
 - Anything missing that only the owner knows is written as `?` by the
   transform and filled in before import; the importer refuses `?`.
 
@@ -32,5 +38,7 @@ item	state	as_of	pinyin	gloss	level
 `data/progress/` (the exported snapshot), resolves each item's state by
 timestamp (latest wins; on a tie the lowest state), implies a character's
 state from the words containing it, adds unmatched items to
-`data/supplement.tsv`, and prints a report. `--check` prints the report and
-writes nothing. Re-running is a no-op.
+`data/supplement.tsv`, and prints a report. `auto` candidates — rows intake or
+a lesson made, and lines that say so — count only when the item has no other
+kind, so an imported `mastered` outranks an automatic `exposed` dated later.
+`--check` prints the report and writes nothing. Re-running is a no-op.

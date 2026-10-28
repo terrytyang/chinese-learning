@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "admin/nav.html" import nav %}
+{% from "admin/macros.html" import levels with context %}
+{% block title %}Dictionary{% endblock %}
+{% block nav %}{{ nav("dictionary") }}{% endblock %}
+{% block content %}
+<div class="dict">
+  <div class="head"><h1>Dictionary</h1><span class="muted">{{ header }}</span></div>
+  {# Filters live in the URL: every change fetches the rows and pushes /dictionary/rows?…, which a plain request answers with the whole page. #}
+  <form class="filters card" hx-get="/dictionary/rows" hx-trigger="change, keyup changed delay:300ms from:#q" hx-target="#rows" hx-swap="outerHTML" hx-push-url="true">
+    <input id="q" class="zh" name="q" aria-label="Search" placeholder="character, word, pinyin or gloss" value="{{ filters.q }}">
+    <label class="muted">Kind <select name="kind">{% for value, label in kind_options %}<option value="{{ value }}"{% if filters.kind == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="muted">Source <select name="source">{% for value, label in source_options %}<option value="{{ value }}"{% if filters.source == value %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+    <label class="muted">Level <select name="min" aria-label="Lowest level">{{ levels(filters.min) }}</select> to <select name="max" aria-label="Highest level">{{ levels(filters.max) }}</select></label>
+    <label class="muted">State <select name="state" aria-label="State filter">{% for value in state_options %}<option value="{{ value }}"{% if filters.state == value %} selected{% endif %}>{{ value }}</option>{% endfor %}</select></label>
+    <label class="muted"><input type="checkbox" name="nogloss" value="1"{% if filters.nogloss == "1" %} checked{% endif %}> without a gloss only</label>
+    <span class="spacer"></span>
+    <span id="shown" class="muted">{{ shown }}</span>
+  </form>
+  {% include "admin/dictionary_rows.html" %}
+  {% include "admin/dictionary_add.html" %}
+</div>
+{% endblock %}

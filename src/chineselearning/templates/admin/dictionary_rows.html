@@ -1,0 +1,14 @@
+{# The results card; as a fragment it also carries the "n shown" count of the filter form out of band. #}
+<div id="rows" class="card"{% if oob %} hx-swap-oob="true"{% endif %}>
+{% if rows %}
+<table>
+  <thead><tr><th>Item</th><th>Pinyin</th><th>Level</th><th>Source</th><th>Gloss</th><th>State</th><th></th></tr></thead>
+  <tbody>
+  {% for r in rows %}{% include "admin/dictionary_row.html" %}
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}<p class="empty">No entries match</p>{% endif %}
+<p class="muted">HSK entries: only the gloss is editable (it writes data/character-gloss.tsv). Supplement entries: pinyin, gloss and level (data/supplement.tsv). Meanings, readings and HSK levels are the master's and read-only. State writes the learner's database.</p>
+</div>
+{% if fragment %}<span id="shown" class="muted" hx-swap-oob="true">{{ shown }}</span>{% endif %}

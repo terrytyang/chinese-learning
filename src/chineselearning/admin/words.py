@@ -99,6 +99,6 @@ def routes(r, admin, connection):
             annotations.add_word(conn, text_id, surface)
             select_word(conn, lesson_id, word)
             if local and state and state != "unconfirmed":
-                progress.set_state(conn, "word", word, state)
+                progress.set_state(conn, "word", word, state, "manual")
         pending = {"surface": word, "pinyin": pinyin} if local else None
         return tab(request, conn, text_id, lesson, change, form, submitted, pending=pending)

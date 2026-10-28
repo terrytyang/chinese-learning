@@ -1,0 +1,11 @@
+{% from "admin/macros.html" import keep, err, levels with context %}
+{# Add an entry: look up, then the details form for an item the dictionary lacks. After an add, the rows region follows out of band. #}
+<div id="add" class="card" hx-target="#add" hx-swap="outerHTML">
+  <div class="sec" style="margin-top: 0">Add an entry <span class="hint">— a character or word the dictionary lacks; it becomes a supplement entry</span></div>
+  <form class="inline" hx-post="/dictionary/lookup">{{ err("lookup") }}<input class="zh" name="item" placeholder="character or word" value="{{ lookup.item if lookup else '' }}"> <button class="primary">Look up</button>
+    {%- if added %} <span class="muted">Added to the supplement: <span class="zh">{{ added }}</span>.</span>{% elif lookup and lookup.found %} <span class="muted">Already in the dictionary — <a href="/dictionary?q={{ lookup.item }}">shown above</a>.</span>{% endif %}</form>
+  {% if lookup and not lookup.found %}
+  <form class="local" hx-post="/dictionary/add">{{ err("add") }}<input type="hidden" name="item" value="{{ lookup.item }}"><span><span class="zh">{{ lookup.item }}</span> is not in the dictionary.</span> <input name="pinyin" placeholder="pinyin" value="{{ keep('add', 'pinyin') or lookup.pinyin }}"> <input name="gloss" placeholder="gloss" value="{{ keep('add', 'gloss') }}"> <select name="level" aria-label="Level"><option value="">derived</option>{{ levels(keep('add', 'level')) }}</select> <button class="primary">Add to supplement</button></form>
+  {% endif %}
+</div>
+{% if oob %}{% include "admin/dictionary_rows.html" %}{% endif %}

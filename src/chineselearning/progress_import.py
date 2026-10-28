@@ -15,34 +15,38 @@ RANK = {s: i for i, s in enumerate(STATES)}
 class Candidate:
     state: str
     as_of: str
+    origin: str
     why: str
 
 
 def candidates(conn, entries, learner_id=LEARNER) -> dict[tuple[str, str], list[Candidate]]:
-    """Per (kind, key): the explicit entries, for a character every entry of a word containing it, and the current row."""
+    """Per (kind, key): the explicit entries, for a character every entry of a word containing it (with the word's origin), and
+    the current row (with its own)."""
     out: dict[tuple[str, str], list[Candidate]] = {}
     for e in entries:
         out.setdefault((e.kind, e.item), [])
         if e.state is None:
             continue
-        out[(e.kind, e.item)].append(Candidate(e.state, e.as_of, f"{e.state} {e.as_of} in {e.where}"))
+        out[(e.kind, e.item)].append(Candidate(e.state, e.as_of, e.origin, f"{e.state} {e.as_of} in {e.where}, origin {e.origin}"))
         if e.kind == "word":
             for ch in dict.fromkeys(e.item):
-                out.setdefault(("character", ch), []).append(Candidate(e.state, e.as_of, f"{e.state} {e.as_of} implied by {e.item} in {e.where}"))
+                out.setdefault(("character", ch), []).append(Candidate(e.state, e.as_of, e.origin, f"{e.state} {e.as_of} implied by {e.item} in {e.where}, origin {e.origin}"))
     for (kind, key), found in out.items():
-        row = conn.execute("SELECT state, changed_at FROM progress.progress WHERE learner_id = ? AND kind = ? AND key = ?", (learner_id, kind, key)).fetchone()
+        row = conn.execute("SELECT state, changed_at, origin FROM progress.progress WHERE learner_id = ? AND kind = ? AND key = ?", (learner_id, kind, key)).fetchone()
         if row:
-            found.append(Candidate(row[0], row[1][:10], f"{row[0]} {row[1][:10]} current"))
+            found.append(Candidate(row[0], row[1][:10], row[2], f"{row[0]} {row[1][:10]} current, origin {row[2]}"))
     return out
 
 
-def resolve(conn, entries, learner_id=LEARNER) -> dict[tuple[str, str], tuple[str, str, str]]:
-    """{(kind, key): (state, as_of, why)}: the latest candidate wins, the lowest state on a tie; items with no candidate are absent."""
+def resolve(conn, entries, learner_id=LEARNER) -> dict[tuple[str, str], tuple[str, str, str, str]]:
+    """{(kind, key): (state, as_of, origin, why)}: `auto` candidates count only when no other kind exists; among the rest the
+    latest wins, the lowest state on a tie. Items with no candidate are absent."""
     out = {}
     for item, found in candidates(conn, entries, learner_id).items():
-        if found:
-            best = max(found, key=lambda c: (c.as_of, -RANK[c.state]))
-            out[item] = (best.state, best.as_of, best.why)
+        considered = [c for c in found if c.origin != "auto"] or found
+        if considered:
+            best = max(considered, key=lambda c: (c.as_of, -RANK[c.state]))
+            out[item] = (best.state, best.as_of, best.origin, best.why)
     return out
 
 
@@ -111,7 +115,7 @@ def run(conn, data_dir, files=None, check=False, learner_id=LEARNER) -> Report:
         entries += progress_files.read(path)
     missing = unmatched(conn, entries)
     report = Report(check, [str(p) for p in paths], len(entries), [(e.original, e.item) for e in entries if e.original], added=missing)
-    for (kind, key), (state, as_of, why) in resolve(conn, entries, learner_id).items():
+    for (kind, key), (state, as_of, origin, why) in resolve(conn, entries, learner_id).items():
         current = progress.state_of(conn, kind, key, learner_id)
         if current == state:
             report.unchanged += 1
@@ -120,7 +124,7 @@ def run(conn, data_dir, files=None, check=False, learner_id=LEARNER) -> Report:
         if RANK[state] < RANK[current]:
             report.downgrades.append(f"{key} {current}→{state} ({why})")
         if not check:
-            progress.set_state(conn, kind, key, state, learner_id, changed_at=as_of)
+            progress.set_state(conn, kind, key, state, origin, learner_id, changed_at=as_of)
     if not check:
         for r in missing:
             supplement.add(conn, data_dir, r["item"], r["pinyin"], r["gloss"], r["level"])

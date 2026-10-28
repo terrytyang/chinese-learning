@@ -11,7 +11,7 @@
   <script src="/static/admin.js" defer></script>
 </head>
 <body>
-  <nav><a href="/texts">Texts</a> <a href="/learn">Learn</a></nav>
+  {% block nav %}<nav><a href="/texts">Texts</a> <a href="/learn">Learn</a></nav>{% endblock %}
   <main>
   {% block content %}{% endblock %}
   </main>

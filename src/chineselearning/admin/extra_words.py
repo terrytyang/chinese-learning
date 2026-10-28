@@ -64,7 +64,7 @@ def register(r, admin, connection, tab):
             lessons.add_extra_word(conn, lesson_id, surface, anchor)
             progress.expose(conn, "word", word)
             if local and state and state != "unconfirmed":
-                progress.set_state(conn, "word", word, state)
+                progress.set_state(conn, "word", word, state, "manual")
         pending = {"anchor": anchor, "surface": word, "pinyin": pinyin} if local else None
         return respond(request, conn, text_id, lesson, change, form, submitted, pending=pending)
 

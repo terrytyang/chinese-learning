@@ -4,7 +4,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-from . import annotation_files, lesson_files, supplement
+from . import annotation_files, gloss_file, lesson_files, supplement
 from . import texts as text_files
 from .texts import HAN, HAN_RUN
 
@@ -25,6 +25,8 @@ def connect(path, readonly=False, progress_path=None) -> sqlite3.Connection:
         Path(progress_path).parent.mkdir(parents=True, exist_ok=True)
         conn.execute("ATTACH DATABASE ? AS progress", (str(Path(progress_path).resolve()),))
         conn.executescript(PROGRESS_SCHEMA_PATH.read_text(encoding="utf-8"))
+        if "origin" not in [r[1] for r in conn.execute("PRAGMA progress.table_info(progress)")]:  # a file from before origin existed
+            conn.execute("ALTER TABLE progress.progress ADD COLUMN origin TEXT NOT NULL DEFAULT 'import'")
         conn.execute("INSERT INTO progress.learner (id, name) SELECT 1, 'Student' WHERE NOT EXISTS (SELECT 1 FROM progress.learner)")
         conn.commit()
     return conn
@@ -40,6 +42,7 @@ def build(db_path, data_dir) -> dict[str, int]:
     conn = connect(db_path)
     with conn:
         conn.executescript((data_dir / "hsk.sql").read_text(encoding="utf-8"))
+        gloss_file.apply(conn, data_dir)  # the derivation bakes the same file; applied again so the dictionary page's edits hold until the next derivation
         entries, unglossed = supplement.load(conn, data_dir)
         conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
         for t in texts:

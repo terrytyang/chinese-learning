@@ -21,7 +21,7 @@ student. Runs only inside the dev container, never on the internet. Read
 - `hsk-original/` — reference dataset. Read-only. The app never opens it.
 - `tools/` — one-off derivation scripts (may use pypinyin)
 - `data/` — source-controlled content: `hsk.sql` (generated), `supplement.tsv`, `character-gloss.tsv`
-  (curated), `texts/*.md` (hand-written), `annotations/`, `lessons/` (written by the app),
+  (curated, applied at build), `texts/*.md` (hand-written), `annotations/`, `lessons/` (written by the app),
   `progress/` (exported state), `import/progress/` (raw documents and their standard files)
 - `src/chineselearning/` — the app: `sqlite3` + FastAPI + Jinja2 + htmx (vendored in `static/`)
 - `docs/mockups/` — agreed page designs; a brief that says "match the mockup" means this
