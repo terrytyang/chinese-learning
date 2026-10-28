@@ -178,6 +178,12 @@ def settle(page):
 
 
 def report(results) -> str:
-    lines = [f"{'PASS' if r['ok'] else 'FAIL'} {r['page']}" + "".join(f"\n  - {why}" for why in r["reasons"]) for r in results]
+    """One line per page, then its reasons; identical reasons collapse into one line with a count."""
+    lines = []
+    for r in results:
+        counts = {}
+        for why in r["reasons"]:
+            counts[why] = counts.get(why, 0) + 1
+        lines.append(f"{'PASS' if r['ok'] else 'FAIL'} {r['page']}" + "".join(f"\n  - {why}" + (f" ×{n}" if n > 1 else "") for why, n in counts.items()))
     failed = sum(not r["ok"] for r in results)
     return "\n".join(lines) + f"\n{len(results)} pages, {failed} failed\n"

@@ -1,3 +1,6 @@
+/* The UI font is vendored (static/fonts, Inter 4.1, OFL) so Latin widths are the same on every machine; the system font is only a fallback. */
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap; src: url("fonts/Inter-Regular.woff2") format("woff2"); }
+@font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap; src: url("fonts/Inter-Medium.woff2") format("woff2"); }
 body { margin: 0; background: #f6f5f2; color: #1f1f1d; font-family: Inter, system-ui, sans-serif; font-size: 14px; line-height: 1.45; }
 nav, main { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
 nav { padding-top: 14px; }
@@ -23,15 +26,15 @@ input[type="checkbox"], input[type="radio"] { min-height: 0; }
 form { margin: 0; }
 form.inline, form.filters, form.states { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 form.filters { gap: 10px; }
-form.states { gap: 0; white-space: nowrap; flex-wrap: nowrap; }  /* one segmented control, one line */
-form.states button { border-radius: 0; margin-left: -1px; position: relative; padding: 4px 8px; }
+form.states { display: flex; gap: 0; max-width: 100%; white-space: nowrap; flex-wrap: nowrap; }  /* one segmented control, one line */
+form.states button { border-radius: 0; margin-left: -1px; position: relative; padding: 4px 8px; flex: 0 1 auto; min-width: 0; overflow: hidden; }  /* short of room, a button sheds its padding before the control overflows */
 form.states button:first-child { border-radius: 6px 0 0 6px; margin-left: 0; }
 form.states button:last-child { border-radius: 0 6px 6px 0; }
 form.states button.on { z-index: 1; }
 /* tables with Chinese item cells: fixed columns; item, pinyin, state and actions never wrap; the gloss takes the rest and wraps */
 .card table, .block table { table-layout: fixed; }
 th.w-check { width: 28px; } th.w-item { width: 100px; } th.w-py { width: 120px; } th.w-level { width: 52px; } th.w-source { width: 96px; }
-th.w-origin { width: 84px; } th.w-state { width: 340px; } th.w-st { width: 96px; } th.w-act { width: 80px; } th.w-acts { width: 130px; }
+th.w-origin { width: 84px; } th.w-state { width: 380px; }  /* the control is 341px under Inter: room for it plus a margin */ th.w-st { width: 96px; } th.w-act { width: 80px; } th.w-acts { width: 130px; }
 td.zh, td.py, td.st { white-space: nowrap; }
 form.local { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 12px; background: #fff7e6; border-radius: 8px; }
 .muted { color: #6b6b66; }
