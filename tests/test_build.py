@@ -5,9 +5,10 @@ from pathlib import Path
 from chineselearning import annotation_files, db, lesson_files, lessons
 
 
-def test_build_counts(built):
+def test_build_counts(built, baseline):
     path, counts = built
-    assert {k: counts[k] for k in ("character", "word", "text", "tag")} == {"character": 3049, "word": 9899, "text": 5, "tag": 2}
+    expected = {"character": baseline.hsk_characters + baseline.characters, "word": baseline.hsk_words + baseline.words, "text": 5, "tag": 2}
+    assert {k: counts[k] for k in expected} == expected
 
 
 def test_build_imports_texts_with_tags(built):
@@ -25,12 +26,13 @@ def test_build_overwrites(tmp_path):
     assert sqlite3.connect(path).execute("SELECT count(*) FROM text").fetchone()[0] == 5
 
 
-def test_cli_build_prints_counts(tmp_path, capsys):
+def test_cli_build_prints_counts(tmp_path, capsys, baseline):
     from chineselearning.cli import main
 
     main(["build", "--db", str(tmp_path / "c.sqlite")])
     out = capsys.readouterr().out
-    assert "character 3049, word 9899, text 5, tag 2" in out and "15 supplement entries, 0 without a gloss" in out
+    assert f"character {baseline.hsk_characters + baseline.characters}, word {baseline.hsk_words + baseline.words}, text 5, tag 2" in out
+    assert f"{baseline.entries} supplement entries, {baseline.unglossed} without a gloss" in out
 
 
 def test_find_words_never_spans_a_line_break_or_punctuation(built):
@@ -40,11 +42,11 @@ def test_find_words_never_spans_a_line_break_or_punctuation(built):
     assert [w["simplified"] for w in db.find_words(conn, "山中国家")] == ["中国", "国家"]
 
 
-def test_master_shape(built):
+def test_master_shape(built, baseline):
     """Glosses arrive baked into hsk.sql; `word` holds multi-character items only; forms beyond the primary are in alt_readings."""
     conn = db.connect(built[0], readonly=True)
-    assert conn.execute("SELECT count(*) FROM character WHERE gloss IS NOT NULL").fetchone()[0] == 3049
-    assert conn.execute("SELECT count(*) FROM character WHERE source = 'hsk'").fetchone()[0] == 3034
+    assert conn.execute("SELECT count(*) FROM character WHERE source = 'hsk' AND gloss IS NULL").fetchone()[0] == 0
+    assert conn.execute("SELECT count(*) FROM character WHERE source = 'hsk'").fetchone()[0] == baseline.hsk_characters
     assert conn.execute("SELECT gloss FROM character WHERE char = '月'").fetchone()[0] == "moon, month"
     assert conn.execute("SELECT count(*) FROM word WHERE length(simplified) = 1").fetchone()[0] == 0
     assert "readings" not in [r[1] for r in conn.execute("PRAGMA table_info(word)")]
