@@ -11,3 +11,6 @@ build/
 *.sqlite-wal
 *.sqlite-shm
 *.sqlite-journal
+
+# MS office temp files
+~$*.xlsx

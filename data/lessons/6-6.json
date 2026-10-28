@@ -1,0 +1,63 @@
+{
+  "lesson_id": 6,
+  "text_id": 6,
+  "name": "Learn 静夜思",
+  "characters": [
+    "举",
+    "乡",
+    "低",
+    "光",
+    "地",
+    "头",
+    "床",
+    "思",
+    "故",
+    "望",
+    "疑",
+    "霜"
+  ],
+  "words": [
+    "低头",
+    "地上",
+    "故乡",
+    "月光"
+  ],
+  "extra_words": [
+    {
+      "anchor": "光",
+      "surface": "光亮",
+      "pinyin": "guāng liàng",
+      "gloss": null,
+      "origin": "manual"
+    },
+    {
+      "anchor": "光",
+      "surface": "光线",
+      "pinyin": "guāng xiàn",
+      "gloss": null,
+      "origin": "manual"
+    },
+    {
+      "anchor": "光",
+      "surface": "光辉",
+      "pinyin": "guāng huī",
+      "gloss": null,
+      "origin": "manual"
+    },
+    {
+      "anchor": "疑",
+      "surface": "可疑",
+      "pinyin": "kě yí",
+      "gloss": null,
+      "origin": "manual"
+    },
+    {
+      "anchor": "疑",
+      "surface": "怀疑",
+      "pinyin": "huái yí",
+      "gloss": null,
+      "origin": "manual"
+    }
+  ],
+  "notes": []
+}

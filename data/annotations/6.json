@@ -1,0 +1,152 @@
+{
+  "text_id": 6,
+  "readings": [
+    {
+      "position": 0,
+      "char": "床",
+      "pinyin": "chuáng",
+      "origin": "auto"
+    },
+    {
+      "position": 1,
+      "char": "前",
+      "pinyin": "qián",
+      "origin": "auto"
+    },
+    {
+      "position": 2,
+      "char": "明",
+      "pinyin": "míng",
+      "origin": "auto"
+    },
+    {
+      "position": 3,
+      "char": "月",
+      "pinyin": "yuè",
+      "origin": "auto"
+    },
+    {
+      "position": 4,
+      "char": "光",
+      "pinyin": "guāng",
+      "origin": "auto"
+    },
+    {
+      "position": 7,
+      "char": "疑",
+      "pinyin": "yí",
+      "origin": "auto"
+    },
+    {
+      "position": 8,
+      "char": "是",
+      "pinyin": "shì",
+      "origin": "auto"
+    },
+    {
+      "position": 9,
+      "char": "地",
+      "pinyin": "dì",
+      "origin": "auto"
+    },
+    {
+      "position": 10,
+      "char": "上",
+      "pinyin": "shang",
+      "origin": "auto"
+    },
+    {
+      "position": 11,
+      "char": "霜",
+      "pinyin": "shuāng",
+      "origin": "auto"
+    },
+    {
+      "position": 14,
+      "char": "举",
+      "pinyin": "jǔ",
+      "origin": "auto"
+    },
+    {
+      "position": 15,
+      "char": "头",
+      "pinyin": "tóu",
+      "origin": "auto"
+    },
+    {
+      "position": 16,
+      "char": "望",
+      "pinyin": "wàng",
+      "origin": "auto"
+    },
+    {
+      "position": 17,
+      "char": "明",
+      "pinyin": "míng",
+      "origin": "auto"
+    },
+    {
+      "position": 18,
+      "char": "月",
+      "pinyin": "yuè",
+      "origin": "auto"
+    },
+    {
+      "position": 21,
+      "char": "低",
+      "pinyin": "dī",
+      "origin": "auto"
+    },
+    {
+      "position": 22,
+      "char": "头",
+      "pinyin": "tóu",
+      "origin": "auto"
+    },
+    {
+      "position": 23,
+      "char": "思",
+      "pinyin": "sī",
+      "origin": "auto"
+    },
+    {
+      "position": 24,
+      "char": "故",
+      "pinyin": "gù",
+      "origin": "auto"
+    },
+    {
+      "position": 25,
+      "char": "乡",
+      "pinyin": "xiāng",
+      "origin": "auto"
+    }
+  ],
+  "characters": [],
+  "words": [
+    {
+      "surface": "低头",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "地上",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "故乡",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    },
+    {
+      "surface": "月光",
+      "pinyin": null,
+      "gloss": null,
+      "origin": "auto"
+    }
+  ]
+}
